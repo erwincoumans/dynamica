@@ -22,26 +22,33 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
+02/18/2010 : Re-enabled COLLADA export as option (next to Bullet binary export)
 */
 
 //bt_solver.cpp
 
 #include "LinearMath/btSerializer.h"
 #include "bt_solver.h"
-//#include "../BulletColladaConverter/ColladaConverter.h"
-//#include "../Serialize/BulletFileLoader/btBulletFile.h"
-
-btVector3 minWorld(-10000,-10000,-10000);
-btVector3 maxWorld(10000,10000,10000);
-int maxNumObj=32768;
+#include "../BulletColladaConverter/ColladaConverter.h"
 
 
 
+void bt_solver_t::export_collada_file(const char* fileName)
+{
+#ifdef BT_USE_COLLADA
+	ColladaConverter tmpConverter(m_dynamicsWorld.get());
+	tmpConverter.save(fileName);
+#endif
+}
+
+void bt_solver_t::import_collada_file(const char* filename)
+{
+	//	ColladaConverter tmpConverter(m_dynamicsWorld.get());
+	//	tmpConverter.save(fileName);
+}
 
 void bt_solver_t::export_bullet_file(const char* fileName)
 {
-//	ColladaConverter tmpConverter(m_dynamicsWorld.get());
-//	tmpConverter.save(fileName);
 	FILE* f2 = fopen(fileName,"wb");
 	if(f2 == NULL)
 	{
@@ -95,7 +102,6 @@ public:
 
 
 bt_solver_t::bt_solver_t():
-//            m_broadphase(new btAxisSweep3(minWorld,maxWorld,maxNumObj)),
 	m_broadphase(new btDbvtBroadphase()),  
           m_solver(new btSequentialImpulseConstraintSolver),
             m_collisionConfiguration(new btDefaultCollisionConfiguration),

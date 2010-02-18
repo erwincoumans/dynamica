@@ -158,6 +158,10 @@ public:
 
     virtual void import_bullet_file(const char* filename);
 
+	virtual void export_collada_file(const char* fileName);
+
+    virtual void import_collada_file(const char* filename);
+
 
 protected:
     friend class solver_t;

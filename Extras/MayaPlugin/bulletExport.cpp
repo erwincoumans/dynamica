@@ -37,18 +37,18 @@ extern "C" int strcasecmp (const char *, const char *);
 
 //////////////////////////////////////////////////////////////
 
-MString ObjTranslator::fExtension = "bullet";
+MString BulletTranslator::fExtension = "bullet";
 
 //////////////////////////////////////////////////////////////
 
-void* ObjTranslator::creator()
+void* BulletTranslator::creator()
 {
-    return new ObjTranslator();
+    return new BulletTranslator();
 }
 
 //////////////////////////////////////////////////////////////
 
-MStatus ObjTranslator::reader ( const MFileObject& file,
+MStatus BulletTranslator::reader ( const MFileObject& file,
                                 const MString& options,
                                 FileAccessMode mode)
 {
@@ -58,7 +58,7 @@ MStatus ObjTranslator::reader ( const MFileObject& file,
 
 
 
-MStatus ObjTranslator::writer ( const MFileObject& file,
+MStatus BulletTranslator::writer ( const MFileObject& file,
                                 const MString& options,
                                 FileAccessMode mode )
 
@@ -87,25 +87,25 @@ return status;
 }
 //////////////////////////////////////////////////////////////
 
-bool ObjTranslator::haveReadMethod () const
+bool BulletTranslator::haveReadMethod () const
 {
     return true;
 }
 //////////////////////////////////////////////////////////////
 
-bool ObjTranslator::haveWriteMethod () const
+bool BulletTranslator::haveWriteMethod () const
 {
     return true;
 }
 //////////////////////////////////////////////////////////////
 
-MString ObjTranslator::defaultExtension () const
+MString BulletTranslator::defaultExtension () const
 {
 //    return MString("bullet");
 	return fExtension;
 }
 
-MString ObjTranslator::filter() const
+MString BulletTranslator::filter() const
 {
 	//return "*.bullet;*.dae";
 	return "*.bullet";
@@ -113,7 +113,7 @@ MString ObjTranslator::filter() const
 
 //////////////////////////////////////////////////////////////
 
-MPxFileTranslator::MFileKind ObjTranslator::identifyFile (
+MPxFileTranslator::MFileKind BulletTranslator::identifyFile (
                                         const MFileObject& fileName,
                                         const char* buffer,
                                         short size) const
@@ -129,7 +129,7 @@ MPxFileTranslator::MFileKind ObjTranslator::identifyFile (
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
-MStatus ObjTranslator::exportSelected( )
+MStatus BulletTranslator::exportSelected( )
 {
 	MStatus status;
 	MString filename;
@@ -152,7 +152,7 @@ MStatus ObjTranslator::exportSelected( )
 
 //////////////////////////////////////////////////////////////
 
-MStatus ObjTranslator::exportAll( )
+MStatus BulletTranslator::exportAll( )
 {
 	MStatus status = MS::kSuccess;
 

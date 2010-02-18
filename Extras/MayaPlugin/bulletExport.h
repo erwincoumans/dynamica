@@ -59,10 +59,10 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 
 //////////////////////////////////////////////////////////////
-class ObjTranslator : public MPxFileTranslator {
+class BulletTranslator : public MPxFileTranslator {
 public:
-                    ObjTranslator () {};
-    virtual         ~ObjTranslator () {};
+                    BulletTranslator () {};
+    virtual         ~BulletTranslator () {};
     static void*    creator();
 
     MStatus         reader ( const MFileObject& file,

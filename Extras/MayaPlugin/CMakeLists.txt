@@ -29,14 +29,14 @@ IF (MAYA_BASE_DIR)
 	SET(MAYA_INC_DIR ${MAYA_BASE_DIR}/include)
 	SET(MAYA_LIB_DIR ${MAYA_BASE_DIR}/lib)
 
-	INCLUDE_DIRECTORIES(${MAYA_INC_DIR} ${BULLET_PHYSICS_SOURCE_DIR}/src ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin )
+	
 	LINK_DIRECTORIES(${MAYA_LIB_DIR})
 
 	ADD_DEFINITIONS(-D_BOOL)
 	ADD_DEFINITIONS(-DREQUIRE_IOSTREAM)
 
 	SET(TARGET_H 
-	 box_shape.h             bt_sphere_shape.h         dSolverNode.h         rigid_body_impl.h
+	 box_shape.h              bulletExport.h bt_sphere_shape.h         dSolverNode.h         rigid_body_impl.h
 		box_shape_impl.h        collision_shape.h         mathUtils.h           rigidBodyNode.h
 		bt_box_shape.h          collision_shape_impl.h    mayaUtils.h           solver.h
 		bt_collision_shape.h    collisionShapeNode.h      mesh_shape.h          solver_impl.h
@@ -56,26 +56,34 @@ IF (MAYA_BASE_DIR)
 		constraint/dsixdofConstraintCmd.cpp	constraint/nailConstraintNode.cpp	constraint/sliderConstraintNode.cpp
 	)	
 
-	ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} ${TARGET_SRC})
-
-
+	INCLUDE_DIRECTORIES(${MAYA_INC_DIR} ${BULLET_PHYSICS_SOURCE_DIR}/src ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin )
 
 	IF (WIN32)
 	   SET(MAYA_LIBS OpenMaya Foundation OpenMayaAnim OpenMayaFX OpenMayaUI)
+	ELSE()
+		SET(MAYA_LIBS OpenMayalib Foundation OpenMayaAnim OpenMayaFX OpenMayaUI)
+	ENDIF()
+
+	IF (USE_COLLADA)
+		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} colladaExport.h ${TARGET_SRC} colladaExport.cpp )
+		TARGET_LINK_LIBRARIES( BulletMayaPlugin BulletColladaConverter BulletDynamics BulletCollision LinearMath ColladaDom XML ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+	ELSE()
+		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} ${TARGET_SRC})
+		TARGET_LINK_LIBRARIES(BulletMayaPlugin BulletDynamics BulletCollision LinearMath ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}) 
+	ENDIF()
+
+	IF (WIN32)
 		IF (CMAKE_CL_64)
 		SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X64")
 	   ELSE (CMAKE_CL_64)
 	   SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X86")
 	   ENDIF (CMAKE_CL_64)
 	   SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES SUFFIX ".mll")
-
 	   LINK_DIRECTORIES(${MAYA_LIB_DIR})
-	   TARGET_LINK_LIBRARIES(BulletMayaPlugin BulletDynamics BulletCollision LinearMath ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 	   SET(CMAKE_SHARED_LINKER_FLAGS "/export:initializePlugin /export:uninitializePlugin")  
 	ELSE (WIN32)
-	  SET(MAYA_LIBS OpenMayalib Foundation OpenMayaAnim OpenMayaFX OpenMayaUI)
+	 
 	  LINK_DIRECTORIES(${MAYA_LIB_DIR})
-	  TARGET_LINK_LIBRARIES(BulletMayaPlugin  BulletDynamics BulletCollision LinearMath ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 	ENDIF(WIN32)
 
 	#OPTION(BUILD_STANDALONE "Build a standalone exporter program")

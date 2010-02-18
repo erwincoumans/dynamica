@@ -47,33 +47,45 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "constraint/dsixdofConstraintCmd.h" 
 #include "mvl/util.h"
 #include "bulletExport.h"
+#include "colladaExport.h"
 
 const char *const bulletOptionScript = "bulletExportOptions";
-const char *const bulletDefaultOptions =
-    "groups=1;"
-    "ptgroups=1;"
-    "materials=1;"
-    "smoothing=1;"
-    "normals=1;"
-    ;
+const char *const bulletDefaultOptions =    "groups=1;"    "ptgroups=1;"    "materials=1;"    "smoothing=1;"    "normals=1;"    ;
+
+const char *const colladaOptionScript = "bulletExportOptions";
+const char *const colladaDefaultOptions =    "groups=1;"    "ptgroups=1;"    "materials=1;"    "smoothing=1;"    "normals=1;"    ;
+
 
 
 MStatus initializePlugin( MObject obj )
 {
     MStatus   status;
-    MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.76", "Any");
+#ifdef BT_DEBUG
+	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.76 (Debug Build)", "Any");
+#else
+	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.76", "Any");
+#endif
 
     solver_t::initialize();
 
 
 // Register the translator with the system
    status =  plugin.registerFileTranslator( "Bullet Physics export", "none",
-                                          ObjTranslator::creator,
+                                          BulletTranslator::creator,
                                           (char *)bulletOptionScript,
                                           (char *)bulletDefaultOptions );
 
 	MCHECKSTATUS(status,"registerFileTranslator Bullet Physics export");
 
+#ifdef BT_USE_COLLADA
+   status =  plugin.registerFileTranslator( "COLLADA Physics export", "none",
+                                          ColladaTranslator::creator,
+                                          (char *)colladaOptionScript,
+                                          (char *)colladaDefaultOptions );
+
+	MCHECKSTATUS(status,"registerFileTranslator COLLADA Physics export");
+
+#endif
     
     //
     status = plugin.registerNode( rigidBodyNode::typeName, rigidBodyNode::typeId,
@@ -235,6 +247,11 @@ MStatus uninitializePlugin( MObject obj )
 
     status =  plugin.deregisterFileTranslator( "Bullet Physics export" );
     MCHECKSTATUS(status,"deregistering Bullet Physics export" )
+
+#ifdef BT_USE_COLLADA
+	status =  plugin.deregisterFileTranslator( "COLLADA Physics export" );
+    MCHECKSTATUS(status,"deregistering COLLADA Physics export" )
+#endif //BT_USE_COLLADA
 
     solver_t::cleanup();
 

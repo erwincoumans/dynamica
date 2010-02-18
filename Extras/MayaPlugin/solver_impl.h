@@ -81,6 +81,10 @@ public:
 
     virtual void import_bullet_file(const char* filename) = 0;
 
+	virtual void export_collada_file(const char* fileName) = 0;
+
+    virtual void import_collada_file(const char* filename) = 0;
+
     virtual void step_simulation(float dt) = 0;
 
 	virtual void debug_draw(int dbgMode) {}
