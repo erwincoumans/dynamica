@@ -192,10 +192,10 @@ IF (USE_GLUT)
 
 ENDIF(USE_GLUT)
 
-#OPTION(BUILD_DEMOS "Set when you want to build the demos" OFF)
-#IF(BUILD_DEMOS)
-#  SUBDIRS(Demos)
-#ENDIF(BUILD_DEMOS)
+OPTION(BUILD_DEMOS "Set when you want to build the demos" ON)
+IF(BUILD_DEMOS)
+  SUBDIRS(Demos)
+ENDIF(BUILD_DEMOS)
 
 
 ##INSTALL of other files requires CMake 2.6

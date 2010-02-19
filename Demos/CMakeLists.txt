@@ -1,0 +1,2 @@
+
+SUBDIRS(ColladaDemo SerializeDemo OpenGL)
