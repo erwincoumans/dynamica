@@ -35,6 +35,7 @@ float deltaTime = 1.f/60.f;
 #include "GlutStuff.h"
 
 
+
 ///custom version of the converter, that creates physics objects/constraints
 class MyColladaConverter : public ColladaConverter
 {

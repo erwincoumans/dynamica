@@ -1243,7 +1243,9 @@ void	ColladaConverter::PreparePhysicsObject(struct btRigidBodyInput& input, bool
 
 	colShape->setLocalScaling(startScale);
 
-	btRigidBody* body= createRigidBody(isDynamics,mass,startTransform,colShape);
+
+	
+	btRigidBody* body= createNamedRigidBody(isDynamics,mass,startTransform,colShape,bodyName);
 	if (body)
 	{
 		btRigidBodyColladaInfo* tui = new btRigidBodyColladaInfo (body,input.m_nodeRef, input.m_rigidBodyRef2, input.m_instanceRigidBodyRef);
@@ -3560,10 +3562,20 @@ btTypedConstraint*			ColladaConverter::createUniversalD6Constraint(
 		return 0;
 	}
 
-btRigidBody*  ColladaConverter::createRigidBody(bool isDynamic, 
+
+btRigidBody*  ColladaConverter::createNamedRigidBody(bool isDynamic, 
 	float mass, 
 	const btTransform& startTransform,
-	btCollisionShape* shape)
+	btCollisionShape* shape, const char* targetNodeName)
+{
+	(void)targetNodeName;
+	return createRigidBody(isDynamic,mass,startTransform,shape);
+}
+
+btRigidBody*  ColladaConverter::createRigidBody(bool isDynamic, 
+		float mass, 
+		const btTransform& startTransform,
+		btCollisionShape* shape)
 {
 
 	if (!isDynamic && (mass != 0.f))

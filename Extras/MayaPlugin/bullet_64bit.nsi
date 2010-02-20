@@ -15,7 +15,7 @@ OutFile "DynamicaForMaya2009_64bit.exe"
 
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\DynamicaBullet2.76\
+InstallDir $PROGRAMFILES64\DynamicaBullet2.76\
 
 UninstPage uninstConfirm
 UninstPage instfiles

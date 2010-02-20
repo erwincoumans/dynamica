@@ -229,10 +229,22 @@ public:
 			const btVector3& angularMaxLimits,
 			bool disableCollisionsBetweenLinkedBodies
 			);
+
+	///createNamedRigidBody default implementation will call createRigidBody
+	///bodyName is the name of the target node (graphics object/node) for example "Cube_015" in
+	///<instance_physics_model url="#Cube_015-PhysicsModel">
+	///<instance_rigid_body body="Cube_015-RigidBody" target="#Cube_015"/>
+	virtual btRigidBody*  createNamedRigidBody(bool isDynamic, 
+		float mass, 
+		const btTransform& startTransform,
+		btCollisionShape* shape, const char* targetNodeName);
+
 	virtual btRigidBody*  createRigidBody(bool isDynamic, 
 		float mass, 
 		const btTransform& startTransform,
 		btCollisionShape* shape);
+
+
 	virtual int getNumRigidBodies ();
 	virtual btRigidBody* getRigidBody (int i);
 	virtual int getNumConstraints ();
