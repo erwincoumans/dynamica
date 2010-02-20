@@ -254,6 +254,11 @@ void dSolverNode::updateAllRigidBodies()
 			std::cout << "Failure in getting dependency node" << std::endl;
    			return;
 		}
+
+		if(fnNode.typeId() == rigidBodyNode::typeId) 
+		{
+
+		}
         if(fnNode.typeId() == rigidBodyNode::typeId) 
 		{
 			MPlug plgCollisionShape(mObj, rigidBodyNode::ia_collisionShape);

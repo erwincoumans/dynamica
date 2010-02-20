@@ -112,6 +112,12 @@ public:
 public:
     virtual ~hinge_constraint_t() {};
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName)
+	{
+		hinge_constraint_impl_t* hinge_impl = dynamic_cast<hinge_constraint_impl_t*>(impl());
+		hinge_impl->register_name(solver,objectName);
+	}
+
 protected:
     friend class solver_t;    
     hinge_constraint_t(hinge_constraint_impl_t* impl, rigid_body_t::pointer& rigid_body): 

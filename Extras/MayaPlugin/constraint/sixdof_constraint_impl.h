@@ -48,6 +48,8 @@ public:
     virtual void set_LinLimit(vec3f& lower, vec3f& upper) = 0;
     virtual void set_AngLimit(vec3f& lower, vec3f& upper) = 0;
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const = 0;
+
 public:
     virtual ~sixdof_constraint_impl_t() {};
 };

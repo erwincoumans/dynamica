@@ -186,6 +186,12 @@ protected:
 		rbB->add_constraint(this);
     }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName)
+	{
+		btHingeConstraint const * hc = static_cast<btHingeConstraint const* >(m_constraint.get());
+		 solver->register_name(hc,objectName);
+	}
+
 private:
 
 };

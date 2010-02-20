@@ -30,8 +30,9 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "LinearMath/btSerializer.h"
 #include "bt_solver.h"
 #include "../BulletColladaConverter/ColladaConverter.h"
+#include <string.h>
 
-
+int maxSerializeBufferSize = 1024*1024*5;
 
 void bt_solver_t::export_collada_file(const char* fileName)
 {
@@ -47,6 +48,29 @@ void bt_solver_t::import_collada_file(const char* filename)
 	//	tmpConverter.save(fileName);
 }
 
+class MySerializer : public btDefaultSerializer
+{
+	bt_solver_t* m_solver;
+
+public:
+	MySerializer(bt_solver_t* solver, int totalSize)
+		:btDefaultSerializer(totalSize),
+		m_solver(solver)
+	{
+	}
+
+	virtual	const char*	findNameForPointer(const void* ptr) const
+	{
+		const char*const * namePtr = m_solver->m_nameMap.find(ptr);
+		if (namePtr && *namePtr)
+			return *namePtr;
+		return 0;
+
+	}
+
+	
+};
+
 void bt_solver_t::export_bullet_file(const char* fileName)
 {
 	FILE* f2 = fopen(fileName,"wb");
@@ -55,12 +79,29 @@ void bt_solver_t::export_bullet_file(const char* fileName)
 	    fprintf(stderr,"Error: Can't open file %s for writing\n", fileName);
 		return;
 	}
-	int maxSerializeBufferSize = 1024*1024*5;
-	btDefaultSerializer*	serializer = new btDefaultSerializer(maxSerializeBufferSize);
+
+	btDefaultSerializer* serializer = new MySerializer(this,maxSerializeBufferSize);
+
 	m_dynamicsWorld->serialize(serializer);
 	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1,f2);
 	fclose(f2);
 	delete serializer;
+}
+
+
+
+void bt_solver_t::register_name(const void* pointer,const char* objectName)
+{
+	if (objectName)
+	{
+		int nameLen = strlen(objectName);
+		if (nameLen>0)
+		{
+			char* newName = new char[nameLen];
+			memcpy(newName ,objectName,nameLen);
+			m_nameMap.insert(pointer,newName);
+		}
+	}
 }
 
 void bt_solver_t::import_bullet_file(const char* filename)
@@ -121,6 +162,9 @@ bt_solver_t::bt_solver_t():
 
 	bt_debug_draw* dbgDraw = new bt_debug_draw();
 	m_dynamicsWorld->setDebugDrawer(dbgDraw);
+
+	//for now, allocated 15MB for serialization structures. todo: compute this memory
+	
 }
 
 

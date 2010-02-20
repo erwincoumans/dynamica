@@ -153,6 +153,12 @@ protected:
 		rbB->add_constraint(this);
     }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const
+	{
+		 btPoint2PointConstraint const* p2pc = static_cast<btPoint2PointConstraint const*>(m_constraint.get());
+		 solver->register_name(p2pc,objectName);
+	}
+
 private:
 
 };

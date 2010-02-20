@@ -424,7 +424,8 @@ void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 	} else {
             m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
 	}
-        solver_t::add_rigid_body(m_rigid_bodies[i]);
+	
+	solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
     }
 
     data.outputValue(ca_rigidBodies).set(true);

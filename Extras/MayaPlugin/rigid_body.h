@@ -33,6 +33,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "mathUtils.h"
 
 #include "rigid_body_impl.h"
+class solver_impl_t;
 
 class rigid_body_t
 {
@@ -65,6 +66,8 @@ public:
 
     void set_angular_velocity(vec3f const& v)                           { m_impl->set_angular_velocity(v);   }
     void get_angular_velocity(vec3f& v) const                           { m_impl->get_angular_velocity(v);   }
+
+	virtual void register_name(solver_impl_t* solver, const char* objectName) { m_impl->register_name(solver,objectName);}
 
     //
     void clear_forces()                                                 { m_impl->clear_forces(); }

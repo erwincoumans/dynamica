@@ -62,6 +62,9 @@ public:
     static  void *      creator();
     static  MStatus     initialize();
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName);
+
+
 public:
 
     nail_constraint_t::pointer constraint();

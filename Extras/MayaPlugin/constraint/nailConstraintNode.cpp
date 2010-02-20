@@ -191,6 +191,7 @@ bool nailConstraintNode::setInternalValueInContext ( const  MPlug & plug,
     return false; //setInternalValueInContext(plug,dataHandle,ctx);
 }
 
+
 MStatus nailConstraintNode::compute(const MPlug& plug, MDataBlock& data)
 {
     //std::cout << "nailConstraintNode::compute: " << plug.name() << std::endl;
@@ -515,3 +516,9 @@ void nailConstraintNode::update()
     MPlug(thisObject, ca_constraintParam).getValue(update);
     MPlug(thisObject, worldMatrix).elementByLogicalIndex(0).getValue(update);
 }
+
+void nailConstraintNode::register_name(solver_impl_t* solver, const char* objectName)
+{
+	
+}
+

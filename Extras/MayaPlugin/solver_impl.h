@@ -65,7 +65,7 @@ public:
     virtual sixdof_constraint_impl_t* create_sixdof_constraint(rigid_body_impl_t* rb, vec3f const& pivot, quatf const& rot) = 0;
     virtual sixdof_constraint_impl_t* create_sixdof_constraint(rigid_body_impl_t* rbA, vec3f const& pivotA, quatf const& rotA, rigid_body_impl_t* rbB, vec3f const& pivotB, quatf const& rotB) = 0;
 
-    virtual void add_rigid_body(rigid_body_impl_t* rb) = 0;
+    virtual void add_rigid_body(rigid_body_impl_t* rb, const char* name) = 0;
 
     virtual void remove_rigid_body(rigid_body_impl_t* rb) = 0;
 
@@ -78,6 +78,8 @@ public:
     virtual void set_split_impulse(bool enabled) = 0;
 
     virtual void export_bullet_file(const char* fileName) = 0;
+
+	virtual void register_name(const void* pointer, const char* objectName) = 0;
 
     virtual void import_bullet_file(const char* filename) = 0;
 

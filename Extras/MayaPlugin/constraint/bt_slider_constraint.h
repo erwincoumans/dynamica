@@ -183,6 +183,13 @@ protected:
 		rbB->add_constraint(this);
     }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const
+	{
+		const btSliderConstraint* sc = static_cast<const btSliderConstraint*>(m_constraint.get());
+		solver->register_name(sc,objectName);
+	}
+
+
 private:
 
 };

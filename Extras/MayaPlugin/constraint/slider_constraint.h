@@ -105,6 +105,11 @@ public:
     }
 
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName)
+	{
+		slider_constraint_impl_t const* slider_impl = dynamic_cast<slider_constraint_impl_t const*>(impl());
+        slider_impl->register_name(solver,objectName);
+	}
 
 public:
     virtual ~slider_constraint_t() {};

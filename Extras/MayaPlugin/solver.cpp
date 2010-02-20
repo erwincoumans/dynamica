@@ -123,12 +123,12 @@ sixdof_constraint_t::pointer  solver_t::create_sixdof_constraint(rigid_body_t::p
 }
 
 //add/remove from world
-void solver_t::add_rigid_body(rigid_body_t::pointer& rb)
+void solver_t::add_rigid_body(rigid_body_t::pointer& rb,const char* name)
 {
     if(rb) {
         if(m_rigid_bodies.find(rb) == m_rigid_bodies.end()) {
             m_rigid_bodies.insert(rb);
-            m_impl->add_rigid_body(rb->impl());
+            m_impl->add_rigid_body(rb->impl(),name);
         }
     }
 }

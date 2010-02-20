@@ -95,6 +95,12 @@ public:
         return nail_impl->damping();  
     }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName)
+	{
+		nail_constraint_impl_t const* nail_impl = dynamic_cast<nail_constraint_impl_t const*>(impl());
+		nail_impl->register_name(solver,objectName);
+	}
+
 public:
     virtual ~nail_constraint_t() {};
 

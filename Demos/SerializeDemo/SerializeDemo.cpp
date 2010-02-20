@@ -14,6 +14,7 @@ subject to the following restrictions:
 */
 
 
+
 #define TEST_SERIALIZATION 1
 
 #ifdef BT_INTERNAL_UPDATE_SERIALIZATION_STRUCTURES

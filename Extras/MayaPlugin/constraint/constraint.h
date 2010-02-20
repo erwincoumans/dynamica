@@ -52,6 +52,8 @@ public:
 	}
     constraint_impl_t* pubImpl()            { return m_impl.get(); }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) = 0;
+
 protected:
     friend class solver_t;
 

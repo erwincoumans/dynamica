@@ -33,6 +33,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
+#include "LinearMath/btHashMap.h"
 
 #include "solver_impl.h"
 #include "bt_rigid_body.h"
@@ -112,11 +113,13 @@ public:
         return new bt_sixdof_constraint_t(rbA, pivotA, rotA, rbB, pivotB, rotB);
     }
 
-    virtual void add_rigid_body(rigid_body_impl_t* rb)
+    virtual void add_rigid_body(rigid_body_impl_t* rb, const char* name)
     {
         bt_rigid_body_t* bt_body = static_cast<bt_rigid_body_t*>(rb);
 		bt_body->body()->setActivationState(DISABLE_DEACTIVATION);
         m_dynamicsWorld->addRigidBody(bt_body->body());
+
+		
     }
 
     virtual void remove_rigid_body(rigid_body_impl_t* rb)
@@ -156,6 +159,8 @@ public:
 
     virtual void export_bullet_file(const char* fileName);
 
+	virtual void register_name(const void* pointer, const char* objectName);
+
     virtual void import_bullet_file(const char* filename);
 
 	virtual void export_collada_file(const char* fileName);
@@ -167,6 +172,7 @@ protected:
     friend class solver_t;
     bt_solver_t();
 
+
 private:
 
     shared_ptr<btBroadphaseInterface>            m_broadphase;
@@ -174,6 +180,8 @@ private:
     shared_ptr<btDefaultCollisionConfiguration>  m_collisionConfiguration;
     shared_ptr<btCollisionDispatcher>            m_dispatcher;
     shared_ptr<btDiscreteDynamicsWorld>          m_dynamicsWorld;
+public:
+	btHashMap<btHashPtr,const char*>	m_nameMap;
 };
 
 #endif

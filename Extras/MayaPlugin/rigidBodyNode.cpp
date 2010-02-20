@@ -393,7 +393,7 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
     }
     solver_t::remove_rigid_body(m_rigid_body);
     m_rigid_body = solver_t::create_rigid_body(collision_shape);
-    solver_t::add_rigid_body(m_rigid_body);
+    solver_t::add_rigid_body(m_rigid_body,name().asChar());
 // once at creation/load time : get transform from Maya transform node
     MFnDagNode fnDagNode(thisObject);
     MFnTransform fnTransform(fnDagNode.parent(0));

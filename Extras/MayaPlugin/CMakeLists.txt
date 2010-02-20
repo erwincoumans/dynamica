@@ -50,7 +50,7 @@ IF (MAYA_BASE_DIR)
 
 	SET(TARGET_SRC 
 		pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigidBodyArrayNode.cpp collisionShapeNode.cpp
-		  solver.cpp bt_solver.cpp dSolverNode.cpp dSolverCmd.cpp dRigidBodyCmd.cpp dRigidBodyArrayCmd.cpp
+		  solver.cpp bt_solver.cpp bt_rigid_body.cpp dSolverNode.cpp dSolverCmd.cpp dRigidBodyCmd.cpp dRigidBodyArrayCmd.cpp
 		  pdbIO.cpp drawUtils.cpp  constraint/dHingeConstraintCmd.cpp	constraint/dSliderConstraintCmd.cpp
 		constraint/hingeConstraintNode.cpp	constraint/sixdofConstraintNode.cpp constraint/dNailConstraintCmd.cpp
 		constraint/dsixdofConstraintCmd.cpp	constraint/nailConstraintNode.cpp	constraint/sliderConstraintNode.cpp
@@ -99,6 +99,17 @@ IF (MAYA_BASE_DIR)
 	#  ENDIF (WIN32)      
 	#ENDIF (BUILD_STANDALONE)
 
+
+
+IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
+	ADD_CUSTOM_COMMAND(
+		TARGET BulletMayaPlugin 
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/bullet.nsi ${CMAKE_CURRENT_BINARY_DIR}/bullet.nsi
+	)
+ENDIF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
+
 ELSE()
 	MESSAGE("Maya not found, try adding your Maya path in Bullet/Extras/MayaPlugin/CMakeListst.txt under FIND_PATH(MAYA_BASE_DIR ...")
 ENDIF()
+

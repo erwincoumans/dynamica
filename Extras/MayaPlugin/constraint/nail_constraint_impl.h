@@ -29,6 +29,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #define DYN_NAIL_CONSTRAINT_IMPL_H
 
 #include "constraint_impl.h"
+class solver_impl_t;
 
 class nail_constraint_impl_t: public constraint_impl_t
 {
@@ -46,6 +47,7 @@ public:
     //
     virtual void set_damping(float d) = 0;
     virtual float damping() const = 0;
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const = 0;
 
 public:
     virtual ~nail_constraint_impl_t() {};

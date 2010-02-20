@@ -188,6 +188,12 @@ protected:
 		rbB->add_constraint(this);
     }
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const
+	{
+		const btGeneric6DofConstraint* sc = static_cast<const btGeneric6DofConstraint*>(m_constraint.get());
+		solver->register_name(sc,objectName);
+	}
+
 private:
 
 };

@@ -29,6 +29,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #define DYN_HINGE_CONSTRAINT_IMPL_H
 
 #include "constraint_impl.h"
+class solver_impl_t;
 
 class hinge_constraint_impl_t: public constraint_impl_t
 {
@@ -50,6 +51,8 @@ public:
     virtual void set_axis(vec3f const& p) = 0; 
 
     virtual void enable_motor(bool enable, float velocity, float impulse) = 0; 
+
+	virtual void register_name(solver_impl_t* solver, const char* objectName) = 0;
 
 public:
     virtual ~hinge_constraint_impl_t() {};

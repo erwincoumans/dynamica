@@ -31,6 +31,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 #include "mathUtils.h"
 #include "constraint/bt_constraint.h"
+class solver_impl_t;
 
 class rigid_body_impl_t
 {
@@ -55,6 +56,8 @@ public:
 
     virtual void set_angular_velocity(vec3f const& v) = 0;                          
     virtual void get_angular_velocity(vec3f& v) const = 0;
+
+	virtual void register_name(solver_impl_t* solver, const char* objectName) = 0;
 
     virtual void clear_forces() = 0;
     virtual void apply_central_force(vec3f const& f) = 0;

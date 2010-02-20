@@ -246,6 +246,7 @@ hingeConstraintNode::~hingeConstraintNode()
     // std::cout << "hingeConstraintNode::~hingeConstraintNode" << std::endl;
 }
 
+
 void hingeConstraintNode::nodeRemoved(MObject& node, void *clientData)
 {
    // std::cout << "hingeConstraintNode::nodeRemoved" << std::endl;

@@ -178,6 +178,8 @@ public:
 		}
 	}
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName);
+
     btRigidBody* body() { return m_body.get(); }
 
 	virtual void add_constraint(bt_constraint_t* constraint)

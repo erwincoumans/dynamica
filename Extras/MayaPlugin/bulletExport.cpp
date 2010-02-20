@@ -24,6 +24,12 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "solver.h"
 #include "solver_impl.h"
 
+#include "rigidBodyNode.h"
+#include "constraint/nailConstraintNode.h"
+#include "constraint/hingeConstraintNode.h"
+#include "constraint/sliderConstraintNode.h"
+#include "constraint/sixdofConstraintNode.h"
+
 #if defined (_WIN32)
 #define strcasecmp stricmp
 #elif defined  (OSMac_)
@@ -80,9 +86,83 @@ MStatus BulletTranslator::writer ( const MFileObject& file,
 
 shared_ptr<solver_impl_t> solv = solver_t::get_solver();
 
-solv->export_bullet_file(fname);
 
-return status;
+
+
+	MStatus stat;
+//	MItDag dagIterator( MItDag::kBreadthFirst, MFn::kInvalid, &stat);
+	MItDag dagIterator( MItDag::kDepthFirst, MFn::kInvalid, &stat);
+   	if (stat != MS::kSuccess)
+	{
+        std::cout << "Failure in DAG iterator setup" << std::endl;
+   	}
+	for ( ;!dagIterator.isDone(); dagIterator.next()) 
+	{
+   	    MDagPath dagPath;
+   	    stat = dagIterator.getPath( dagPath );
+   		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting DAG path" << std::endl;
+		}
+		// skip over intermediate objects
+		MFnDagNode dagNode( dagPath, &stat );
+		if (dagNode.isIntermediateObject()) 
+		{
+			continue;
+		}
+		if(!dagPath.hasFn(MFn::kDependencyNode))
+		{
+			continue;
+		}
+		MObject mObj = dagNode.object(&stat);
+		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting MObject" << std::endl;
+		}
+        MFnDependencyNode fnNode(mObj, &stat);
+		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting dependency node" << std::endl;
+		}
+
+		if(fnNode.typeId() == rigidBodyNode::typeId) 
+		{
+
+		}
+        if(fnNode.typeId() == rigidBodyNode::typeId) 
+		{
+			rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(dagNode.userNode()); 
+			
+			rbNode->rigid_body()->register_name(solv.get(),rbNode->name().asChar());
+
+		}
+        if(fnNode.typeId() == nailConstraintNode::typeId) 
+		{
+			nailConstraintNode *ncNode = static_cast<nailConstraintNode*>(dagNode.userNode()); 
+			ncNode->register_name(solv.get(),ncNode->name().asChar());
+		}
+        if(fnNode.typeId() == hingeConstraintNode::typeId) 
+		{
+			hingeConstraintNode *hcNode = static_cast<hingeConstraintNode*>(dagNode.userNode()); 
+			std::cout << hcNode->name();
+			
+		}
+        if(fnNode.typeId() == sliderConstraintNode::typeId) 
+		{
+			sliderConstraintNode *scNode = static_cast<sliderConstraintNode*>(dagNode.userNode()); 
+		}
+        if(fnNode.typeId() == sixdofConstraintNode::typeId) 
+		{
+			sixdofConstraintNode *sdNode = static_cast<sixdofConstraintNode*>(dagNode.userNode()); 
+		}
+	}
+
+
+
+
+	solv->export_bullet_file(fname);
+
+	return status;
 
 }
 //////////////////////////////////////////////////////////////

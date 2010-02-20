@@ -49,6 +49,8 @@ public:
     virtual void set_LinLimit(float lower, float upper) = 0;
     virtual void set_AngLimit(float lower, float upper) = 0;
 
+	virtual void register_name(solver_impl_t* solver, const char* objectName) const = 0;
+
 public:
     virtual ~slider_constraint_impl_t() {};
 };

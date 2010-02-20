@@ -81,7 +81,7 @@ public:
     static sixdof_constraint_t::pointer create_sixdof_constraint(rigid_body_t::pointer& rbA, vec3f const& pivotA, quatf const& rotA, rigid_body_t::pointer& rbB, vec3f const& pivotB, quatf const& rotB);
 
     //add/remove from world
-    static void add_rigid_body(rigid_body_t::pointer& rb);
+    static void add_rigid_body(rigid_body_t::pointer& rb,const char* name);
     static void remove_rigid_body(rigid_body_t::pointer& rb);
     static void remove_all_rigid_bodies();
 
