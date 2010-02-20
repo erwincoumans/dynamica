@@ -97,8 +97,9 @@ void bt_solver_t::register_name(const void* pointer,const char* objectName)
 		int nameLen = strlen(objectName);
 		if (nameLen>0)
 		{
-			char* newName = new char[nameLen];
+			char* newName = (char*)malloc(nameLen+1);
 			memcpy(newName ,objectName,nameLen);
+			newName[nameLen]=0;
 			m_nameMap.insert(pointer,newName);
 		}
 	}
