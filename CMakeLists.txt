@@ -12,9 +12,12 @@ IF (NOT CMAKE_BUILD_TYPE)
  SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE) 
 
-OPTION(USE_COLLADA "Use COLLADA Physics support"	ON)
+OPTION(BUILD_READ_BLEND_OBSOLETE "Build obsolete readblend demo (replaced by BlendParse)reading data from a .blend file " OFF)
+OPTION(BUILD_BLEND_DEMO "Build BlendParse demo reading data from a .blend file " OFF)
 
-IF(USE_COLLADA)
+OPTION(BUILD_COLLADA "Build with COLLADA Physics support"	ON)
+
+IF(BUILD_COLLADA)
 	ADD_DEFINITIONS(-DBT_USE_COLLADA)
 ENDIF()
 

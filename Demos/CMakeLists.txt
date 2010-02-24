@@ -1,2 +1,13 @@
 
-SUBDIRS(ColladaDemo SerializeDemo OpenGL)
+SUBDIRS( SerializeDemo OpenGL)
+
+IF(BUILD_BLEND_DEMO)
+	SUBDIRS(BlendParse)
+ENDIF()
+IF (BUILD_READ_BLEND_OBSOLETE)
+	SUBDIRS(ReadBlend)
+ENDIF()
+
+IF( BUILD_COLLADA )
+	SUBDIRS(ColladaDemo)
+ENDIF()
