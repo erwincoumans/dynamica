@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC241BD7113DD50A0021293C /* bt_rigid_body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC241BD4113DD50A0021293C /* bt_rigid_body.cpp */; };
+		BC241BD8113DD50A0021293C /* colladaExport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BC241BD5113DD50A0021293C /* colladaExport.cpp */; };
+		BC241BD9113DD50A0021293C /* colladaExport.h in Headers */ = {isa = PBXBuildFile; fileRef = BC241BD6113DD50A0021293C /* colladaExport.h */; };
 		BC43404D1117F3C600C9C8D7 /* btBulletCollisionCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = BC433EB01117F3C600C9C8D7 /* btBulletCollisionCommon.h */; };
 		BC43404E1117F3C600C9C8D7 /* btBulletDynamicsCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = BC433EB11117F3C600C9C8D7 /* btBulletDynamicsCommon.h */; };
 		BC43404F1117F3C600C9C8D7 /* Bullet-C-Api.h in Headers */ = {isa = PBXBuildFile; fileRef = BC433EB21117F3C600C9C8D7 /* Bullet-C-Api.h */; };
@@ -465,6 +468,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BC241BD4113DD50A0021293C /* bt_rigid_body.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bt_rigid_body.cpp; sourceTree = "<group>"; };
+		BC241BD5113DD50A0021293C /* colladaExport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colladaExport.cpp; sourceTree = "<group>"; };
+		BC241BD6113DD50A0021293C /* colladaExport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colladaExport.h; sourceTree = "<group>"; };
 		BC433EB01117F3C600C9C8D7 /* btBulletCollisionCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = btBulletCollisionCommon.h; sourceTree = "<group>"; };
 		BC433EB11117F3C600C9C8D7 /* btBulletDynamicsCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = btBulletDynamicsCommon.h; sourceTree = "<group>"; };
 		BC433EB21117F3C600C9C8D7 /* Bullet-C-Api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bullet-C-Api.h"; sourceTree = "<group>"; };
@@ -949,6 +955,9 @@
 		08FB7794FE84155DC02AAC07 /* BulletMayaPlugin */ = {
 			isa = PBXGroup;
 			children = (
+				BC241BD4113DD50A0021293C /* bt_rigid_body.cpp */,
+				BC241BD5113DD50A0021293C /* colladaExport.cpp */,
+				BC241BD6113DD50A0021293C /* colladaExport.h */,
 				BC433EAF1117F3C600C9C8D7 /* BulletSource */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				8A7F063208688F460064D097 /* Mel */,
@@ -1957,6 +1966,7 @@
 				BC43426C1117F51F00C9C8D7 /* bt_nail_constraint.h in Headers */,
 				BC43426D1117F51F00C9C8D7 /* bt_hinge_constraint.h in Headers */,
 				BC43426E1117F51F00C9C8D7 /* bt_constraint.h in Headers */,
+				BC241BD9113DD50A0021293C /* colladaExport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2175,6 +2185,8 @@
 				BC4342631117F51F00C9C8D7 /* dsixdofConstraintCmd.cpp in Sources */,
 				BC4342651117F51F00C9C8D7 /* dNailConstraintCmd.cpp in Sources */,
 				BC4342671117F51F00C9C8D7 /* dHingeConstraintCmd.cpp in Sources */,
+				BC241BD7113DD50A0021293C /* bt_rigid_body.cpp in Sources */,
+				BC241BD8113DD50A0021293C /* colladaExport.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
