@@ -92,6 +92,8 @@ public:
 				child->getUnscaledPoints()[i]=childPoint;
 			}
 			m_cachedScaling = s;
+			child->recalcLocalAabb();
+			compound->recalculateLocalAabb();
 		}
 
         update();

@@ -458,14 +458,28 @@ proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 				setAttr ($rigidBodyNode + ".mass" ) $mass;
 				setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
 
-				float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
 				float $rot[]= `getAttr ($shapeTransforms[0] + ".rotate")`;
+				float $wmatr[]= `getAttr ($shapeTransforms[0] + ".worldMatrix")`;
+				// float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
+				// We need to take into account offset of the pivot point
+				// so get the final translation directly from world matrix
+				// also get existing scale 
+				// note that this may not work if scaling coordinate system differs from object's coordinate system
+				// Bullet does not support that yet
+				float $pos[];
+				$pos[0] = $wmatr[12];
+				$pos[1] = $wmatr[13];
+				$pos[2] = $wmatr[14];
+				float $scale[] = `getAttr ($shapeTransforms[0] + ".scale")`;
 
 				setAttr ($rigidBodyTransforms[0] + ".translate") -type double3 $pos[0] $pos[1] $pos[2];
 				setAttr ($rigidBodyNode + ".initialPosition") -type double3 $pos[0] $pos[1] $pos[2];
 
 				setAttr ($rigidBodyTransforms[0] + ".rotate") -type double3 $rot[0] $rot[1] $rot[2];
 				setAttr ($rigidBodyNode + ".initialRotation") -type double3 $rot[0] $rot[1] $rot[2];
+
+				setAttr ($rigidBodyTransforms[0] + ".scale") -type double3 $scale[0] $scale[1] $scale[2];
+				setAttr ($collisionShapeNode + ".scale" )  -type double3 $scale[0] $scale[1] $scale[2];
 
 				$newBodies[$i] = $rigidBodyTransforms[0];
             }
@@ -778,7 +792,8 @@ global proc dynamicaUI_createNailConstraint()
 		float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
 		float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
 		float $pivW[3];
-		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+//		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+		for($k=0; $k < 3; $k++) $pivW[$k] = ($posA[$k] + $posB[$k]) * 0.5; // place constraint between A and B 
 		float $iWorldA[16] = `getAttr ($rbTransformA[0] + ".worldMatrix")`;
 		float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
@@ -834,7 +849,8 @@ global proc dynamicaUI_createHingeConstraint()
 		float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
 		float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
 		float $pivW[3];
-		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+//		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+		for($k=0; $k < 3; $k++) $pivW[$k] = ($posA[$k] + $posB[$k]) * 0.5; // place constraint between A and B 
 		float $iWorldA[16] = `getAttr ($rbTransformA[0] + ".worldMatrix")`;
 		float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
@@ -890,7 +906,8 @@ global proc dynamicaUI_createSliderConstraint()
 		float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
 		float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
 		float $pivW[3];
-		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+//		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+		for($k=0; $k < 3; $k++) $pivW[$k] = ($posA[$k] + $posB[$k]) * 0.5; // place constraint between A and B 
 		float $iWorldA[16] = `getAttr ($rbTransformA[0] + ".worldMatrix")`;
 		float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
@@ -946,7 +963,8 @@ global proc dynamicaUI_create6DofConstraint()
 		float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
 		float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
 		float $pivW[3];
-		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+//		for($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
+		for($k=0; $k < 3; $k++) $pivW[$k] = ($posA[$k] + $posB[$k]) * 0.5; // place constraint between A and B 
 		float $iWorldA[16] = `getAttr ($rbTransformA[0] + ".worldMatrix")`;
 		float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
