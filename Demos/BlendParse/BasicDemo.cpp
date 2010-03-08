@@ -79,6 +79,14 @@ extern "C" {
 #include "LinearMath/btHashMap.h"
 #include "readblend.h"
 #include "blendtype.h"
+#include <string.h>
+
+#ifdef _WIN32
+#define mystricmp stricmp
+#else
+#define mystricmp strcasecmp
+#endif
+
 
 
 
@@ -274,7 +282,7 @@ struct BasicTexture
 		if (strlen(szFilename) > strlen(szExt))
 			 {
 				  char const * szExtension = &szFilename[strlen(szFilename) - strlen(szExt)];
-				  if (!stricmp(szExtension, szExt))
+				  if (!mystricmp(szExtension, szExt))
 					  return true;
 			 }
 		return false;

@@ -13,7 +13,18 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF (NOT CMAKE_BUILD_TYPE) 
 
 OPTION(BUILD_READ_BLEND_OBSOLETE "Build obsolete readblend demo (replaced by BlendParse)reading data from a .blend file " OFF)
+
+IF (MSVC OR APPLE)
+OPTION(BUILD_BLEND_DEMO "Build BlendParse demo reading data from a .blend file " ON)
+OPTION(USE_BLEND_DEMO_TEXTURES "Enable texture loading using jpeglib in BlendParse demo" ON)
+ELSE()
 OPTION(BUILD_BLEND_DEMO "Build BlendParse demo reading data from a .blend file " OFF)
+OPTION(USE_BLEND_DEMO_TEXTURES "Enable texture loading using jpeglib in BlendParse demo" OFF)
+ENDIF()
+
+IF(USE_BLEND_DEMO_TEXTURES)
+	ADD_DEFINITIONS(-DUSE_GRAPHICS_OBJECTS)
+ENDIF()
 
 OPTION(BUILD_COLLADA "Build with COLLADA Physics support"	ON)
 
