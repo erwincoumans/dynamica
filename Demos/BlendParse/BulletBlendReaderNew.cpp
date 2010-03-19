@@ -95,6 +95,7 @@ void	BulletBlendReaderNew::convertAllObjects(int verboseDumpAllBlocks)
 	printf("File contains %i camera(s)\n", numCam);
 	
 
+
 	Blender::FileGlobal* glob = (Blender::FileGlobal*)m_blendFile->getFileGlobal();
 	
 //#define CHECK_ACTIONS
@@ -122,7 +123,7 @@ void	BulletBlendReaderNew::convertAllObjects(int verboseDumpAllBlocks)
 		Blender::Scene *scene = (Blender::Scene*) sceneBase->at(sce);
 #else
 	{
-		Blender::Scene* scene = (Blender::Scene*) glob->curscene;
+		Blender::Scene* scene = glob ? (Blender::Scene*) glob->curscene : 0;
 #endif
 
 		if (!scene)

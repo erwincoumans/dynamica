@@ -41,7 +41,7 @@ class BasicDemo : public GlutDemoApplication
 
 	btDefaultCollisionConfiguration* m_collisionConfiguration;
 
-	class BasicBlendReader* m_blendReader;
+	struct BasicBlendReader* m_blendReader;
 
 	virtual void updateCamera1();
 
@@ -63,7 +63,7 @@ class BasicDemo : public GlutDemoApplication
 
 	virtual void displayCallback();
 	
-	virtual 	void renderme1();
+	virtual 	void renderme();
 
 	static DemoApplication* Create()
 	{

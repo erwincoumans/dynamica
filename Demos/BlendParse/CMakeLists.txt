@@ -11,25 +11,24 @@ SET(GLUT_ROOT ${BULLET_PHYSICS_SOURCE_DIR}/Glut)
 # You shouldn't have to modify anything below this line 
 ########################################################
 
+INCLUDE_DIRECTORIES(
+${BULLET_PHYSICS_SOURCE_DIR}/src  ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenGL }
+${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
+${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BlenderSerialize
+)
 
-IF(USE_BLEND_DEMO_TEXTURES)
-	INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src  ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenGL }
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BlenderSerialize
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras
-	)
- LINK_LIBRARIES(        OpenGLSupport  BlenderSerialize BulletFileLoader BulletDynamics  BulletCollision LinearMath jpeg    ${GLUT_glut_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
+LINK_LIBRARIES(
+OpenGLSupport  BlenderSerialize BulletFileLoader BulletDynamics  BulletCollision LinearMath    ${GLUT_glut_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
 )
-ELSE()
+
+OPTION(USE_GRAPHICS_OBJECTS "Blender import with textured graphics objects" ON)
+
+IF(USE_GRAPHICS_OBJECTS)
+	ADD_DEFINITIONS(-DUSE_GRAPHICS_OBJECTS)
 	INCLUDE_DIRECTORIES(
-	${BULLET_PHYSICS_SOURCE_DIR}/src  ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenGL }
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletFileLoader
-	${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BlenderSerialize
+		${BULLET_PHYSICS_SOURCE_DIR}/Extras
 	)
-	LINK_LIBRARIES(
-	OpenGLSupport  BlenderSerialize BulletFileLoader BulletDynamics  BulletCollision LinearMath    ${GLUT_glut_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}
-)
+	LINK_LIBRARIES( jpeg)
 ENDIF()
 
 ADD_EXECUTABLE(AppBlendParse
