@@ -31,6 +31,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "bt_solver.h"
 #include "../BulletColladaConverter/ColladaConverter.h"
 #include <string.h>
+#include <stdio.h>
 
 int maxSerializeBufferSize = 1024*1024*5;
 

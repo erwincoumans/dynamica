@@ -7,6 +7,10 @@ SET(MSVC_INCREMENTAL_DEFAULT ON)
 PROJECT(BULLET_PHYSICS)
 SET(BULLET_VERSION 2.76)
 
+IF (UNIX AND NOT APPLE )
+	ADD_DEFINITIONS(-DBUILD_SHARED_LIBS=ON)
+ENDIF()
+
 IF (NOT CMAKE_BUILD_TYPE)
 # SET(CMAKE_BUILD_TYPE "Debug")
  SET(CMAKE_BUILD_TYPE "Release")
@@ -199,15 +203,20 @@ IF (USE_GLUT)
 	INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Glut)
 	ELSE (WIN32)
 	# This is the lines for linux.  This should always work if everything is installed and working fine.
-	INCLUDE_DIRECTORIES(/usr/include /usr/local/include ${GLUT_INCLUDE_DIR}) 
+	IF(GLUT_FOUND)
+
+		INCLUDE_DIRECTORIES(/usr/include /usr/local/include ${GLUT_INCLUDE_DIR}) 
+	ELSE()
+		INCLUDE_DIRECTORIES(/usr/include /usr/local/include )
+	ENDIF(GLUT_FOUND)
 	ENDIF (WIN32)
 
 ENDIF(USE_GLUT)
 
 OPTION(BUILD_DEMOS "Set when you want to build the demos" ON)
-IF(BUILD_DEMOS)
+IF(BUILD_DEMOS AND GLUT_FOUND)
   SUBDIRS(Demos)
-ENDIF(BUILD_DEMOS)
+ENDIF()
 
 
 ##INSTALL of other files requires CMake 2.6
