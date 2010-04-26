@@ -16,6 +16,7 @@ subject to the following restrictions:
 #ifndef __BULLET_BLEND_NEW_H
 #define __BULLET_BLEND_NEW_H
 
+#include <LinearMath/btHashMap.h>
 namespace Blender
 {
 	class Object;
@@ -37,6 +38,8 @@ protected:
 	bParse::bBlenderFile* m_blendFile;
 
 	class btDynamicsWorld* m_destinationWorld;
+
+	btHashMap<btHashPtr,Blender::Object*>	m_colObj2BlenderObj;
 
 //	btHashMap<btHashInt,btDataObject*>	m_dataObjects;
 

@@ -176,6 +176,7 @@ void	BulletBlendReaderNew::convertAllObjects(int verboseDumpAllBlocks)
 								}
 
 								btCollisionObject* bulletObject = createBulletObject(ob);
+								m_colObj2BlenderObj.insert(bulletObject,ob);
 								
 							}
 						}break;
@@ -449,6 +450,10 @@ btCollisionObject* BulletBlendReaderNew::findCollisionObject(Blender::Object* ob
 
 Blender::Object* BulletBlendReaderNew::findBlenderObject(btCollisionObject* colObj)
 {
+	Blender::Object** bptr = m_colObj2BlenderObj.find(colObj);
+	if (bptr)
+		return *bptr;
+
 	return 0;
 }
 
