@@ -286,6 +286,17 @@ struct BasicTexture
 	//contains the uncompressed R8G8B8 pixel data
 	unsigned char*	m_output;
 	
+	BasicTexture(unsigned char* texels,int width,int height)
+		:m_jpgData(0),
+		m_jpgSize(0),
+		m_output(texels),
+		m_width(width),
+		m_height(height),
+		m_textureName(-1),
+		m_initialized(false)
+	{
+
+	}
 
 	BasicTexture(unsigned char* jpgData,int jpgSize)
 		: m_jpgData(jpgData),
@@ -584,12 +595,15 @@ struct BasicBlendReader : public BulletBlendReaderNew
 	btHashMap<btHashString,BasicTexture*> m_textures;
 
 	btAlignedObjectArray<btRenderMesh*> m_renderMeshes;
+
+	BasicTexture*	m_notFoundTexture;
 #endif //USE_GRAPHICS_OBJECTS
 
 
 	BasicBlendReader(btDynamicsWorld* dynamicsWorld, BasicDemo* basicDemo)
 		:BulletBlendReaderNew(dynamicsWorld),
-		m_basicDemo(basicDemo)
+		m_basicDemo(basicDemo),
+		m_notFoundTexture(0)
 	{
 		m_cameraTrans.setIdentity();
 	}
@@ -863,6 +877,33 @@ struct BasicBlendReader : public BulletBlendReaderNew
 				}
 			}
 
+			if (!texture0)
+			{
+				if (!m_notFoundTexture)
+				{
+					int width=256;
+					int height=256;
+					unsigned char*  imageData=new unsigned char[256*256*3];
+					for(int y=0;y<256;++y)
+					{
+						const int       t=y>>4;
+						unsigned char*  pi=imageData+y*256*3;
+						for(int x=0;x<256;++x)
+						{
+							const int               s=x>>4;
+							const unsigned char     b=180;
+							unsigned char                   c=b+((s+t&1)&1)*(255-b);
+							pi[0]= 255;
+							pi[1]=pi[2]=c;pi+=3;
+						}
+					}
+					
+					m_notFoundTexture = new BasicTexture(imageData,width,height);
+					
+				}
+				texture0 = m_notFoundTexture;
+			}
+
 			if (texture0 && mesh)
 			{
 				float scaling[3] = {tmpObject->size.x,tmpObject->size.y,tmpObject->size.z};
@@ -924,6 +965,7 @@ void	BasicDemo::initPhysics()
 
 	//const char* fileName = "clubsilo_packed.blend";
 	const char* fileName = "PhysicsAnimationBakingDemo.blend";
+	
 	
 	
 	FILE* file = fopen(fileName,"rb");

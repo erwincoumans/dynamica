@@ -40,6 +40,9 @@ protected:
 	class btDynamicsWorld* m_destinationWorld;
 
 	btHashMap<btHashPtr,Blender::Object*>	m_colObj2BlenderObj;
+	
+	btHashMap<btHashPtr,btCollisionObject*>	m_blenderObj2colObj;
+	
 
 //	btHashMap<btHashInt,btDataObject*>	m_dataObjects;
 
