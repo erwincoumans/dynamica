@@ -459,6 +459,12 @@ Blender::Object* BulletBlendReaderNew::findBlenderObject(btCollisionObject* colO
 
 	return 0;
 }
+btRigidBody& BulletBlendReaderNew::getFixedBody()
+{
+	static btRigidBody s_fixed(0, 0,0);
+	s_fixed.setMassProps(btScalar(0.),btVector3(btScalar(0.),btScalar(0.),btScalar(0.)));
+	return s_fixed;
+}
 
 
 void	BulletBlendReaderNew::convertConstraints()
@@ -573,10 +579,14 @@ void	BulletBlendReaderNew::convertConstraints()
 													  axisInA.y(), axis1.y(), axis2.y(),
 													  axisInA.z(), axis1.z(), axis2.z() );
 						frameInA.setOrigin( pivotInA );
-						btTransform inv = rbB->getCenterOfMassTransform().inverse();
+						
+						btTransform inv = rbB ? rbB->getCenterOfMassTransform().inverse() : btTransform::getIdentity();
 						btTransform globalFrameA = rbA->getCenterOfMassTransform() * frameInA;
 						frameInB = inv  * globalFrameA;
 						bool useReferenceFrameA = true;
+						
+						if (!rbB)
+							rbB = &getFixedBody();
 						btGeneric6DofSpringConstraint* genericConstraint = new btGeneric6DofSpringConstraint(*rbA,*rbB,	frameInA,frameInB,useReferenceFrameA);
 						m_destinationWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 
