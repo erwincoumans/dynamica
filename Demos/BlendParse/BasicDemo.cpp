@@ -16,6 +16,10 @@ subject to the following restrictions:
 #include "bMain.h"
 #include "bBlenderFile.h"
 
+#ifdef __APPLE__
+#include <strings.h>
+#define stricmp strcasecmp
+#endif
 ///create 125 (5x5x5) dynamic object
 #define ARRAY_SIZE_X 45
 #define ARRAY_SIZE_Y 45
