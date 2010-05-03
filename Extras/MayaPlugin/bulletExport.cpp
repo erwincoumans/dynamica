@@ -19,7 +19,10 @@ not be misrepresented as being the original software.
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/27/2010 : Replaced COLLADA export with Bullet binary export
 */
-
+#ifdef _WIN32
+///avoid some duplicate sockaddr error through some windows.h include (defined in both winsock.h and ws2def.h)
+#define _WINSOCK2API_ 1
+#endif
 #include "bulletExport.h"
 #include "solver.h"
 #include "solver_impl.h"

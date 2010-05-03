@@ -17,10 +17,14 @@ FIND_PATH(MAYA_BASE_DIR include/maya/MFn.h PATH
 			/usr/autodesk/maya2009-x64
 			/usr/autodesk/maya2008-x64 
 			/usr/autodesk/maya 
-			"C:/Program Files/Autodesk/Maya2008" 
-			"C:/Program Files/Autodesk/Maya2009" 
-			"C:/Program Files/Autodesk/Maya8.5"
+			"C:/Program Files/Autodesk/Maya2011"
+			"C:/Program Files (x86)/Autodesk/Maya2011"
+			"C:/Program Files/Autodesk/Maya2010"
 			"C:/Program Files (x86)/Autodesk/Maya2010"
+			"C:/Program Files/Autodesk/Maya2009" 
+			"C:/Program Files/Autodesk/Maya2008"
+			"C:/Program Files/Autodesk/Maya8.5"
+
 			)
 
 IF (MAYA_BASE_DIR)

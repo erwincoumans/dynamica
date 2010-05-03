@@ -8,7 +8,7 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "Dynamica Bullet 2.76 physics plugin for Maya 2009"
+Name "Dynamica Bullet 2.76 physics plugin for Maya 2011"
 
 ; The file to write
 OutFile "DynamicaForMaya2009_64bit.exe"
