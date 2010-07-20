@@ -26,6 +26,12 @@ OPTION(BUILD_BLEND_DEMO "Build BlendParse demo reading data from a .blend file "
 OPTION(USE_BLEND_DEMO_TEXTURES "Enable texture loading using jpeglib in BlendParse demo" OFF)
 ENDIF()
 
+IF(WIN32)
+SET (VECTOR_MATH_INCLUDE ${BULLET_PHYSICS_SOURCE_DIR}/src/BulletMultiThreaded/vectormath/sse CACHE PATH "Vector Math library include path.")
+ELSE(WIN32)
+SET (VECTOR_MATH_INCLUDE ${BULLET_PHYSICS_SOURCE_DIR}/src/BulletMultiThreaded/vectormath/scalar CACHE PATH "Vector Math library include path.")
+ENDIF(WIN32)
+
 IF(USE_BLEND_DEMO_TEXTURES)
 	ADD_DEFINITIONS(-DUSE_GRAPHICS_OBJECTS)
 ENDIF()
