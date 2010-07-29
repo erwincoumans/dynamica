@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<XPJ version="4">
+
+<Project name="Plugin${SDK_VERSION}">
+  <Export platform="win32" tool="vc8">../vc8win32</Export>
+  <Target name="Plugin${SDK_VERSION}">
+    <Export platform="win32" tool="vc8">../vc8win32</Export>
+
+    <Configuration name="default" platform="Win32" type="dll" show="false">
+      <Preprocessor type="define">
+        _LIB
+        WIN32
+        _WINDOWS
+        _USRDLL
+      </Preprocessor>
+		<SearchPaths root="" type="header">
+			..\..\src
+		</SearchPaths>
+      <SearchPaths root="${PHYSX_SDK_PATH}/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+		</SearchPaths>
+      <SearchPaths root="${PHYSX_SDK_PATH}" type="header">
+		Tools/NxuStream2
+		Tools/SoftBody
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        common
+		convexdecom
+		pluginmax
+		Exporter
+      </SearchPaths>
+      <Libraries>
+        odbc32.lib
+        odbccp32.lib
+        comctl32.lib
+        bmm.lib
+        core.lib
+        geom.lib
+        gfx.lib
+        mesh.lib
+        maxutil.lib
+        maxscrpt.lib
+        manipsys.lib
+        paramblk2.lib
+      </Libraries>
+      <LFlags>
+        /DEF:../pxplugin.def
+      </LFlags>
+	  <CFlags> /wd4819 </CFlags>
+      <SearchPaths root="${PHYSX_SDK_PATH}/SDKs" type="library">
+        lib/win32
+      </SearchPaths>
+    </Configuration>
+
+    <Configuration name="debug_base" platform="win32" show="false">
+      <Preprocessor type="define">
+        _DEBUG
+		DEBUG
+      </Preprocessor>
+      <Libraries>
+      PhysXLoader.lib
+      </Libraries>      
+      <CFlags>/MDd /ZI /Wp64</CFlags>
+      <LFlags>/DEBUG</LFlags>
+    </Configuration>
+    <Configuration name="release_base" platform="win32" show="false">
+      <Preprocessor type="define">
+        NDEBUG
+      </Preprocessor>
+      <Libraries>
+      PhysXLoader.lib
+      </Libraries>      
+      <CFlags>/O2 /MD /Wp64</CFlags>
+      <LFlags>/RELEASE</LFlags>
+    </Configuration>
+	
+    <Configuration name="debugMax9" platform="win32" baseConfig="debug_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>$(MAX9_BIN_PATH)/plugins</OutDir>
+      <SearchPaths root="${MAX_9_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_9_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+      <PostBuildEvent>call ..\xpj\postbuild.bat "$(MAX9_BIN_PATH)" </PostBuildEvent>
+    </Configuration>
+
+    <Configuration name="releaseMax9" platform="win32" baseConfig="release_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>..\..\bin\release\${SDK_VERSION}\9</OutDir>
+      <SearchPaths root="${MAX_9_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_9_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+    </Configuration>
+	
+    <Configuration name="debugMax2008" platform="win32" baseConfig="debug_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>$(MAX2008_BIN_PATH)/plugins</OutDir>
+      <SearchPaths root="${MAX_2008_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_2008_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+      <PostBuildEvent>call ..\xpj\postbuild.bat "$(MAX2008_BIN_PATH)" </PostBuildEvent>
+    </Configuration>
+
+    <Configuration name="releaseMax2008" platform="win32" baseConfig="release_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>..\..\bin\release\${SDK_VERSION}\2008</OutDir>
+      <SearchPaths root="${MAX_2008_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_2008_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+    </Configuration>	
+	
+    <Configuration name="debugMax2009" platform="win32" baseConfig="debug_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>$(MAX2009_BIN_PATH)/plugins</OutDir>
+      <SearchPaths root="${MAX_2009_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_2009_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+      <PostBuildEvent>call ..\xpj\postbuild.bat "$(MAX2009_BIN_PATH)" </PostBuildEvent>
+      
+    </Configuration>
+
+    <Configuration name="releaseMax2009" platform="win32" baseConfig="release_base">
+      <OutFile>pxplugin.dlm</OutFile>
+      <OutDir>..\..\bin\release\${SDK_VERSION}\2009</OutDir>
+      <SearchPaths root="${MAX_2009_SDK}" type="header">
+        maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="${MAX_2009_SDK}" type="library">
+        maxsdk/lib
+      </SearchPaths>
+    </Configuration>
+
+      <Dependencies type="link">
+      </Dependencies>
+
+    <Files name="scripts" root="../../scripts">
+      startup/*.ms
+    </Files>
+    <Files name="scripts" root="../../scripts">
+      physx/*.ms
+    </Files>
+
+    <Files name="src" root="../../src">
+      *.cpp
+	  *.h
+    </Files>
+
+    <Files name="NxuStream2" root="${PHYSX_SDK_PATH}/Tools/NxuStream2">
+      *.cpp
+	  *.h
+    </Files>
+
+    <Files name="SoftBody" root="${PHYSX_SDK_PATH}/Tools/SoftBody">
+		NxTetra.h
+    </Files>
+
+  </Target>
+  
+</Project>
+</XPJ>

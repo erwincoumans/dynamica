@@ -1,0 +1,250 @@
+<XPJ version="3">
+
+<Project name="PluginSDK281">
+  <Export platform="win64" tool="vc8">../vc8win64</Export>
+  
+
+  <Target name="PluginSDK281">
+    <Export platform="win64" tool="vc8">../vc8win64</Export>
+
+    <Configuration name="default" platform="Win64" type="dll">
+      <Preprocessor type="define">
+        _LIB
+        WIN32
+        _WINDOWS
+        _USRDLL
+      </Preprocessor>
+      <SearchPaths root="$(PHYSX_281_PATH)/Tools" type="header">
+        NxuStream2
+        SoftBody
+      </SearchPaths>
+      <Libraries>
+        odbc32.lib
+        odbccp32.lib
+        comctl32.lib
+        bmm.lib
+        core.lib
+        geom.lib
+        gfx.lib
+        mesh.lib
+        maxutil.lib
+        maxscrpt.lib
+        manipsys.lib
+        paramblk2.lib
+      </Libraries>
+      <LFlags>
+        /DEF:../pxplugin.def
+      </LFlags>
+    </Configuration>
+
+    <Configuration name="debugMax9" platform="win64" tool="vc8">
+      <OutDir>$(MAX9_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        _DEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/MTd /ZI /Wp64</CFlags>
+      <LFlags>/DEBUG</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX9_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX9_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+
+    <Configuration name="releaseMax9" platform="win64" tool="vc8">
+      <OutDir>$(MAX9_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        NDEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/O2 /MT /Wp64</CFlags>
+      <LFlags>/RELEASE</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX9_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX9_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+
+    <Configuration name="debugMax2008" platform="win64" tool="vc8">
+      <OutDir>$(MAX2008_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        _DEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/MTd /ZI /Wp64</CFlags>
+      <LFlags>/DEBUG</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX2008_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX2008_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+
+    <Configuration name="releaseMax2008" platform="win64" tool="vc8">
+      <OutDir>$(MAX2008_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        NDEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/O2 /MT /Wp64</CFlags>
+      <LFlags>/RELEASE</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX2008_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX2008_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+
+    <Configuration name="debugMax2009" platform="win64" tool="vc8">
+      <OutDir>$(MAX2009_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        _DEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/MTd /ZI /Wp64</CFlags>
+      <LFlags>/DEBUG</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX2009_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX2009_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+
+    <Configuration name="releaseMax2009" platform="win64" tool="vc8">
+      <OutDir>$(MAX2009_BIN_PATH)/plugins</OutDir>
+      <Preprocessor type="define">
+        NDEBUG
+      </Preprocessor>
+      <OutFile>pxplugin.dlm</OutFile>
+      <CFlags>/O2 /MT /Wp64</CFlags>
+      <LFlags>/RELEASE</LFlags>
+      <SearchPaths root="" type="header">
+        $(MAX2009_SDK_PATH)/maxsdk/include
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="header">
+        Foundation/include
+        Physics/include
+        PhysXLoader/include
+        Cooking/include
+      </SearchPaths>
+      <SearchPaths root="../.." type="header">
+        src
+      </SearchPaths>
+      <SearchPaths root="" type="library">
+        $(MAX2009_SDK_PATH)/maxsdk/x64/lib
+      </SearchPaths>
+      <SearchPaths root="$(PHYSX_281_PATH)/SDKs" type="library">
+        lib/win64
+      </SearchPaths>
+      <Libraries>
+        PhysXLoader.lib
+      </Libraries>
+    </Configuration>
+	
+    <Dependencies>
+    </Dependencies>
+
+    <Files name="scripts" root="../../scripts">
+      startup/*.ms
+      physx/*.ms
+    </Files>
+
+    <Files name="src" root="../../src">
+      *.cpp
+      *.h
+    </Files>
+
+    <Files name="NxuStream2" root="C:/Program Files/NVIDIA Corporation/NVIDIA PhysX SDK/v2.8.1/Tools/NxuStream2">
+      *.cpp
+	  *.h
+    </Files>
+
+    <Files name="SoftBody" root="C:/Program Files/NVIDIA Corporation/NVIDIA PhysX SDK/v2.8.1/Tools/SoftBody">
+      NxTetra.h
+    </Files>
+  </Target>
+
+</Project>
+</XPJ>
