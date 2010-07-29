@@ -4,7 +4,6 @@
 
 filein "px_base.ms"
 filein "px_keymap.ms"
-filein "px_ragdoll_sync.ms"
 
 global pxLastExportedFile = undefined;
 global pxLastExportedFileFormat = 1;
@@ -332,6 +331,9 @@ utility px_control "PhysX Utility"
 		button      	removeselected 		"Remove Sel."                	pos:[82,50] 	width:75 	tooltip:"Remove selected objects to the PhysX scene (if the are in the scene)"
 		
 		label			lbl_b				"Simulation:"					pos:[5,80]
+		--added by Spider
+		checkbox	keyframesim	"Create Keys"					pos:[65,80]
+		--end Added
 		checkbox		slidermove			"move animation slider"			checked:true
 		button      	simulateframe  		"Step"							pos:[4,120] 	width:70 	tooltip:"Run/Advance the Physics Simulation for specified number of frames"
 		spinner			nf					""                              pos:[77,120]    width:40    type:#integer range:[1,1000,1]
@@ -682,7 +684,6 @@ utility px_control "PhysX Utility"
 					clock.active = false;
 				)
 			)
-			if $Bip01 != undefined then sync_ragdoll( $Bip01 );
 			redrawviews();
 		)
 		
@@ -725,9 +726,6 @@ utility px_control "PhysX Utility"
 		(
 			slidertime = 0;
 			px.pxrestart();
-			try( px.pxremoveall(); ) catch()
-			addPhysicsObjects $objects;
-			if $Bip01 != undefined then sync_ragdoll( $Bip01 );
 		)
 
 		on export_ui pressed do
@@ -814,16 +812,68 @@ utility px_control "PhysX Utility"
 			-- nf.value
 			local frames = nf.value;
 			local i = 0;
+			if keyframesim.checked then set animate on; --added by Spider
+			undo (keyframesim.checked == true) --added
+			( --added
+				local tmpobjs = #(); -- added
+				local tmpgroups = #(); --added
 			while i < frames and progressupdate (100.0*i/frames) do
 			(
 				with redraw off
 				(
 					simuateOneFrame mSimDelta;
+					--Spider Added
+
+					if keyframesim.checked then (
+						if $selection.count > 0 then (
+							for myi = 1 to $selection.count do ( --
+								if (isDeformable $selection[myi] and ((getUserProp $selection[myi] "px_clf_tearable") == undefined or not (getUserProp $selection[myi] "px_clf_tearable")) and getUserProp $selection[myi] "PhysicsType" != undefined) then (
+									--Solution By blenderman0815 from http://forums.cgsociety.org/showthread.php?f=98&t=647305
+									move $selection[myi].verts [1,0,0];
+									move $selection[myi].verts [-1,0,0];
+									--End Solution
+								)
+								if (getUserProp $selection[myi] "px_clf_tearable" != undefined and getUserProp $selection[myi] "px_clf_tearable" == true) then (
+									if (i == 0) then (
+										tmpobjs[myi] = copy $selection[myi];
+										convertToMesh tmpobjs[myi];
+										tmpobjs[myi].visibility = bezier_float();
+										at time 0 tmpobjs[myi].visibility.controller.value = 1.0;
+										at time currentTime tmpobjs[myi].visibility.controller.value = 1.0; --a little bug with autoKey
+										tmpgroups[myi] = group tmpobjs[myi];
+										at time 0 tmpgroups[myi].pos = $selection[myi].pos; -- bugfix when creating groups its set position to 0 0 0
+									) else (
+										if (tmpobjs[myi] != undefined and tmpobjs[myi].verts.count != $selection[myi].verts.count) then (
+											--print "Clonning";
+											at time (currentTime-1f) tmpobjs[myi].visibility.controller.value = 1.0;
+											at time currentTime tmpobjs[myi].visibility.controller.value = 0.0;
+											tmpobjs[myi] = copy $selection[myi];
+											convertToMesh tmpobjs[myi];
+											tmpobjs[myi].visibility = bezier_float();
+											at time 0 tmpobjs[myi].visibility.controller.value = 0.0;
+											at time (currentTime-1f) tmpobjs[myi].visibility.controller.value = 0.0;
+											at time currentTime tmpobjs[myi].visibility.controller.value = 1.0;
+											setGroupOpen tmpgroups[myi] true;
+											append tmpgroups[myi].children tmpobjs[myi];
+											setGroupMember tmpobjs[myi] true;
+											setGroupOpen tmpgroups[myi] false;
+										)
+									) 
+									for myx = 1 to $selection[myi].verts.count do (
+										meshop.setVert tmpobjs[myi] myx $selection[myi].verts[myx].pos;
+									)
+								)
+							)
+						)
+					)
+					
+					--End Added
 				)
-				if $Bip01 != undefined then sync_ragdoll( $Bip01 );
 				redrawviews ();
 				i += 1;
 			)
+			) --added
+			if keyframesim.checked then set animate off; --added by Spider
 			progressend();
 		)
 
@@ -894,62 +944,21 @@ utility px_control "PhysX Utility"
 
 	rollout convexdecomposition_roll "Geometry Tools"
 	(
-		group	"Create SoftBody mesh:"
-		(
+		label	lbl_k	"Create editable SoftBody mesh:"
 		checkbox	editable_ui					"Create editable mesh"		checked:true
 		checkbox	isosurface_ui				"Create iso surface"		checked:true
 		checkbox	isosurfacesingle_ui			"Single iso surface"
 		spinner		subdivisionlevel_ui			"Subdivision lvl"			range:[2,90,10]		type:#integer
 		spinner		surfacesimplification_ui	"Surface simpl."			range:[0.0,1.0,0.5]	type:#float
 		button		buildmesh_ui				"Build mesh"				tooltip:"Push this button to build a mesh suitable for SoftBody simulation using the parameters above"
-		)
 		
 		
-		group	"Create convex hulls"	--align:#left								pos:[4,160]
-		(
-		spinner	vertcount	"Max. vertices"	range:[3, 64, 32]			type:#integer	pos:[8,180]
-		spinner	inflation	"Inflate hull"	range:[0.0, 100.0, 0.025]	type:#float		pos:[8,200]
-		button	skinwidth	"SW"			tooltip:"Press to set inflation to current skin width"	width:23	height:16	pos:[127,200]
+		label	lbl_e	"Create convex hulls"	align:#left								pos:[4,160]
+		spinner	vertcount	"Max. vertices"	range:[3, 64, 32]			type:#integer	pos:[5,180]
+		spinner	inflation	"Inflate hull"	range:[0.0, 100.0, 0.025]	type:#float		pos:[5,200]
+		button	skinwidth	"SW"			tooltip:"Press to set inflation to current skin width"	width:30	height:16	pos:[125,200]
 		button	createhull	"Create Hulls"	tooltip:"Press to create convex representations of the selected objects"
-		)
-		
-		group "Proxy Tool for Rigidbodies"
-		(
-		button alignPivot "Reset Proxies' Pivots"        tooltip:"Make the pivots of Proxy nodes as the pivots of their Rigidbody counterpart nodes."
-		button moveProxy  "Move Proxies' Positions"      tooltip:"Make the positions of Proxy nodes as the position of their Rigidbody counterpart nodes."
-		)
 
-		on alignPivot pressed do
-		(
-			for i in objects do (
-				p = getproxy i; 
-				if p != undefined then (
-					local pv = undefined
-					try(
-						type = classof(i)
-						if (type == Biped_Object) then (
-							pv = biped.getTransform i #pos 
-						)
-						else if (type == Editable_Poly) then (
-							pv = i.transform.pos
-						)
-						else (
-						 pv = i.pivot
-						)
-						p.pivot = pv
-					) catch (format " Align Proxy Pivot Failed at node(%) and its proxy(%)!\n" i.name p.name)
-				)
-			)
-		)
-		
-		on moveProxy pressed do
-		(
-			for i in objects do (
-				p = getproxy i; 
-				if p != undefined then try(p.pos = i.pos) catch(format "Move Proxy Failed at node(%) and its proxy(%)!" i.name p.name)
-			)
-		)
-		
 --		label	lbl_d
 --		label	lbl_f	"----- ALPHA Features -----"
 --		label	lbl_h
