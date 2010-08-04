@@ -387,6 +387,7 @@ NxActor* MxActor::createNxActor()
 
 
 	//return m_actor;
+	return 0;
 }
 
 void MxActor::resetObject()
