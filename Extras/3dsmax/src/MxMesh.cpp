@@ -1,5 +1,7 @@
-#include <NxPhysics.h>
-#include <NxCooking.h>
+//#include <NxPhysics.h>
+#include "MxUtils.h"
+
+//#include <NxCooking.h>
 #include <max.h>
 #include <MAXScrpt\MAXScrpt.h>
 
@@ -32,7 +34,7 @@ MxMesh::MxMesh(const char* name, INode* node, MxMeshType type) : MxObject(name, 
 void MxMesh::initTriMesh()
 {
 	//TODO: handle scaling? (needed here?)
-
+#if 0
 	NxCookingInterface* cookingInterface = gPluginData->getCookingInterface();
 	if (cookingInterface == NULL)
 	{
@@ -87,10 +89,13 @@ void MxMesh::initTriMesh()
 	}
 	tmd->m_nxTriangleMesh->saveToDesc(*tmd); //read back the triangle mesh to the descriptor
 	m_triMesh = tmd;
+#endif
+
 }
 
 void MxMesh::initConvexMesh()
 {
+#if 0
 	MxConvexMesh* cmd = NULL;
 
 	//mesh sharing is handled by MxPluginData::createMesh()
@@ -158,10 +163,13 @@ void MxMesh::initConvexMesh()
 	}
 	cmd->m_nxConvexMesh->saveToDesc(*cmd); //read back the settings to the descriptor
 	m_convexMesh = cmd;
+#endif
+
 }
 
 MxMesh::~MxMesh() 
 {
+#if 0
 	if (m_type == MX_MESHTYPE_TRIMESH || m_type == MX_MESHTYPE_CLOTH || m_type == MX_MESHTYPE_SOFTBODY || m_type == MX_MESHTYPE_TRIMESH_SW)
 	{
 		if (m_triMesh != NULL)
@@ -188,6 +196,7 @@ MxMesh::~MxMesh()
 			m_convexMesh = NULL;
 		}
 	}
+#endif
 }
 
 bool MxMesh::canInstantiate(INode* node, MxMeshType type)

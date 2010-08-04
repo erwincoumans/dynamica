@@ -1,13 +1,181 @@
 #ifndef MX_UTILS_H
 #define MX_UTILS_H
-
-#include <NxPhysics.h>
-#include <Max.h>
+ 
+#include <max.h>
 #include <iparamb2.h>
+#include "btBulletDynamicsCommon.h"
+class TriObject;
+class INode;
+#include "maxtypes.h"
 
+typedef btScalar NxF32;
+typedef btScalar NxReal;
+typedef btVector3 NxVec3;
+typedef unsigned int NxU32;
+#define NxArray btAlignedObjectArray
+
+enum NxCompartmentType
+{
+	NX_SCT_SOFTBODY = 1,
+	NX_SCT_FLUID
+};
+
+#define NX_SDK_VERSION_NUMBER 277 //keep it low, to avoid enabling soft body, fluids etc
+
+struct NxCompartment
+{
+};
+
+struct NxPhysicsSDK
+{
+	void	setParameter(int paramType, btScalar value)
+	{
+	}
+};
+
+
+
+struct NxCookingInterface
+{
+};
+
+struct NxJoint
+{
+	void* userData;
+};
+
+struct NxActor
+{
+	void	putToSleep() {}
+	void* userData;
+};
+
+struct NxTriangleMeshDesc
+{
+
+};
+struct NxTriangleMesh
+{
+};
+struct NxConvexMesh
+{
+};
+struct NxUserOutputStream
+{
+
+};
+
+enum NxErrorCode
+{
+	NXE_DB_INFO = 1
+};
+
+
+struct NxD6JointDesc
+{
+	char* name;
+	NxActor* actor[2];
+	bool isValid() { return true;}
+};
+
+enum NxAssertResponse
+{
+	NX_AR_CONTINUE = 1
+};
+
+struct NxScene
+{
+	void	releaseActor(NxActor* actor) {}
+
+	NxJoint* createJoint(NxD6JointDesc& desc) { return 0;}
+};
+
+struct NxUserContactReport
+{
+};
+
+struct NxContactPair
+{
+};
+
+struct NxShape
+{
+};
+
+struct NxFluid
+{
+};
+
+struct NxFluidDesc
+{
+};
+struct NxBodyDesc
+{
+	int flags;
+	btScalar mass;
+	int solverIterationCount;
+	btVector3 linearVelocity;
+	btVector3 angularVelocity;
+};
+
+enum BodyFlags
+{
+	NX_BF_KINEMATIC = 1
+};
+struct NxActorDesc
+{
+	NxBodyDesc* body;
+	btScalar mass;
+	btScalar density;
+	int flags;
+	char* name;
+	void* userData;
+	Matrix3 globalPose;
+	bool isValid() { return true;}
+};
+
+enum NxShapeType
+{
+	BLAAT=1,
+	NX_SHAPE_SPHERE,
+	NX_SHAPE_BOX,
+	NX_SHAPE_CAPSULE,
+	NX_SHAPE_CONVEX,
+	NX_SHAPE_MESH
+};
+
+struct NxConvexMeshDesc
+{
+	int numVertices;
+	int numTriangles;
+	btVector3* points;
+	int pointStrideBytes;
+	int triangleStrideBytes;
+	int* triangles;
+};
 class MxActor;
 class MxJoint;
 class MxObject;
+class ObjectState;
+
+class MxUtils
+{
+public:
+	static bool PreparePlugin();
+	static bool ReleasePlugin(bool quitting=false);
+	static TriObject* GetTriObjectFromNode(INode* node, TimeValue t, int& needDelete);
+	static MxJoint* GetJointFromNode(INode* node);
+	static MxActor* GetActorFromName(const char* name);
+	static int checkNodeValidity(INode* node, const ObjectState& os);
+	static void     PrintMatrix3(Matrix3& m);
+};
+
+#if 0
+
+#include <Max.h>
+#include <iparamb2.h>
+
+
 enum MxObjectType;
 
 class MxMathUtils {
@@ -167,6 +335,8 @@ public:
 	}
 };
 
+#endif
+
 class MxParamUtils {
 public:
 	static INode* GetINodeParam(IParamBlock2* pb, TimeValue t, const char* name, INode* def)
@@ -176,7 +346,7 @@ public:
 		return pb->GetINode(id, t);
 	}
 
-	static NxVec3 GetVectorParam(IParamBlock2* pb, TimeValue t, const char* name, NxVec3 def)
+	static NxVec3 GetVectorParam(IParamBlock2* pb, TimeValue t, const char* name, NxVec3& def)
 	{
 		int id  = FindParam(pb, name);
 		if (id < 0) return def;
@@ -214,6 +384,7 @@ public:
 		return -1;
 	}
 };
+
 
 class MxUserPropUtils
 {
@@ -260,6 +431,7 @@ public:
 	}
 
 };
+
 
 
 struct PxSimpleMesh
@@ -341,6 +513,8 @@ struct PxSimpleMesh
 	NxU32* faces;
 };
 
+#if 0
+
 class MxUtils
 {
 public:
@@ -371,5 +545,8 @@ public:
 
 	static void     PrintMatrix3(Matrix3& m);
 };
+
+#endif
+
 
 #endif //MX_UTILS_H

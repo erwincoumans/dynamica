@@ -1,7 +1,8 @@
 #ifndef STREAM_H
 #define STREAM_H
 
-#include "NxStream.h"
+#if 0
+//#include "NxStream.h"
 
 class MemoryWriteBuffer : public NxStream
 {
@@ -50,5 +51,5 @@ public:
 
 	mutable		const NxU8*		buffer;
 };
-
+#endif
 #endif

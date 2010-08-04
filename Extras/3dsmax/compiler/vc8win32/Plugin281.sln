@@ -1,34 +1,68 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin281", "Plugin281.vcproj", "{0A39E3A2-1482-7545-3A6C-048E8D16C436}"
 	ProjectSection(ProjectDependencies) = postProject
+		{519F115F-F196-49FE-9B24-49618A6202BB} = {519F115F-F196-49FE-9B24-49618A6202BB}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinearMath", "..\..\..\..\msvc\2008\src\LinearMath\LinearMath.vcproj", "{519F115F-F196-49FE-9B24-49618A6202BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
 		debugMax2008|Win32 = debugMax2008|Win32
 		debugMax2009|Win32 = debugMax2009|Win32
 		debugMax9|Win32 = debugMax9|Win32
+		MinSizeRel|Win32 = MinSizeRel|Win32
+		Release|Win32 = Release|Win32
 		releaseMax2008|Win32 = releaseMax2008|Win32
 		releaseMax2009|Win32 = releaseMax2009|Win32
 		releaseMax9|Win32 = releaseMax9|Win32
+		RelWithDebInfo|Win32 = RelWithDebInfo|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.Debug|Win32.ActiveCfg = debugMax2009|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.Debug|Win32.Build.0 = debugMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax2008|Win32.ActiveCfg = debugMax2008|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax2008|Win32.Build.0 = debugMax2008|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax2009|Win32.ActiveCfg = debugMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax2009|Win32.Build.0 = debugMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax9|Win32.ActiveCfg = debugMax9|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.debugMax9|Win32.Build.0 = debugMax9|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.MinSizeRel|Win32.ActiveCfg = releaseMax2009|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.MinSizeRel|Win32.Build.0 = releaseMax2009|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.Release|Win32.ActiveCfg = releaseMax2009|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.Release|Win32.Build.0 = releaseMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax2008|Win32.ActiveCfg = releaseMax2008|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax2008|Win32.Build.0 = releaseMax2008|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax2009|Win32.ActiveCfg = releaseMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax2009|Win32.Build.0 = releaseMax2009|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax9|Win32.ActiveCfg = releaseMax9|Win32
 		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.releaseMax9|Win32.Build.0 = releaseMax9|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.RelWithDebInfo|Win32.ActiveCfg = releaseMax2009|Win32
+		{0A39E3A2-1482-7545-3A6C-048E8D16C436}.RelWithDebInfo|Win32.Build.0 = releaseMax2009|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.Debug|Win32.Build.0 = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax2008|Win32.ActiveCfg = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax2008|Win32.Build.0 = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax2009|Win32.ActiveCfg = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax2009|Win32.Build.0 = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax9|Win32.ActiveCfg = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.debugMax9|Win32.Build.0 = Debug|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.MinSizeRel|Win32.ActiveCfg = MinSizeRel|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.MinSizeRel|Win32.Build.0 = MinSizeRel|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.Release|Win32.ActiveCfg = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.Release|Win32.Build.0 = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax2008|Win32.ActiveCfg = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax2008|Win32.Build.0 = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax2009|Win32.ActiveCfg = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax2009|Win32.Build.0 = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax9|Win32.ActiveCfg = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.releaseMax9|Win32.Build.0 = Release|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.RelWithDebInfo|Win32.ActiveCfg = RelWithDebInfo|Win32
+		{519F115F-F196-49FE-9B24-49618A6202BB}.RelWithDebInfo|Win32.Build.0 = RelWithDebInfo|Win32
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddins) = postSolution
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

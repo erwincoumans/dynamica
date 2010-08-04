@@ -13,7 +13,7 @@ public:
 	virtual MxActor* isActor() { return this; }
 	virtual void* isType(MxObjectType type) { if (type == MX_OBJECTTYPE_ACTOR) return this; return NULL; }
 
-	virtual NxActor* getNxActor();
+	//virtual NxActor* getNxActor();
 	//virtual bool addShape(MxShape* shape); //add a shape to the actor (you can only add one shape to one actor)
 	//virtual bool removeShape(MxShape* shape); //doesn't release the shape, just removes it from the actor
 
@@ -37,7 +37,7 @@ public:
 
 	NxReal getMass() { return m_mass; }
 
-	NxActor* createActor();
+	NxActor* createNxActor();
 	PxRBInteractivity& getInteractivity() { return Interactivity; };
 	void resetObject();
 	void ActionBeforeSimulation();
@@ -46,7 +46,7 @@ public:
 	void SaveLastPose(const Matrix3& pose);
 	const Matrix3& GetLastPose() { return LastPose; }
 
-	NxActor* getPhysXActor() { return m_actor; }
+//	NxActor* getPhysXActor() { return m_actor; }
 
 protected:
 	bool createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode);
@@ -56,7 +56,7 @@ protected:
 	MxActor(const char* name, INode* node);
 	virtual ~MxActor();
 
-	NxActor*           m_actor;
+	//NxActor*           m_actor;
 	NxActorDesc        m_desc;
 	NxBodyDesc         m_bodyDesc;
 	//NxArray<MxShape*>  m_shapes;

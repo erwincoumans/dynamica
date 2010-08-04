@@ -1,7 +1,9 @@
 #ifndef MX_CONTACTREPORT_H
 #define MX_CONTACTREPORT_H
 
-#include <NxPhysics.h>
+//#include <NxPhysics.h>
+#include "MxUtils.h"
+#include "LinearMath/btAlignedObjectArray.h"
 #include <vector>
 #include <max.h>
 
@@ -36,7 +38,8 @@ public:
 	static MxContactReport& getMyContactReport();
 
 private:
-	std::vector<MxContact> m_contacts;
+//	std::vector<MxContact> m_contacts;
+	btAlignedObjectArray<MxContact> m_contacts;
 	int m_index;
 	float m_filter;
 };

@@ -1,7 +1,9 @@
 #ifndef MX_USEROUTPUTSTREAM_H
 #define MX_USEROUTPUTSTREAM_H
 
-#include "NxUserOutputStream.h"
+//#include "NxUserOutputStream.h"
+#include "MxUtils.h"
+
 #include <max.h>
 #include "MAXScrpt\MAXScrpt.h"
 extern CharStream *gCurrentstream;

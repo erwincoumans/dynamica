@@ -8,10 +8,10 @@
 	rollout rigidbodyproperties_roll "Rigid Body Properties"
 	(
 		label		lbl_a	"Specify physics representation:"	pos:[4,5]
-	    -- dropdownlist	geometrytype_ui			""						items:#("Automatic", "Sphere", "Box", "Capsule", "Convex", "Triangle Mesh (Static only)")	pos:[5,21] width:150
-	    dropdownlist	geometrytype_ui			""						items:#("Automatic")	pos:[5,21] width:150
-		-- label		lbl_b	"Object(s) simulated as: "		pos:[4,43]
-		-- button		simulatedas_ui	"..."	pos:[115,43]	height:15	width:40
+	    dropdownlist	geometrytype_ui			""						items:#("Automatic", "Sphere", "Box", "Capsule", "Convex", "Triangle Mesh (Static only)")	pos:[5,21] width:150
+	    -- dropdownlist	geometrytype_ui			""						items:#("Automatic")	pos:[5,21] width:150
+		label		lbl_b	"Object(s) simulated as: "		pos:[4,43]
+		button		simulatedas_ui	"..."	pos:[115,43]	height:15	width:40
 	
 		spinner       	mass_ui            "Mass"                                       range:[0,1000000,0]  pos:[15,70] width:60
 		spinner       	density_ui            "Density"                                       range:[0,10000000,0] pos:[95,70] width:60

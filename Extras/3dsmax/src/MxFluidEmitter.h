@@ -1,8 +1,9 @@
 #ifndef MX_FLUIDEMITTER_H
 #define MX_FLUIDEMITTER_H
 
-
-#include <NxPhysics.h>
+#if 0
+//#include <NxPhysics.h>
+#include "MxUtils.h"
 #include "MxObjects.h"
 class MxFluid;
 
@@ -28,5 +29,6 @@ private:
 	NxFluidEmitter*	m_fluidEmitter;
 	MxFluid*		m_fluid;
 };
+#endif
 
 #endif //MX_FLUIDEMITTER_H

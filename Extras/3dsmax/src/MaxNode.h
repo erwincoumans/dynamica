@@ -2,7 +2,7 @@
 #define MAX_NODE_H
 
 
-#include <NxPhysics.h>
+
 #include <max.h>
 #include <list>
 #include <map>
@@ -11,6 +11,7 @@
 #include "MxUtils.h"
 
 class ccMaxNode;
+
 
 struct ccPrimaryShapePara
 {
@@ -37,7 +38,7 @@ public:
 	inline INode*         GetMaxNode()    { return MaxINode; }
 	inline ULONG          GetMaxHandle()  { if(MaxINode) return MaxINode->GetHandle(); return NULL; }
 
-	void                  SetSimulatedPose(NxMat34& pose, bool useScaleTM = true);		// use simulation result to update node pose; for RB, useScaleRM = true, for Cloth, false
+	void                  SetSimulatedPose(Matrix3& pose, bool useScaleTM = true);		// use simulation result to update node pose; for RB, useScaleRM = true, for Cloth, false
 	void                  RestorePose();                                                // restore original pose
 
 	PxSimpleMesh          SimpleMesh;

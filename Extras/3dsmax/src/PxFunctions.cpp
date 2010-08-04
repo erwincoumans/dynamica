@@ -7,25 +7,24 @@
 #include "iparamb2.h"
 #include <iiksys.h> 
 
-#include <NxCooking.h>
+//#include <NxCooking.h>
 
-#include "NXU_Helper.h"
-#include "NXU_Schema.h"
-
-#include "NXU_Streaming.h"
+//#include "NXU_Helper.h"
+//#include "NXU_Schema.h"
+//#include "NXU_Streaming.h"
 
 #include "PxPlugin.h"
 #include "PxFunctions.h"
 #include "MxUtils.h"
-#include "MxFluid.h"
+//#include "MxFluid.h"
 #include "MxFluidEmitter.h"
 #include "MxActor.h"
 #include "MxJoint.h"
 #include "MxUtils.h"
 //#include "MxShape.h"
-#include "MxCloth.h"
-#include "MxSoftBody.h"
-#include "MxForceField.h"
+//#include "MxCloth.h"
+//#include "MxSoftBody.h"
+//#include "MxForceField.h"
 #include "MxPluginData.h"
 #include "MxDebugVisualizer.h"
 #include "MxExport.h"
@@ -515,6 +514,8 @@ int PxFunctions::pxremoveall()
 
 int PxFunctions::pxremove(INode *node)
 {
+	MaxMsgBox(NULL, _T("pxremove"), _T("Error"), MB_OK);
+
 	ccMaxWorld::FreeNode(node);
 
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
@@ -527,20 +528,7 @@ int PxFunctions::pxremove(INode *node)
 		if (MxPluginData::releaseActor(mxActor))
 			return 1;
 
-	MxObject* cloth = MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_CLOTH);
-	if (cloth != NULL && cloth->isCloth())
-		if (MxPluginData::releaseCloth(cloth->isCloth()))
-			return 1;
 
-	MxObject* emitter = MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUIDEMITTER);
-	if (emitter != NULL && emitter->isFluidEmitter())
-		if (MxPluginData::releaseFluidEmitter(emitter->isFluidEmitter()))
-			return 1;
-
-	MxObject* fluid = MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUID);
-	if (fluid != NULL && fluid->isFluid())
-		if (MxPluginData::releaseFluid(fluid->isFluid()))
-			return 1;
 
 	return 0;
 }
@@ -549,11 +537,8 @@ int PxFunctions::pxadd(INode *node)
 {
 	MxUtils::PreparePlugin();
 
-	NxScene* scene = MxPluginData::getSceneStatic();
-	if (scene == NULL)
-	{
-		return 0;
-	}
+	MaxMsgBox(NULL, _T("pxadd"), _T("Error"), MB_OK);
+
 
 	TimeValue t = GetCOREInterface()->GetTime();
 
@@ -567,6 +552,10 @@ int PxFunctions::pxadd(INode *node)
 
 	MxActor* mxActor = gPluginData->createActor(node, false);
 	if (mxActor == NULL) return 0;
+
+
+	MaxMsgBox(NULL, _T("mxActor created"), _T("Error"), MB_OK);
+
 
 	NxActorDesc&  actordesc  = *mxActor->getActorDesc();
 	NxBodyDesc&   body       = *mxActor->getBodyDesc();
@@ -599,18 +588,18 @@ int PxFunctions::pxadd(INode *node)
 		actordesc.density = 1.0f;
 	}
 
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityX", body.linearVelocity.x))
-		body.linearVelocity.x = 0.0f;
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityY", body.linearVelocity.y))
-		body.linearVelocity.y = 0.0f;
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityZ", body.linearVelocity.z))
-		body.linearVelocity.z = 0.0f;
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinX", body.angularVelocity.x))
-		body.angularVelocity.x = 0.0f;
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinY", body.angularVelocity.y))
-		body.angularVelocity.y = 0.0f;
-	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinZ", body.angularVelocity.z))
-		body.angularVelocity.z = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityX", body.linearVelocity[0]))
+		body.linearVelocity[0] = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityY", body.linearVelocity[1]))
+		body.linearVelocity[1] = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityZ", body.linearVelocity[2]))
+		body.linearVelocity[2] = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinX", body.angularVelocity[0]))
+		body.angularVelocity[0] = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinY", body.angularVelocity[1]))
+		body.angularVelocity[1] = 0.0f;
+	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialSpinZ", body.angularVelocity[2]))
+		body.angularVelocity[2] = 0.0f;
 
 	BOOL makeItSleep = FALSE;
 	if (node->GetUserPropBool("PutToSleep", makeItSleep) && makeItSleep)
@@ -621,14 +610,9 @@ int PxFunctions::pxadd(INode *node)
 	BOOL needCCD = FALSE;
 	node->GetUserPropBool("EnableCCD", needCCD);
 
-	mxActor->createActor();
+	mxActor->createNxActor();
 
-	if(needCCD)
-	{
-		NxPhysicsSDK* psdk = MxPluginData::getPhysicsSDKStatic();
-		psdk->setParameter(NX_CONTINUOUS_CD, 1);
-		psdk->setParameter(NX_CCD_EPSILON, 0.01f);
-	}
+	
 
 	//add all the shapes
 	//for (int i = 0; i < shapes.size(); i++) 
@@ -669,11 +653,11 @@ int PxFunctions::pxadd(INode *node)
 
 	//Force the NxActor to be created (otherwise some other functions that depend on its
 	//existance won't work, e.g. simulate and export)
-	NxActor* nxActor = mxActor->getNxActor();
-	if (nxActor && mxActor->m_sleep)
-	{
-		nxActor->putToSleep();	
-	}
+//	NxActor* nxActor = mxActor->getNxActor();
+//	if (nxActor && mxActor->m_sleep)
+//	{
+//		nxActor->putToSleep();	
+//	}
 
 	return (int) mxActor->getID();
 }
@@ -681,31 +665,12 @@ int PxFunctions::pxadd(INode *node)
 // Add a node as cloth...
 int PxFunctions::pxaddcloth(INode *node, BOOL isMetalCloth)
 {
-	if (node == NULL) return 0;
-
-	MxUtils::PreparePlugin();
-
-	MxPluginData::removeOldObjects(node, node->GetName()); //removes old objects with the same name/node
-
-	//if (gCurrentstream) gCurrentstream->printf("Called pxaddcloth with node \"%s\".\n", node->GetName());
-
-	TimeValue t = GetCOREInterface()->GetTime();
-	ObjectState os = node->EvalWorldState(t); 
-	if (MxUtils::checkNodeValidity(node, os) < 1) {
-		if (gCurrentstream) gCurrentstream->printf("Unable to add \"%s\" as a cloth.\n", node->GetName());
-		return 0;
-	}
-
-	//// Reset the offset to 0 
-	//node->SetObjOffsetPos(Point3(0,0,0)); 
-	//node->SetObjOffsetRot(IdentQuat()); 
-	//node->SetObjOffsetScale(ScaleValue(Point3(1,1,1))); 
-	MxCloth* cloth = MxPluginData::createCloth(node, isMetalCloth);
-	return cloth ? cloth->getID() : 0;
+	return 0;
 }
 
 float PxFunctions::getSDKParameter(TSTR paramname)
 {
+#if 0
 	NXU::NxParameter paramNXU = NXU::NX_PARAMS_NUM_VALUES;
 	if (NXU::StringToEnum(paramname, paramNXU) && paramNXU < NXU::NX_PARAMS_NUM_VALUES)
 	{
@@ -736,7 +701,7 @@ float PxFunctions::getSDKParameter(TSTR paramname)
 		//no SDK, then we need to get the default value
 		return -10.0e10f;
 	}
-
+#endif
 	return -10.0e10f;
 }
 
@@ -751,6 +716,7 @@ float PxFunctions::getSDKParameter(TSTR paramname)
 //						reset method when loading a new scene.
 int PxFunctions::setSDKParameter(TSTR paramname, float value)
 {
+#if 0
 	if (gSDKParamSettings == NULL)
 	{
 		gSDKParamSettings = new MxSDKParam[NX_PARAMS_NUM_VALUES];
@@ -794,6 +760,8 @@ int PxFunctions::setSDKParameter(TSTR paramname, float value)
 		if (gCurrentstream) gCurrentstream->printf("Unknown SDK parameter: \"%s\"\n", paramname);
 		return 0;
 	}
+#endif
+
 	return 0;
 }
 
@@ -801,6 +769,8 @@ int PxFunctions::resetSDKParameter(TSTR paramname)
 {
 	if (gSDKParamSettings == NULL) return 1; //no settings have been made
 
+	return 1;
+#if 0
 	NxPhysicsSDK* sdk = NULL;
 	if (gPluginData != NULL)
 	{
@@ -837,11 +807,14 @@ int PxFunctions::resetSDKParameter(TSTR paramname)
 		gSDKParamSettings[(NxU32)paramNXU].inUse = false;
 		return 1;
 	}
+#endif
+
 	return 0;
 }
 
 int PxFunctions::pxsetshapeflag(INode* node, TSTR flagname, BOOL value) 
 {
+#if 0
 	//Find the shape (if it has been created already)
 	NxShape* shape = MxUtils::GetNxShapeFromName(node->GetName());
 	//check if we know about the flag that should be set
@@ -890,6 +863,7 @@ int PxFunctions::pxsetshapeflag(INode* node, TSTR flagname, BOOL value)
 			break;
 		}
 	}
+#endif
 
 	//NxU32 newFlags = GetShapeFlags(node);
 	return 1;
@@ -899,17 +873,23 @@ int PxFunctions::pxsetshapeflag(INode* node, TSTR flagname, BOOL value)
 int PxFunctions::pxaddfluid(INode *node)
 {
 	if (node == NULL) return 0;
+	return 0;
+#if 0
 	MxUtils::PreparePlugin();
 	MxPluginData::removeOldObjects(node, node->GetName());
 	if (gCurrentstream) gCurrentstream->printf("Called pxAddFluid with node %s \n", node->GetName());
 
 	MxFluid* fluid = gPluginData->createFluid(node);
 	return fluid ? fluid->getID() : 0;
+#endif
+
 }
 
 // Add a node as fluid...
 int PxFunctions::pxaddfluidemitter(INode *node)
 {
+	return 0;
+#if 0
 	if (node == NULL) return 0;
 	MxUtils::PreparePlugin();
 	MxPluginData::removeOldObjects(node, node->GetName());
@@ -918,6 +898,8 @@ int PxFunctions::pxaddfluidemitter(INode *node)
 	//create the emitter
 	MxFluidEmitter* emitter = gPluginData->createFluidEmitter(node);
 	return emitter ? emitter->getID() : 0;
+#endif
+
 }
 
 
@@ -997,6 +979,7 @@ int PxFunctions::pxcalcD6jointfromIK(INode *node)
 
 int setnxjointlinearlimits(MxJoint* mxJoint,Point3 &translimitmin, Point3 &translimitmax)
 {
+#if 0
 	if (mxJoint == NULL) return 0;
 	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
 	nxjoint->purgeLimitPlanes();
@@ -1017,6 +1000,8 @@ int setnxjointlinearlimits(MxJoint* mxJoint,Point3 &translimitmin, Point3 &trans
 	if(t.x>0) { nxjoint->addLimitPlane(tempMat.M*NxVec3(1,0,0),tempMat*(NxVec3&)translimitmin) ;  nxjoint->addLimitPlane(tempMat.M*NxVec3(-1,0,0),tempMat*(NxVec3&)translimitmax) ;} 
 	if(t.y>0) { nxjoint->addLimitPlane(tempMat.M*NxVec3(0,1,0),tempMat*(NxVec3&)translimitmin) ;  nxjoint->addLimitPlane(tempMat.M*NxVec3(0,-1,0),tempMat*(NxVec3&)translimitmax) ;} 
 	if(t.z>0) { nxjoint->addLimitPlane(tempMat.M*NxVec3(0,0,1),tempMat*(NxVec3&)translimitmin) ;  nxjoint->addLimitPlane(tempMat.M*NxVec3(0,0,-1),tempMat*(NxVec3&)translimitmax) ;} 
+#endif
+
 	return 1;
 }
 
@@ -1027,6 +1012,7 @@ int PxFunctions::setjointlinearlimits(INode *node, Point3& translimitmin, Point3
 
 void setjointdescangularlimits(NxD6JointDesc &jointdesc,Point4 &limits)
 {
+#if 0
 	jointdesc.twistLimit.low.value  = limits.z*DEG2RAD;   // assume z is the twist axis  
 	jointdesc.twistLimit.high.value = limits.w*DEG2RAD;  // preprocessing should set z to be the one with highest limit.
 	jointdesc.swing1Limit.value = limits.x*DEG2RAD;  // assuming: rotlimitmin.x == -rotlimitmax.x  
@@ -1035,11 +1021,14 @@ void setjointdescangularlimits(NxD6JointDesc &jointdesc,Point4 &limits)
 	jointdesc.twistMotion  = (trange>=359.0f)? NX_D6JOINT_MOTION_FREE : (trange<=1.0f)?NX_D6JOINT_MOTION_LOCKED : NX_D6JOINT_MOTION_LIMITED;
 	jointdesc.swing1Motion = (limits.x>=180) ? NX_D6JOINT_MOTION_FREE : (limits.x<=0) ?NX_D6JOINT_MOTION_LOCKED : NX_D6JOINT_MOTION_LIMITED;
 	jointdesc.swing2Motion = (limits.y>=180) ? NX_D6JOINT_MOTION_FREE : (limits.y<=0) ?NX_D6JOINT_MOTION_LOCKED : NX_D6JOINT_MOTION_LIMITED;
+#endif
+
 }
 
 
 int PxFunctions::setjointangularlimits(INode *node,Point3 &rotlimitmin, Point3 &rotlimitmax)
 {
+#if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
 	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
@@ -1049,12 +1038,15 @@ int PxFunctions::setjointangularlimits(INode *node,Point3 &rotlimitmin, Point3 &
 	nxjoint->saveToDesc(jointdesc);
 	setjointdescangularlimits(jointdesc,Point4(rotlimitmax.y,rotlimitmax.z,rotlimitmin.x,rotlimitmax.x));
 	nxjoint->loadFromDesc(jointdesc);
+#endif
+
 	return 1;
 }
 
 
 int PxFunctions::setjointslerpdrive(INode *node,float spring,float damping)
 {
+#if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
 	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
@@ -1073,11 +1065,14 @@ int PxFunctions::setjointslerpdrive(INode *node,float spring,float damping)
 	jointdesc.swingDrive.driveType = 0;
 	jointdesc.flags |= NX_D6JOINT_SLERP_DRIVE;
 	nxjoint->loadFromDesc(jointdesc);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::setjointtwistswingdrive(INode *node,float twistspring,float swingspring,float damping)
 {
+#if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
 	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
@@ -1096,18 +1091,21 @@ int PxFunctions::setjointtwistswingdrive(INode *node,float twistspring,float swi
 	jointdesc.swingDrive.driveType = (swingspring>0)?NX_D6JOINT_DRIVE_POSITION:0;
 	jointdesc.flags &= ~NX_D6JOINT_SLERP_DRIVE;
 	nxjoint->loadFromDesc(jointdesc);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::setjointdriver(INode* node, INode* driver, int fromstartframe)
 {
+#if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
 	//assert(mxJoint->getNode() == node);
 
 	mxJoint->setDriverNode(driver!=NULL?driver:node);
 	mxJoint->setFromStartFrame(fromstartframe);
-
+#endif
 	return 1;
 }
 
@@ -1126,6 +1124,7 @@ int PxFunctions::pxcreateD6JointDesc(INode* node)
 //This method is not of much use at the moment, since the D6 joint is created by the MxJoint object
 int PxFunctions::pxaddD6Joint(int jointDesc)
 {
+#if 0
 	//TODO: check so that the NxJoint object can be created almost directly after the "desc" has been created
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1146,10 +1145,14 @@ int PxFunctions::pxaddD6Joint(int jointDesc)
 		return 0;
 	}
 	return mxJoint->getID();
+#endif
+	return 1;
+
 }
 
 int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL locked, Point4 values)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1191,12 +1194,13 @@ int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL 
 		desc->swing2Limit.spring = values[2];
 		desc->swing2Limit.damping = values[3];
 	}
-
+#endif
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistLow, float twistHigh, Point3 values)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1229,12 +1233,14 @@ int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistL
 	{
 		desc->twistMotion = NX_D6JOINT_MOTION_LOCKED;
 	}
+#endif
 
 	return 1;
 }
 
 int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int modeZ, float radius)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1263,11 +1269,14 @@ int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int mod
 	else if(modeZ == 3) desc->zMotion = NX_D6JOINT_MOTION_FREE;
 
 	desc->linearLimit.value = radius;
+#endif
+
 	return 1;
 }
 
 int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Point3 normal, Point3 anchor)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1295,12 +1304,13 @@ int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Po
 		desc->localNormal[1] = NxVec3(normal[0], normal[1], normal[2]);
 		desc->localAnchor[1] = NxVec3(anchor[0], anchor[1], anchor[2]);
 	}
-
+#endif
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce, float maxTorque)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(joint);
 	if (object == NULL)
 	{
@@ -1324,11 +1334,14 @@ int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce
 		nxJoint->setBreakable(maxForce,maxTorque);
 	else
 		nxJoint->setBreakable(NX_MAX_REAL, NX_MAX_REAL);
+
+#endif
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, float angle)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1362,11 +1375,13 @@ int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, flo
 		desc->projectionDistance = dist;
 		desc->projectionAngle = angle;
 	}
+#endif
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1386,11 +1401,14 @@ int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 		desc->jointFlags |= NX_JF_COLLISION_ENABLED;
 	else
 		desc->jointFlags &= (0xFFFF - NX_JF_COLLISION_ENABLED);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 {
+#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1417,6 +1435,8 @@ int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 		desc->jointFlags &= (0xFFFF - NX_D6JOINT_GEAR_ENABLED);
 		desc->gearRatio = 1.0f;
 	}
+#endif
+
 	return 1;
 }
 
@@ -1424,7 +1444,7 @@ int PxFunctions::pxaddjoint(INode* node, Point3& axis, Point3& normal, Point4& l
 {
 
 	if (node == NULL) return 0;
-
+#if 0
 	MxUtils::PreparePlugin();
 	//MxPluginData::removeOldObjects(node, node->GetName());
 
@@ -1489,10 +1509,15 @@ int PxFunctions::pxaddjoint(INode* node, Point3& axis, Point3& normal, Point4& l
 
 	if (gCurrentstream) gCurrentstream->printf("Created joint %s: node %s to %s.\n", mxJoint->getName(), node->GetName(), (p)?parent->GetName():"'world'");
 	return mxJoint->getID();
+#endif 
+	return 1;
+
 }
 
 void PxFunctions::updateskinwidth(NxReal skinWidth)
 {
+#if 0
+
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return;
 
@@ -1507,10 +1532,13 @@ void PxFunctions::updateskinwidth(NxReal skinWidth)
 			shapes[j]->setSkinWidth(skinWidth);
 		}
 	}
+#endif
+
 }
 
 int PxFunctions::pxprep()
 {
+#if 0
 	class ActorDepthCompareClass{
 	public:
 		static int depth(INode *node)
@@ -1571,11 +1599,14 @@ int PxFunctions::pxprep()
 	for (i = 0; i < scene->getNbActors(); i++) 
 		permutation[i]=scene->getActors()[i];
 	qsort(permutation, scene->getNbActors(), sizeof(NxActor*), ActorDepthCompareClass::ActorDepthCompare);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::setdynamic(INode *node, int _dynamic)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
@@ -1594,35 +1625,49 @@ int PxFunctions::setdynamic(INode *node, int _dynamic)
 		actor->raiseBodyFlag(NX_BF_KINEMATIC);
 		mxActor->setAsKenematic(true);
 	}
+#endif
+
 	return 1;
 }
 
 int PxFunctions::isdynamic(INode *node)
 {
+	return true;
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return -1;
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL)  return  -1;
 	if (actor->readBodyFlag(NX_BF_KINEMATIC)) return 0;
 	return actor->isDynamic()?1:0;
+#endif
+
 }
 
 int PxFunctions::isactor(INode *node)
 {
+	return 0;
+#if 0
 	MxActor* actor = MxUtils::GetActorFromNode(node);
 	if (actor == NULL) return 0;
 	return actor->getID();
+#endif
+
 }
 
 int PxFunctions::isjoint(INode *node)
 {
+	return 0;
+#if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
 	return mxJoint->getID();
+#endif
 }
 
 int PxFunctions::pxsync()
 {
+#if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
 
@@ -1642,11 +1687,15 @@ int PxFunctions::pxsync()
 			actor->setAngularVelocity(bodyDesc->angularVelocity);
 		}
 	}
+#endif
+
 	return 1;
 }
 
 int PxFunctions::pxrestart()
 {
+#if 0
+
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
 
@@ -1726,88 +1775,14 @@ int PxFunctions::pxrestart()
 		}
 	}
 	MxObject::PhysXObjects.physXNodes.clear();
-	/*
-	NxU32 number = scene->getNbActors();
-	for (NxU32 i = number; i > 0; i--)
-	{
-		NxActor *actor = permutation[i-1];
-		MxActor* mxActor = (MxActor*)actor->userData;
-		if (mxActor == NULL) continue; //happens when you are picking objects in the VRD
-		NxActorDesc* actorDesc = mxActor->getActorDesc();
-		actor->setGlobalPose(actorDesc->globalPose);
-		if(actor->isDynamic() && !actor->readBodyFlag(NX_BF_KINEMATIC))
-		{
-			NxBodyDesc* bodyDesc = mxActor->getBodyDesc();
-			actor->setLinearVelocity(bodyDesc->linearVelocity);
-			actor->setAngularVelocity(bodyDesc->angularVelocity);
-		}
-		INode* node = mxActor->getNode();
-		mxActor->resetObject();
-		if(mxActor->m_sleep)
-		{
-			actor->putToSleep();
-		}
-	}
-
-	number  = scene->getNbCloths();
-	NxCloth** cloths = scene->getCloths();
-	for (NxU32 i = number; i > 0; i--)
-	{
-		NxCloth& nx  = *cloths[i-1];
-		MxCloth* mx = (MxCloth*)nx.userData;
-		if(mx)
-		{
-			mx->resetObject();
-		}
-	}
-
-	number  = scene->getNbSoftBodies();
-	NxSoftBody** softBodies = scene->getSoftBodies();
-	for (NxU32 i = number; i >0; i--)
-	{
-		NxSoftBody& nx  = *softBodies[i-1];
-		MxSoftBody* mx = (MxSoftBody*) nx.userData;
-		if(mx)
-		{
-			mx->resetObject();
-		}
-	}
-
-	number  = scene->getNbForceFields();
-	NxForceField** ffs = scene->getForceFields();
-	for (NxU32 i = number; i > 0; i--)
-	{
-		NxForceField& nx  = *ffs[i-1];
-		MxForceField* mx = (MxForceField*) nx.userData;
-		if(mx)
-		{
-			mx->resetObject();
-		}
-	}
-
-	number = scene->getNbFluids();
-	NxFluid** fluids = scene->getFluids();
-	NxArray<MxFluid*> mxFluids;
-	for (NxU32 i = 0; i < number; i++)
-	{
-		NxFluid* nx = fluids[i];
-		MxFluid* mx = (MxFluid*)nx->userData;
-		if (mx != NULL)
-		{
-			mxFluids.pushBack(mx);
-		}
-	}
-	for (NxU32 i = 0; i < mxFluids.size(); i++)
-	{
-		mxFluids[i]->resetObject();
-	}
-	*/
+	
 
 	//redraw the debug shapes at their correct locations, also need to update the fluids (their number of particles aren't correctly updated until a simulate call has been made)
 	//if(mSetting_debugphysics || mxFluids.size() > 0)
 	if(mSetting_debugphysics || findFluid)
 		pxsim(0.001f); //can't simulate 0.0 when there are fluids or cloths (it seems)
 	return 1;
+#endif
 
 	return 0;
 }
@@ -1815,6 +1790,7 @@ int PxFunctions::pxrestart()
 
 int PxFunctions::pxvisualizephysics(BOOL enable)
 {
+#if 0
 	if(!gDebugVisualizer)
 	{
 		MaxMsgBox(NULL, _T("Please add physics objects to the scene from the PhysX Control Panel before enabling debug visualization"), _T("Error"), MB_OK);
@@ -1831,6 +1807,7 @@ int PxFunctions::pxvisualizephysics(BOOL enable)
 		mSetting_debugphysics = FALSE;
 		GetCOREInterface()->UnRegisterViewportDisplayCallback(FALSE, gDebugVisualizer);
 	}
+#endif
 
 	return 1;
 }
@@ -1838,6 +1815,7 @@ int PxFunctions::pxvisualizephysics(BOOL enable)
 
 int PxFunctions::pxsnap(float)
 {
+#if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
 
@@ -1896,6 +1874,7 @@ int PxFunctions::pxsnap(float)
 			theHold.Put(new RestoreTrans(node,node->GetNodeTM(t),t));
 		}
 	}
+#endif
 	return 1;
 }
 
@@ -1903,11 +1882,14 @@ unsigned int PxFunctions::subSimSubsteps = 1;
 
 int PxFunctions::setSubSimSteps(int numSteps)
 {
+#if 0
 	if(numSteps < 1)
 		PxFunctions::subSimSubsteps = 1;
 	else
 		PxFunctions::subSimSubsteps = numSteps;
 	return PxFunctions::subSimSubsteps;
+#endif
+	return 1;
 }
 
 class PxClockData;
@@ -1991,6 +1973,7 @@ bool PxFunctions::printFPS(bool onoff)
 
 int PxFunctions::pxsim(float deltat)
 {
+#if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
 
@@ -2144,91 +2127,16 @@ int PxFunctions::pxsim(float deltat)
 			}
 		}
 	}
-	/*
-	for(i=0;(unsigned)i<scene->getNbActors();i++)
-	{
-		NxActor *actor = permutation[i];
-		MxActor* mxActor = (MxActor*)actor->userData;
-		if (mxActor == NULL) continue; //happens when you are picking objects in the VRD
-		mxActor->ActionAfterSimulation();
-		//if(PxFunctions::m_mimicStaticRB)
-		//{
-		//	NxReal m = mxActor->getMass();
-		//	actor->setMass(mxActor->getMass());
-		//}
-		//if(!PxFunctions::mSetting_kinematicwriteback && actor->readBodyFlag(NX_BF_KINEMATIC)) continue;
-
-		//NxBodyDesc bd;
-		//bool isDynamic = actor->saveBodyToDesc(bd);
-		//if(! isDynamic) continue; // it is static actor
-		//bool isKinematic = actor->readBodyFlag(NX_BF_KINEMATIC);
-		//if(isKinematic) continue; // it is Kinematic actor
-		//INode* node = mxActor->getNode();
-		//node->SetNodeTM(t,MxMathUtils::NxMatrixToMax(actor->getGlobalPose()));
-		////if (mxActor->getProxyNode() != NULL)
-		////{
-		//	// mxActor->getProxyNode()->SetNodeTM(t, MxMathUtils::NxMatrixToMax(MxMathUtils::transformToParent(actor->getGlobalPose(), mxActor->getProxyTransform())));
-		////}
-	}
-
-	NxU32 number = scene->getNbCloths();
-	NxCloth **cloths = scene->getCloths();
-	for(i = 0; i < number; i++)
-	{
-		NxCloth* nx = cloths[i];
-		MxCloth* mx = (MxCloth*)nx->userData;
-		if(mx)
-		{
-			mx->updateMeshFromSimulation(t);
-		}
-	}
-
-	number = scene->getNbSoftBodies();
-	NxSoftBody **softBodies = scene->getSoftBodies();
-	for(i = 0; i < number; i++)
-	{
-		NxSoftBody* nx = softBodies[i];
-		MxSoftBody* mx = (MxSoftBody*) nx->userData;
-		if(mx)
-		{
-			mx->updateMeshFromSimulation(t);
-		}
-	}
-
-
-	number = scene->getNbForceFields();
-	NxForceField **ffs = scene->getForceFields();
-	for(i = 0; i < number; i++)
-	{
-		NxForceField* nx = ffs[i];
-		MxForceField* mx = (MxForceField*) nx->userData;
-		if(mx)
-		{
-			INode* node = mx->getNode();
-			mx->updateMeshFromSimulation(t);
-		}
-	}
-
-	NxArray<MxObject*> objects;
-	MxPluginData::getAllObjects(objects);
-
-	for (i = 0; i < objects.size(); i++)
-	{
-		if (objects[i]->isFluid())
-		{
-			MxFluid* fluid = objects[i]->isFluid();
-			fluid->invalidateMesh();
-		}
-	}
-	*/
+	
 	// Redraw...
 	ip->ForceCompleteRedraw();
-
+#endif 
 	return 1;
 }
 
 int PxFunctions::updateInitialVelocityAndSpin(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
@@ -2252,41 +2160,53 @@ int PxFunctions::updateInitialVelocityAndSpin(INode *node)
 
 	actor->setLinearVelocity(bodyDesc->linearVelocity);
 	actor->setAngularVelocity(bodyDesc->angularVelocity);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::setLinearVelocity(INode *node,Point3 &linearvelocity) 
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return 0;
 	actor->setLinearVelocity((NxVec3&)linearvelocity);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::setAngularVelocity(INode *node, Point3 &angularvelocity)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return 0;
 	actor->setAngularVelocity((NxVec3&)angularvelocity);
+#endif
 	return 1;
 }
 
 Point3 PxFunctions::getGlobalPosition(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Point3(0,0,0);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Point3(0,0,0);
 	return (Point3&)actor->getGlobalPosition();
+#endif
+
+	return Point3(0,0,0);
 }
 
 // it only sets the physics position and  does not change the node's max position
 int PxFunctions::setGlobalPosition(INode *node, Point3& position)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
@@ -2295,22 +2215,29 @@ int PxFunctions::setGlobalPosition(INode *node, Point3& position)
 
 	TimeValue t = GetCOREInterface()->GetTime();
 	node->SetNodeTM(t, MxMathUtils::NxMatrixToMax(actor->getGlobalPose()));
+#endif
+
 	return 1;
 }
 
 
 Matrix3 PxFunctions::getGlobalPose(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Matrix3(true);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Matrix3(true);
 	return MxMathUtils::NxMatrixToMax(actor->getGlobalPose());
+#endif
+
+	return Matrix3(true);
 }
 
 // it only sets the physics pose and  does not change the node's max pose
 int PxFunctions::setGlobalPose(INode *node, Matrix3& pose)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
@@ -2318,30 +2245,41 @@ int PxFunctions::setGlobalPose(INode *node, Matrix3& pose)
 	actor->setGlobalPose(MxMathUtils::MaxMatrixToNx(pose));
 	TimeValue t = GetCOREInterface()->GetTime();
 	node->SetNodeTM(t, pose);
+#endif
 	return 1;
 }
 
 Point3  PxFunctions::getLinearVelocity(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Point3(0,0,0);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Point3(0,0,0);
 	return (Point3&) actor->getLinearVelocity();
+#endif
+
+	return Point3(0,0,0);
 }
 
 Point3  PxFunctions::getAngularVelocity(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Point3(0,0,0);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Point3(0,0,0);
 	return (Point3&) actor->getAngularVelocity();
+#endif
+
+	 return Point3(0,0,0);
 }
 
 float      PxFunctions::getDynamicFriction(INode *node)
 {
+
 	float result = 0.0f;
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return result;
 	NxActor* actor = mxActor->getNxActor();
@@ -2357,12 +2295,15 @@ float      PxFunctions::getDynamicFriction(INode *node)
 		m->saveToDesc(mdesc);
 		result = mdesc.dynamicFriction;
 	}
+#endif
+
 	return result;
 }
 
 float      PxFunctions::getStaticFriction(INode *node)
 {
 	float result = 0.0f;
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return result;
 	NxActor* actor = mxActor->getNxActor();
@@ -2378,12 +2319,14 @@ float      PxFunctions::getStaticFriction(INode *node)
 		m->saveToDesc(mdesc);
 		result = mdesc.staticFriction;
 	}
+#endif
 	return result;
 }
 
 float      PxFunctions::getRestitution(INode *node)
 {
 	float result = 0.0f;
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return result;
 	NxActor* actor = mxActor->getNxActor();
@@ -2399,11 +2342,14 @@ float      PxFunctions::getRestitution(INode *node)
 		m->saveToDesc(mdesc);
 		result = mdesc.restitution;
 	}
+#endif
+
 	return result;
 }
 
 int      PxFunctions::setDynamicFriction(INode *node, float value)
 {
+#if 0
 	node->SetUserPropFloat("Friction", value);
 
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
@@ -2432,12 +2378,15 @@ int      PxFunctions::setDynamicFriction(INode *node, float value)
 			return 1;
 		}
 	}
+#endif
+
 	return 0;
 }
 
 int      PxFunctions::setStaticFriction(INode *node, float value)
 {
 	node->SetUserPropFloat("StaticFriction", value);
+#if 0
 
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
@@ -2465,6 +2414,8 @@ int      PxFunctions::setStaticFriction(INode *node, float value)
 			return 1;
 		}
 	}
+#endif
+
 	return 0;
 }
 
@@ -2472,6 +2423,7 @@ int      PxFunctions::setRestitution(INode *node, float value)
 {
 	node->SetUserPropFloat("Restitution", value);
 
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
@@ -2498,50 +2450,71 @@ int      PxFunctions::setRestitution(INode *node, float value)
 			return 1;
 		}
 	}
+#endif
+
 	return 0;
 }
 
 float   PxFunctions::getMass(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0.0f;
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return 0.0f;
 	return actor->getMass();
+#endif
+
+	return 0.0f;
 }
 
 Point3  PxFunctions::getMassSpaceInertiaTensor(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Point3(0,0,0);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Point3(0,0,0);
 	return (Point3&) actor->getMassSpaceInertiaTensor();
+
+#endif
+	return Point3(0,0,0);
 }
 
 Matrix3 PxFunctions::getCMassLocalPose(INode *node)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return Matrix3(true);
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return Matrix3(true);	
 	return MxMathUtils::NxMatrixToMax(actor->getCMassLocalPose());
+#endif
+
+	return Matrix3(true);
 }
 
 int PxFunctions::updateMassFromShapes(INode *node,float density,float totalMass)
 {
+#if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
 	NxActor* actor = mxActor->getNxActor();
 	if (actor == NULL) return 0;
 	actor->updateMassFromShapes(density,totalMass);
+#endif
+
 	return 1;
 }
 
 int PxFunctions::pxnxuexport(char *fname, char *ext)
 {
+
 	int ret = 0;
 
+	MaxMsgBox(NULL, _T("File not written: please add physics objects to the scene from the PhysX Control Panel before exporting the scene."), _T("Error"), MB_OK);
+
+#if 0
 	pxprep(); //make sure that e.g. deleted objects are removed before export
 
 	NxScene* scene = MxPluginData::getSceneStatic();
@@ -2559,11 +2532,15 @@ int PxFunctions::pxnxuexport(char *fname, char *ext)
 	{
 		MaxMsgBox(NULL, _T("File not written: please add physics objects to the scene from the PhysX Control Panel before exporting the scene."), _T("Error"), MB_OK);
 	}
+
+#endif
+
 	return ret;
 }
 
 int PxFunctions::debugprint()
 {
+#if 0
 	if (gPluginData != NULL)
 	{
 		gPluginData->debugPrint();
@@ -2571,24 +2548,31 @@ int PxFunctions::debugprint()
 	{
 		if (gCurrentstream) gCurrentstream->printf("No plugin object available yet\n");
 	}
+#endif
+
 	return 0;
 }
 
 int PxFunctions::getFluidParticleCount(INode* node)
 {
+#if 0
 	MxFluid* mxFluid = (MxFluid*) MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUID);
 	if (mxFluid != NULL) {
 		return mxFluid->getNumParticles();
 	}
+#endif
 	return 0;
 }
 
 int PxFunctions::getFluidUpdateNr(INode* node)
 {
+#if 0
 	MxFluid* mxFluid = (MxFluid*) MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUID);
 	if (mxFluid != NULL) {
 		return mxFluid->getUpdateNr();
 	}
+#endif
+
 	return 0;	
 }
 
@@ -2596,30 +2580,41 @@ Tab<float> PxFunctions::getFluidParticles(INode* node)
 {
 	Tab<float> result;
 	result.Resize(0);
+#if 0
 	MxFluid* mxFluid = (MxFluid*) MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUID);
 	if (mxFluid != NULL) {
 		//return mxFluid->getNumParticles();
 		mxFluid->getParticles(result);
 	}
+#endif
+
 	return result;
 }
 
 Mesh* PxFunctions::pxCreateFluidMesh(INode* node, Mesh* currentMesh)
 {
+#if 0
 	MxFluid* mxFluid = (MxFluid*) MxUtils::GetFirstObjectOfTypeFromNode(node, MX_OBJECTTYPE_FLUID);
 	if (mxFluid != NULL) {
 		return mxFluid->createMesh(currentMesh);
 	}
+#endif
+
 	return NULL;
 }
 
 Mesh* PxFunctions::pxCreateHull(Mesh* src, int vertLimit, float inflation)
 {
+#if 0
 	return MxUtils::pxCreateConvexHull(src, vertLimit, inflation);
+#endif
+	return 0;
+
 }
 
 Mesh* PxFunctions::createConvexFromPoints(Tab<float>& points, int vertLimit, float inflation)
 {
+#if 0
 	PxSimpleMesh sm;
 	sm.alloc(points.Count()/3, 0);
 	for(int i = 0; i < sm.numPoints; ++i)
@@ -2630,6 +2625,8 @@ Mesh* PxFunctions::createConvexFromPoints(Tab<float>& points, int vertLimit, flo
 	ret.release();
 	sm.release();
 	return mesh;
+#endif
+	return 0;
 }
 
 INode* PxFunctions::pxCreateINode(Object* obj)
@@ -2649,13 +2646,13 @@ INode* PxFunctions::pxCreateINode(Object* obj)
 
 Mesh* PxFunctions::pxCreateSoftBodyMesh(INode* node, BOOL editableMesh, int subDivision, float simplificationFactor, BOOL createIsoSurface, BOOL singleIsoSurface)
 {
-	return MxSoftBody::createSoftBodyMesh(node, editableMesh == TRUE, subDivision, simplificationFactor, createIsoSurface == TRUE, singleIsoSurface == TRUE);
+	return 0;//MxSoftBody::createSoftBodyMesh(node, editableMesh == TRUE, subDivision, simplificationFactor, createIsoSurface == TRUE, singleIsoSurface == TRUE);
 }
 
 int PxFunctions::pxAddForceField(INode* node)
 {
 	if (node == NULL) return NULL;
-
+#if 0
 	MxUtils::PreparePlugin();
 	MxPluginData::removeOldObjects(node, node->GetName());
 
@@ -2669,6 +2666,9 @@ int PxFunctions::pxAddForceField(INode* node)
 
 	MxForceField* mx = MxPluginData::createForceField(node);
 	return (mx != NULL)? mx->getID():0;
+#endif
+	return 0;
+
 }
 
 int PxFunctions::pxAddSoftBody(INode* node)
@@ -3044,6 +3044,7 @@ std::vector<INode*> PxFunctions::mSleepingActors;
 
 int PxFunctions::findSleepingActors()
 {
+#if 0
 	mSleepingActors.clear();
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if(NULL == scene) return 0;
@@ -3063,6 +3064,9 @@ int PxFunctions::findSleepingActors()
 		}
 	}
 	return mSleepingActors.size();
+#endif
+	return 0;
+
 }
 
 INode* PxFunctions::getSleepingActor(int index)
@@ -3111,6 +3115,7 @@ float PxFunctions::getUnitChange()
 
 int PxFunctions::PrintTM(INode *node)
 {
+
 	const TimeValue  t  = ccMaxWorld::MaxTime();
 	Matrix3 nodeTM = node->GetNodeTM(t);
 	Matrix3 parentTM = node->GetParentTM(t);
@@ -3149,3 +3154,4 @@ int PxFunctions::setPivotScale(INode *node, Point3& scale)
 	node->SetObjOffsetScale(ScaleValue(scale)); 
 	return 1;
 }
+

@@ -2,7 +2,7 @@
 #define MAX_WORLD_H
 
 
-#include <NxPhysics.h>
+//#include <NxPhysics.h>
 #include <max.h>
 //#include "SimpleMesh.h"
 #include <list>

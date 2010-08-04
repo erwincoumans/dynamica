@@ -1,4 +1,5 @@
-#include <NxPhysics.h>
+
+//#include <NxPhysics.h>
 #include <max.h>
 #include <MAXScrpt\MAXScrpt.h>
 
@@ -8,7 +9,7 @@
 //#include "MxShape.h"
 #include "MxJoint.h"
 #include "PxStream.h"
-#include <nxcooking.h>
+//#include <nxcooking.h>
 
 extern CharStream* gCurrentstream;
 struct MxSDKParam;
@@ -49,7 +50,7 @@ bool MxUtils::ReleasePlugin(bool quitting)
 	return true;
 }
 
-
+#if 0
 NxShape* MxUtils::GetNxShapeFromName(const char* name) 
 {
 	if (gPluginData == NULL) return NULL;
@@ -106,41 +107,7 @@ MxActor* MxUtils::GetActorFromNode(INode* node)
 	return NULL;
 }
 
-MxActor* MxUtils::GetActorFromName(const char* name)
-{
-	if (name == NULL) return NULL;
 
-	//There can possibly be several objects with the same name, take the first actor found
-	NxArray<MxObject*> objects;
-	MxPluginData::getObjectsFromName(name, objects);
-	for (NxU32 i = 0; i < objects.size(); i++)
-	{
-		MxActor* mxActor = objects[i]->isActor();
-		if (mxActor != NULL)
-		{
-			return mxActor;
-		}
-	}
-	return NULL;
-}
-
-MxJoint* MxUtils::GetJointFromNode(INode* node)
-{
-	if (node == NULL) return NULL;
-
-	//There can possibly be several objects with the same name, take the first actor found
-	NxArray<MxObject*> objects;
-	MxPluginData::getObjectsFromNode(node, objects);
-	for (NxU32 i = 0; i < objects.size(); i++)
-	{
-		MxJoint* mxJoint = objects[i]->isJoint();
-		if (mxJoint != NULL)
-		{
-			return mxJoint;
-		}
-	}
-	return NULL;
-}
 
 MxObject* MxUtils::GetFirstObjectOfTypeFromNode(INode* node, MxObjectType type)
 {
@@ -156,46 +123,6 @@ MxObject* MxUtils::GetFirstObjectOfTypeFromNode(INode* node, MxObjectType type)
 	return NULL;
 }
 
-// Return a pointer to a TriObject given an INode or return NULL
-// if the node cannot be converted to a TriObject
-TriObject* MxUtils::GetTriObjectFromNode(INode* node, TimeValue t, int& needDelete)
-{
-	needDelete = FALSE;
-	Object *obj = node->EvalWorldState(t).obj;
-	if (obj->CanConvertToType(Class_ID(TRIOBJ_CLASS_ID, 0))) { 
-		TriObject *tri = (TriObject *) obj->ConvertToType(t, 
-			Class_ID(TRIOBJ_CLASS_ID, 0));
-		// Note that the TriObject should only be deleted
-		// if the pointer to it is not equal to the object
-		// pointer that called ConvertToType()
-		if (obj != tri) needDelete = TRUE;
-		return tri;
-	}
-	else {
-		return NULL;
-	}
-}
-
-int MxUtils::checkNodeValidity(INode* node, const ObjectState& os)
-{
-	if (os.obj == NULL)
-	{
-		//gCurrentstream->printf("PhysX SDK Error: Object \"%s\" has no object state. Aborting the current action.\n", node->GetName());
-		return -1;
-	}
-	int sid = os.obj->SuperClassID();
-	if (sid != HELPER_CLASS_ID && sid != GEOMOBJECT_CLASS_ID)
-	{
-		//gCurrentstream->printf("PhysX SDK Warning: Can't submit node \"%s\" with superclass %d to PhysX, only 3D geometry and helpers are accepted.\n", node->GetName(), sid);
-		return -2;
-	}
-	if (sid == HELPER_CLASS_ID && !node->IsGroupHead())
-	{
-		//gCurrentstream->printf("PhysX SDK Warning: Can't submit 'helper' nodes to PhysX (unless they are group-heads). Current object: \"%s\".\n", node->GetName());
-		return -3;
-	}
-	return 1;
-}
 
 
 
@@ -473,6 +400,67 @@ NxConvexMesh* MxUtils::nodeToNxConvexMesh(PxSimpleMesh& mesh)
 	return convexMesh;
 }
 
+
+#endif
+
+MxActor* MxUtils::GetActorFromName(const char* name)
+{
+	if (name == NULL) return NULL;
+
+	//There can possibly be several objects with the same name, take the first actor found
+	NxArray<MxObject*> objects;
+	MxPluginData::getObjectsFromName(name, objects);
+	for (NxU32 i = 0; i < objects.size(); i++)
+	{
+		MxActor* mxActor = objects[i]->isActor();
+		if (mxActor != NULL)
+		{
+			return mxActor;
+		}
+	}
+	return NULL;
+}
+
+MxJoint* MxUtils::GetJointFromNode(INode* node)
+{
+	if (node == NULL) return NULL;
+
+	//There can possibly be several objects with the same name, take the first actor found
+	NxArray<MxObject*> objects;
+	MxPluginData::getObjectsFromNode(node, objects);
+	for (NxU32 i = 0; i < objects.size(); i++)
+	{
+		MxJoint* mxJoint = objects[i]->isJoint();
+		if (mxJoint != NULL)
+		{
+			return mxJoint;
+		}
+	}
+	return NULL;
+}
+
+int MxUtils::checkNodeValidity(INode* node, const ObjectState& os)
+{
+	if (os.obj == NULL)
+	{
+		//gCurrentstream->printf("PhysX SDK Error: Object \"%s\" has no object state. Aborting the current action.\n", node->GetName());
+		return -1;
+	}
+	int sid = os.obj->SuperClassID();
+	if (sid != HELPER_CLASS_ID && sid != GEOMOBJECT_CLASS_ID)
+	{
+		//gCurrentstream->printf("PhysX SDK Warning: Can't submit node \"%s\" with superclass %d to PhysX, only 3D geometry and helpers are accepted.\n", node->GetName(), sid);
+		return -2;
+	}
+	if (sid == HELPER_CLASS_ID && !node->IsGroupHead())
+	{
+		//gCurrentstream->printf("PhysX SDK Warning: Can't submit 'helper' nodes to PhysX (unless they are group-heads). Current object: \"%s\".\n", node->GetName());
+		return -3;
+	}
+	return 1;
+}
+
+
 void MxUtils::PrintMatrix3(Matrix3& m)
 {
 	Point3 r0 = m.GetRow(0);
@@ -482,3 +470,22 @@ void MxUtils::PrintMatrix3(Matrix3& m)
 	gCurrentstream->printf("(matrix3 [%f, %f, %f] [%f, %f, %f] [%f, %f, %f] [%f, %f, %f])", r0.x, r0.y, r0.z, r1.x, r1.y, r1.z, r2.x, r2.y, r2.z, r3.x, r3.y, r3.z);
 }
 
+// Return a pointer to a TriObject given an INode or return NULL
+// if the node cannot be converted to a TriObject
+TriObject* MxUtils::GetTriObjectFromNode(INode* node, TimeValue t, int& needDelete)
+{
+	needDelete = FALSE;
+	Object *obj = node->EvalWorldState(t).obj;
+	if (obj->CanConvertToType(Class_ID(TRIOBJ_CLASS_ID, 0))) { 
+		TriObject *tri = (TriObject *) obj->ConvertToType(t, 
+			Class_ID(TRIOBJ_CLASS_ID, 0));
+		// Note that the TriObject should only be deleted
+		// if the pointer to it is not equal to the object
+		// pointer that called ConvertToType()
+		if (obj != tri) needDelete = TRUE;
+		return tri;
+	}
+	else {
+		return NULL;
+	}
+}

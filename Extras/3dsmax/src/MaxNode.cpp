@@ -20,6 +20,7 @@ ccMaxNode::~ccMaxNode()
 
 void ccMaxNode::SetNode(INode* node)
 {
+	MaxMsgBox(NULL, _T("SetNode"), _T("Error"), MB_OK);
 	MaxINode = node;
 	SimpleMesh.release();
 	ScaledIsUnified = true;
@@ -46,7 +47,7 @@ void RemovePivotScale(INode* node)
 	node->SetObjOffsetScale(ScaleValue(Point3(1,1,1))); 
 }
 
-void ParseMatrix(Matrix3& tmMax, Matrix3& tmPhysX)
+/*void ParseMatrix(Matrix3& tmMax, Matrix3& tmPhysX)
 {
 	NxMat34 m = MxMathUtils::MaxMatrixToNx(tmMax);
 	NxQuat  q;
@@ -54,6 +55,8 @@ void ParseMatrix(Matrix3& tmMax, Matrix3& tmPhysX)
 	NxMat34 p(q, m.t);
 	tmPhysX = MxMathUtils::NxMatrixToMax(p);
 }
+*/
+
 
 bool PivotScaled(ScaleValue& sv)
 {
@@ -82,6 +85,8 @@ bool IsScaled(Matrix3& tm)
 */
 void ccMaxNode::SyncFromMaxMesh()
 {
+	MaxMsgBox(NULL, _T("SyncFromMaxMesh"), _T("Error"), MB_OK);
+
 	ShapeType           = NX_SHAPE_MESH;
 	const TimeValue  t  = ccMaxWorld::MaxTime();
 
@@ -145,9 +150,9 @@ void ccMaxNode::SyncFromMaxMesh()
 		}
 		else if (id == Class_ID(BOXOBJ_CLASS_ID, 0)) {
 			ShapeType = NX_SHAPE_BOX;
-			so->pblock->GetValue(BOXOBJ_WIDTH , 0, PrimaryShapePara.BoxDimension.x, FOREVER);
-			so->pblock->GetValue(BOXOBJ_LENGTH, 0, PrimaryShapePara.BoxDimension.y, FOREVER);
-			so->pblock->GetValue(BOXOBJ_HEIGHT, 0, PrimaryShapePara.BoxDimension.z, FOREVER);
+			so->pblock->GetValue(BOXOBJ_WIDTH , 0, PrimaryShapePara.BoxDimension[0], FOREVER);
+			so->pblock->GetValue(BOXOBJ_LENGTH, 0, PrimaryShapePara.BoxDimension[1], FOREVER);
+			so->pblock->GetValue(BOXOBJ_HEIGHT, 0, PrimaryShapePara.BoxDimension[2], FOREVER);
 			PrimaryShapePara.BoxDimension *= (0.5f * maxNodeScale.x * ccMaxWorld::GetUnitChange());          // x/y/z is scaled with a same value     // Physics box is half the size
 		}
 		else if (id == CAPS_CLASS_ID) {
@@ -193,9 +198,8 @@ void ccMaxNode::SyncFromMaxMesh()
 /*
   use simulated PhysX Pose to update Max Node's pose. Need consider unit scaling
 */
-void ccMaxNode::SetSimulatedPose(NxMat34& pose, bool useScaleTM)
+void ccMaxNode::SetSimulatedPose(Matrix3& p, bool useScaleTM)
 {
-	Matrix3 p = MxMathUtils::NxMatrixToMax(pose);
 	if(useScaleTM)
 		p = (PhysicsNodeScaleTM * p);
 	p = ccMaxWorld::ChangeToMaxUnit(p);

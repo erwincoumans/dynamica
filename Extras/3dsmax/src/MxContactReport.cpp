@@ -37,13 +37,13 @@ bool MxContactReport::getNextContact()
 Point3 MxContactReport::getContactForce()
 {
 	MxContact& c = m_contacts[m_index];
-	return Point3(c.force.x, c.force.y, c.force.z);
+	return Point3(c.force[0], c.force[1], c.force[2]);
 }
 
 Point3 MxContactReport::getContactPoint()
 {
 	MxContact& c = m_contacts[m_index];
-	return Point3(c.point.x, c.point.y, c.point.z);
+	return Point3(c.point[0], c.point[1], c.point[2]);
 }
 
 INode* MxContactReport::getContactNode0()
@@ -62,6 +62,7 @@ INode* MxContactReport::getContactNode1()
 
 void  MxContactReport::onContactNotify(NxContactPair& pair, NxU32 events)
 {
+#if 0
 	// most collision events are on touch events
 	if( ! (events & NX_NOTIFY_ON_START_TOUCH))
 	{
@@ -113,6 +114,8 @@ void  MxContactReport::onContactNotify(NxContactPair& pair, NxU32 events)
 	{
 		m_contacts.push_back(c);
 	}
+#endif
+
 }
 
 MxContactReport& MxContactReport::getMyContactReport()

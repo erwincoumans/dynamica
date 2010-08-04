@@ -73,11 +73,12 @@ public:
 
 	static bool releaseObject(MxObject* object, bool* sideEffects=NULL);
 
-	static NxPhysicsSDK* getPhysicsSDKStatic() { return m_instance?m_instance->m_physicsSDK:NULL; }
-	static bool HwAvailable() { return m_hwPhysX; }
-	static NxScene* getSceneStatic() { return m_instance?m_instance->m_scene:NULL; }
-	NxPhysicsSDK* getPhysicsSDK() { return m_physicsSDK; }
-	NxScene* getScene() { return m_scene; }
+	static NxPhysicsSDK* getPhysicsSDKStatic();
+	
+	static bool HwAvailable() { return false;}//m_hwPhysX; }
+	//static NxScene* getSceneStatic() { return m_instance?m_instance->m_scene:NULL; }
+//	NxPhysicsSDK* getPhysicsSDK() { return 0;} //m_physicsSDK; }
+//	NxScene* getScene() { return m_scene; }
 
 	//also initializes the cooking library, no need to close it (it is done when MxPluginData is released)
 	NxCookingInterface* getCookingInterface();

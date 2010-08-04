@@ -915,6 +915,7 @@ utility px_control "PhysX Utility"
 				273: "2.7.3"
 				280: "2.8.0"
 				281: "2.8.1"
+				277: "2.77"
 			)
 			lbl_about.text = "PhysX SDK Version " + version
 		)

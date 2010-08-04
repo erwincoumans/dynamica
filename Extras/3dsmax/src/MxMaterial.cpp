@@ -1,4 +1,4 @@
-#include <NxPhysics.h>
+#include "MxUtils.h"
 
 #include <max.h>
 #include <MAXScrpt\MAXScrpt.h>

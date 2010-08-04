@@ -1,4 +1,6 @@
-#include <NxPhysics.h>
+//include <NxPhysics.h>
+#include "MxUtils.h"
+
 #include <max.h>
 #include "MxObjects.h"
 

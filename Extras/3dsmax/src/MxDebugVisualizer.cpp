@@ -1,4 +1,6 @@
-#include <NxPhysics.h>
+//#include <NxPhysics.h>
+#include "MxUtils.h"
+
 #include <max.h>
 
 #include "MxPluginData.h"
@@ -34,6 +36,7 @@ void DebugSetupColor(NxU32 color, float& red, float& green, float& blue)
 
 void MxDebugVisualizer::Display(TimeValue t, ViewExp *vpt, int flags)
 {
+#if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return;
 	const NxDebugRenderable* pDebugRenderable = scene->getDebugRenderable();
@@ -65,6 +68,8 @@ void MxDebugVisualizer::Display(TimeValue t, ViewExp *vpt, int flags)
 		Lines++;
 		m_numElements++;
 	}
+#endif
+
 }
 
 void MxDebugVisualizer::GetViewportRect(TimeValue t, ViewExp *vpt, Rect *rect)

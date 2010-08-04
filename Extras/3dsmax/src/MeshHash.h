@@ -1,7 +1,9 @@
 #ifndef MESH_HASH_H
 #define MESH_HASH_H
 
-#include "NxPhysics.h"
+//#include "NxPhysics.h"
+#include "MxUtils.h"
+
 #include <vector>
 
 // ------------------------------------------------------------------------------

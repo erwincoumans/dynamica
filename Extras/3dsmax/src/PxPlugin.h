@@ -9,12 +9,12 @@
 //Include legacy functions (currently not available)
 //#define PXPLUGIN_LEGACY
 
-#include <NxPhysics.h>
-
+//#include <NxPhysics.h>
+#include "MxUtils.h"
 //Include SoftBody support
-#if NX_SDK_VERSION_NUMBER >= 270
-#define PXPLUGIN_SOFTBODY
-#endif
+//#if NX_SDK_VERSION_NUMBER >= 270
+//#define PXPLUGIN_SOFTBODY
+//#endif
 
 #include "maxtypes.h"
 

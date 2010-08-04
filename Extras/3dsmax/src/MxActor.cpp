@@ -1,244 +1,24 @@
-#include <NxPhysics.h>
+//#include <NxPhysics.h>
 
 #include <max.h>
 #include <MAXScrpt\MAXScrpt.h>
 #include <vector>
 #include <iterator>
+#include "MxUtils.h"
 #include "MxPluginData.h"
 #include "MxObjects.h"
 #include "MxActor.h"
 //#include "MxShape.h"
 #include "MaxNode.h"
 #include "MaxWorld.h"
-#include "MxUtils.h"
+
 
 extern CharStream *gCurrentstream;
 
-class ccCCDSkeleton
-{
-public:
-	static NxCCDSkeleton* createSkeleton(NxConvexShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxSphereShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxBoxShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxCapsuleShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxTriangleMeshShapeDesc* shape, PX_CCD_SKELETON type);
-	static float zoomScale;
-};
-float ccCCDSkeleton::zoomScale = 0.9f;
-
-NxCCDSkeleton* ccCCDSkeleton::createSkeleton(NxConvexShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-
-	NxConvexMeshDesc mesh;
-	shape->meshData->saveToDesc(mesh);
-	
-	PxSimpleMesh sm;
-	sm.buildFrom(mesh);
-
-	MxUtils::scaleMesh(sm, ccCCDSkeleton::zoomScale);
-	PxSimpleMesh hull;
-	MxUtils::pxCreateConvexHull(hull, sm, 64, 0.0025f);  // max 64 faces
-	sm.release();
-
-	NxSimpleTriangleMesh pointSkeleton;
-	pointSkeleton.numVertices = hull.numPoints;
-	pointSkeleton.numTriangles = hull.numFaces;
-	pointSkeleton.pointStrideBytes = sizeof(NxVec3);
-	pointSkeleton.triangleStrideBytes = sizeof(NxU32) * 3;
-
-	pointSkeleton.points = hull.points;
-	pointSkeleton.triangles = hull.faces;
-	pointSkeleton.flags |= NX_MF_FLIPNORMALS;
-	ret = gPluginData->getPhysicsSDK()->createCCDSkeleton(pointSkeleton);
-	hull.release();
-	return ret;
-}
-
-NxCCDSkeleton* ccCCDSkeleton::createSkeleton(NxSphereShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxReal radius = shape->radius * ccCCDSkeleton::zoomScale;
-	NxU32 triangles[] = {
-		1, 0, 2,
-		2, 0, 3,
-		3, 0, 4,
-		4, 0, 1,
-		1, 5, 4,
-		2, 5, 1,
-		3, 5, 2,
-		4, 5, 3
-	};
-	NxVec3 points[6];
-	points[0].set(0, radius, 0);
-	points[1].set(0, 0, radius);
-	points[2].set(-radius, 0, 0);
-	points[3].set(0, 0, -radius);
-	points[4].set(radius, 0, 0);
-	points[5].set(0, -radius, 0);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = gPluginData->getPhysicsSDK()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* ccCCDSkeleton::createSkeleton(NxBoxShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxU32 triangles[3 * 12] = { 
-		0,1,3,
-		0,3,2,
-		3,7,6,
-		3,6,2,
-		1,5,7,
-		1,7,3,
-		4,6,7,
-		4,7,5,
-		1,0,4,
-		5,1,4,
-		4,0,2,
-		4,2,6
-	};
-	NxVec3 points[8];
-
-	//static mesh
-	NxVec3 size = shape->dimensions * ccCCDSkeleton::zoomScale;
-	points[0].set( size.x, -size.y, -size.z);
-	points[1].set( size.x, -size.y,  size.z);
-	points[2].set( size.x,  size.y, -size.z);
-	points[3].set( size.x,  size.y,  size.z);
-
-	points[4].set(-size.x, -size.y, -size.z);
-	points[5].set(-size.x, -size.y,  size.z);
-	points[6].set(-size.x,  size.y, -size.z);
-	points[7].set(-size.x,  size.y,  size.z);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = gPluginData->getPhysicsSDK()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* ccCCDSkeleton::createSkeleton(NxCapsuleShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxReal radius = shape->radius * ccCCDSkeleton::zoomScale;
-	NxReal height = shape->height;
-
-	NxU32 triangles[] = {
-		2, 0, 1,
-		3, 0, 2,
-		4, 0, 3,
-		1, 0, 4,
-		6, 2, 1,
-		5, 6, 1,
-		3, 2, 6,
-		6, 7, 3,
-		4, 3, 7,
-		8, 4, 7,
-		1, 4, 8,
-		8, 5, 1,
-		8, 9, 5,
-		7, 9, 8,
-		6, 9, 7,
-		5, 9, 6
-	};
-	NxVec3 points[10];
-	points[0].set(0, height + radius, 0);
-	points[1].set(radius, height, 0);
-	points[2].set(0, height, radius);
-	points[3].set(-radius, height, 0);
-	points[4].set(0, height, -radius);
-	points[5].set(radius, -height, 0);
-	points[6].set(0, -height, radius);
-	points[7].set(-radius, -height, 0);
-	points[8].set(0, -height, -radius);
-	points[9].set(0, -height - radius, 0);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = gPluginData->getPhysicsSDK()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* ccCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	return ret;
-}
 
 
-NxActor* MxActor::getNxActor() {
-	//if (m_actor == NULL)
-	//{
-	//	if (m_desc.isValid())
-	//	{
-	//		m_actor = gPluginData->getScene()->createActor(m_desc);
-	//		if (m_actor == NULL) 
-	//		{
-	//			if (gCurrentstream) gCurrentstream->printf("Unable to create the NxActor object for \"%s\".\n", getName());
-	//			return NULL;
-	//		}
 
-	//		m_actor->userData = this;
 
-	//		assert(m_actor->getNbShapes() == m_shapes.size());
-	//		if (m_actor->getNbShapes() == m_shapes.size())
-	//		{
-	//			for (NxU32 i = 0; i < m_shapes.size(); i++)
-	//			{
-	//				m_shapes[i]->m_nxShape = m_actor->getShapes()[i];
-	//				// need get force at contact
-	//				m_shapes[i]->m_nxShape->setFlag(NX_SF_POINT_CONTACT_FORCE, true);
-	//			}
-	//		} else {
-	//			//Warning! the number of shapes are not the same, we need to do something drastic
-	//			while (m_actor->getNbShapes() > 0)
-	//			{
-	//				m_actor->releaseShape(*m_actor->getShapes()[0]);
-	//			}
-	//			for (NxU32 i = 0; i < m_shapes.size(); i++)
-	//			{
-	//				NxShapeDesc* shapeDesc = m_shapes[i]->getShapeDesc(this);
-	//				if (shapeDesc != NULL)
-	//				{
-	//					NxShape* nxShape = m_actor->createShape(*shapeDesc);
-	//					if (nxShape != NULL)
-	//					{
-	//						m_shapes[i]->m_nxShape = nxShape;
-	//						// need get force at contact
-	//						nxShape->setFlag(NX_SF_POINT_CONTACT_FORCE, true);
-	//					}
-	//				}
-	//			}
-	//		}
-	//		m_mass = m_actor->getMass();
-	//	}
-	//}
-	return m_actor; 
-}
 //
 //bool MxActor::addShape(MxShape* shape)
 //{
@@ -298,7 +78,7 @@ NxActor* MxActor::getNxActor() {
 MxActor::MxActor(const char* name, INode* node) : MxObject(name, node), maxNodeActor(0), maxNodeProxy(0)
 {
 	m_ObjectType = MX_OBJECTTYPE_ACTOR;
-	m_actor = NULL;
+//	m_actor = NULL;
 	m_desc.name = m_name.data(); //safe, since MxActor lives longer than the NxActor created by it
 	m_desc.userData = this;
 	m_proxyNode = NULL;
@@ -313,20 +93,12 @@ MxActor::~MxActor()
 	//all shapes should have been removed before deleting the actor
 	//assert(m_shapes.size() == 0);
 
-	if (m_actor != NULL)
-	{
-		gPluginData->getScene()->releaseActor(*m_actor);
-		m_actor = NULL;
-	}
+	
 }
 
 void MxActor::releaseAllShapes()
 {
-	if (m_actor != NULL)
-	{
-		gPluginData->getScene()->releaseActor(*m_actor);
-		m_actor = NULL;
-	}
+
 
 	//for (NxU32 i = 0; i < m_shapes.size(); i++)
 	//{
@@ -339,11 +111,7 @@ void MxActor::releaseAllShapes()
 
 void MxActor::releaseNxActor()
 {
-	if (m_actor != NULL)
-	{
-		gPluginData->getScene()->releaseActor(*m_actor);
-		m_actor = NULL;
-	}
+	
 	//for (NxU32 i = 0; i < m_shapes.size(); i++)
 	//{
 	//	m_shapes[i]->m_nxShape = NULL;
@@ -357,6 +125,95 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 {
 	const TimeValue t = ccMaxWorld::MaxTime();
 
+	MaxMsgBox(NULL, _T("createShape"), _T("Error"), MB_OK);
+
+	int geomType = MxUserPropUtils::GetUserPropInt(m_node, "GeometryType",1);
+	NxShapeType type = node->ShapeType;
+
+	switch (geomType)
+	{
+	case 1:
+		{
+			MaxMsgBox(NULL, _T("automatic"), _T("Error"), MB_OK);
+		
+			switch (type)
+			{
+			case NX_SHAPE_SPHERE:
+				{
+					MaxMsgBox(NULL, _T("sphere shape"), _T("Error"), MB_OK);
+					break;
+				};
+			case NX_SHAPE_BOX:
+				{
+					MaxMsgBox(NULL, _T("box shape"), _T("Error"), MB_OK);
+					break;
+				}
+			case NX_SHAPE_CAPSULE:
+				{
+					MaxMsgBox(NULL, _T("capsule shape"), _T("Error"), MB_OK);
+					break;
+				}
+
+			case NX_SHAPE_CONVEX:
+				{
+					MaxMsgBox(NULL, _T("convex shape"), _T("Error"), MB_OK);
+					break;
+				}
+			case 	NX_SHAPE_MESH:
+				{
+					MaxMsgBox(NULL, _T("mesh shape"), _T("Error"), MB_OK);
+					break;
+				}
+
+			default:
+				{
+					MaxMsgBox(NULL, _T("unknown shape type"), _T("Error"), MB_OK);
+				}
+			};
+			break;
+		}
+
+	case 2:
+		{
+			MaxMsgBox(NULL, _T("override sphere shape"), _T("Error"), MB_OK);
+			type = NX_SHAPE_SPHERE;
+			break;
+		}
+
+	case 3:
+		{
+			MaxMsgBox(NULL, _T("override box shape"), _T("Error"), MB_OK);
+			type = NX_SHAPE_BOX;
+			break;
+		}
+	case 4:
+		{
+			MaxMsgBox(NULL, _T("override capsule shape"), _T("Error"), MB_OK);
+			type = NX_SHAPE_CAPSULE;
+			break;
+		}
+
+	case 5:
+	{
+		MaxMsgBox(NULL, _T("override convex shape"), _T("Error"), MB_OK);
+		type = NX_SHAPE_CONVEX;
+		break;
+	}
+
+	case 6:
+	{
+		MaxMsgBox(NULL, _T("override concave trimesh shape"), _T("Error"), MB_OK);
+		type = NX_SHAPE_MESH;
+		break;
+	}
+
+	default:
+			{
+				MaxMsgBox(NULL, _T("unknown shape type"), _T("Error"), MB_OK);
+			}
+	}
+
+#if 0
 	NxShapeDesc* pd = NULL;
 	NxShapeType type = node->ShapeType;
 	PxSimpleMesh proxyMesh;
@@ -375,6 +232,7 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 		type = NX_SHAPE_CONVEX;
 	}
 	//
+	/*
 	bool NeedCCDSkeleton = (Interactivity != RB_STATIC) && (MxUserPropUtils::GetUserPropBool(node->GetMaxNode(), "EnableCCD", false));
 	if(NeedCCDSkeleton) 
 	{
@@ -382,138 +240,15 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 		psdk->setParameter(NX_CONTINUOUS_CD, 1);
 		psdk->setParameter(NX_CCD_EPSILON, 0.01f);
 	}
+	*/
+
 
 	// create CCD skeleton for the shape
 	//TODO("implement CCD skeleton creation");
 	PX_CCD_SKELETON ccdType = (PX_CCD_SKELETON) MxUserPropUtils::GetUserPropInt(node->GetMaxNode(), "px_shape_ccdtype", 1);
 	switch(type)
 	{
-	case NX_SHAPE_MESH:
-		{
-			NxTriangleMeshShapeDesc*d = new NxTriangleMeshShapeDesc();
-			if(m_proxyNode)
-			{
-				d->meshData = MxUtils::nodeToNxTriangleMesh(proxyMesh);
-				Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			else
-			{
-				d->meshData = MxUtils::nodeToNxTriangleMesh(node->SimpleMesh);
-				Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			if(! d->meshData)
-			{
-				delete d;
-				return false;
-			}
-			// add to record for reuse
-			//ccObjectManager::instance().triangleMeshes.add(node->GetMaxNode(), d->meshData);
-			//
-			pd = d;
-			// support ccd skeleton later
-		}
-		break;
-	case NX_SHAPE_CONVEX:
-		{
-			NxConvexShapeDesc* d = new NxConvexShapeDesc();
-			if(m_proxyNode)
-			{
-				d->meshData = MxUtils::nodeToNxConvexMesh(proxyMesh);
-				Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			else
-			{
-				d->meshData = MxUtils::nodeToNxConvexMesh(node->SimpleMesh);
-				Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			if(! d->meshData)
-			{
-				delete d;
-				return false;
-			}
-			// add to record reuse
-			//ccObjectManager::instance().convexMeshes.add(node->GetMaxNode(), d->meshData);
-			//
-			pd = d;
-			// do not support skeleton now
-			if(NeedCCDSkeleton) 
-				pd->ccdSkeleton = ccCCDSkeleton::createSkeleton(d, ccdType);
-		}
-		break;
-	case NX_SHAPE_SPHERE:
-		{
-			NxSphereShapeDesc* d = new NxSphereShapeDesc();
-			d->radius = node->PrimaryShapePara.Radius;
-			if(m_proxyNode)
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			else
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			pd = d;
-			// do not support skeleton now
-			if(NeedCCDSkeleton) 
-				pd->ccdSkeleton = ccCCDSkeleton::createSkeleton(d, ccdType);
-		}
-		break;
-	case NX_SHAPE_BOX:
-		{
-			NxBoxShapeDesc* d = new NxBoxShapeDesc();
-			d->dimensions.x = node->PrimaryShapePara.BoxDimension.x;
-			d->dimensions.y = node->PrimaryShapePara.BoxDimension.y;
-			d->dimensions.z = node->PrimaryShapePara.BoxDimension.z;
-			//
-			d->localPose.t.z = node->PrimaryShapePara.BoxDimension.z;      //adjust for difference in pivot points between 3ds max and PhysX
-			if(m_proxyNode)
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			else
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			for (int i = 0; i < 3; i++) 
-				d->dimensions[i] = fabsf(d->dimensions[i]);               // prevent values in minus
-			pd = d;
-			// do not support skeleton now
-			if(NeedCCDSkeleton) 
-				pd->ccdSkeleton = ccCCDSkeleton::createSkeleton(d, ccdType);
-		}
-		break;
-	case NX_SHAPE_CAPSULE:
-		{
-			int centersflag = 0;
-			NxCapsuleShapeDesc* d = new NxCapsuleShapeDesc();
-			d->radius = node->PrimaryShapePara.Radius;
-			d->height = node->PrimaryShapePara.Height;
-			d->localPose.M = NxMat33(NxVec3(1,0,0),NxVec3(0,0,1),NxVec3(0,-1,0));
-			d->localPose.t.z = d->height/2 + d->radius;                  //adjust for difference in pivot points between 3ds max and PhysX
-			if(m_proxyNode)
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			else
-			{
-				Matrix3 pose = MxMathUtils::NxMatrixToMax(d->localPose) * nodePose * actorNode->PhysicsNodePoseTMInv;
-				d->localPose = MxMathUtils::MaxMatrixToNx(pose);
-			}
-			pd = d;
-			// do not support skeleton now
-			if(NeedCCDSkeleton) 
-				pd->ccdSkeleton = ccCCDSkeleton::createSkeleton(d, ccdType);
-		}
-		break;
+	
 	default:
 		if (gCurrentstream) gCurrentstream->printf("Unable to create a shape of node \"%s\", unknown shape type: %d.\n", node->GetMaxNode()->GetName(), type);
 		return false;
@@ -521,21 +256,20 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 	// load property settings and material things.
 	//LoadShapeProperties(*pd, node->GetMaxNode());
 	//CCD flag
-	if(NeedCCDSkeleton)
-	{
-		pd->shapeFlags |= NX_SF_DYNAMIC_DYNAMIC_CCD;
-	}
+
 	pd->name = node->GetMaxNode()->GetName();
 	pd->userData = node;
 	//
 	bool isvalid = pd->isValid();
 	actorDesc.shapes.push_back(pd);
+#endif
 
 	return true;
 }
 
-NxActor* MxActor::createActor()
+NxActor* MxActor::createNxActor()
 {
+
 	// find proxy node
 	m_proxyNode = NULL;
 	TSTR str = MxUserPropUtils::GetUserPropStr(m_node, "Proxy_Geometry");
@@ -546,8 +280,7 @@ NxActor* MxActor::createActor()
 	}
 
 	//
-	NxScene* scene = gPluginData->getScene();
-	if (! scene) return 0;
+	
 	ccMaxNode* pActorNode = ccMaxWorld::FindNode(m_node);
 	assert(pActorNode);
 	maxNodeActor = pActorNode;
@@ -565,7 +298,7 @@ NxActor* MxActor::createActor()
 	NxActorDesc&  actorDesc  = m_desc;
 	NxBodyDesc&   bodyDesc   = m_bodyDesc;
 	//LoadParameters(actorDesc, bodyDesc);
-	actorDesc.globalPose = MxMathUtils::MaxMatrixToNx(pActorNode->PhysicsNodePoseTM);
+	actorDesc.globalPose = pActorNode->PhysicsNodePoseTM;//MxMathUtils::MaxMatrixToNx(pActorNode->PhysicsNodePoseTM);
 	SaveLastPose(pActorNode->PhysicsNodePoseTM);
 
 	//m_bodydesc.solverIterationCount = (NxU32)mSetting_solveriterationcount;   // support it in future?
@@ -624,17 +357,20 @@ NxActor* MxActor::createActor()
 	bool isvalid = actorDesc.isValid();
 	actorDesc.name = m_node->GetName();
 	//NxMat34 pose0 = actorDesc.globalPose;
-	m_actor = gPluginData->getScene()->createActor(actorDesc);
-	if(! m_actor) return 0;
+	
+	//m_actor = gPluginData->getScene()->createActor(actorDesc);
+	//if(! m_actor) return 0;
+
 	//NxMat34 pose1 = m_actor->getGlobalPose();
 	// sometimes pose1 != pose0; it is strange
-	m_actor->userData = this;
+	//m_actor->userData = this;
 
 	if(MxUserPropUtils::GetUserPropBool(m_node, "PutToSleep", false))
 	{
-		m_actor->putToSleep();
+		//m_actor->putToSleep();
 	}
 	// for collision force when contact happens
+	/*
 	NxU32 num = m_actor->getNbShapes();
 	NxShape*const* ps = m_actor->getShapes();
 	for(NxU32 i = 0; i < num; ++i)
@@ -642,11 +378,15 @@ NxActor* MxActor::createActor()
 		NxShape* nxShape = ps[i];
 		nxShape->setFlag(NX_SF_POINT_CONTACT_FORCE, true);
 	}
+	*/
+
 
 	//save last pose
 	Matrix3 poseTM = maxNodeActor->GetCurrentTM();
 	SaveLastPose(poseTM);
-	return m_actor;
+
+
+	//return m_actor;
 }
 
 void MxActor::resetObject()
@@ -667,6 +407,7 @@ void MxActor::SaveLastPose(const Matrix3 & pose)
 */
 void MxActor::ActionBeforeSimulation()
 {
+#if 0
 	//ccMaxNode* pn = ccMaxWorld::FindNode(m_node);
 	assert(maxNodeActor);
 	Matrix3 poseTM = maxNodeActor->GetCurrentTM();
@@ -693,6 +434,7 @@ void MxActor::ActionBeforeSimulation()
 	}
 	// update rigid body's last pose
 	SaveLastPose(poseTM);
+#endif 
 }
 
 /*
@@ -700,6 +442,7 @@ void MxActor::ActionBeforeSimulation()
 */
 void MxActor::ActionAfterSimulation()
 {
+#if 0
 	// update pose to max node
 	if(getInteractivity() != RB_DYNAMIC)
 		return;
@@ -710,5 +453,6 @@ void MxActor::ActionAfterSimulation()
 	maxNodeActor->SetSimulatedPose(m_actor->getGlobalPose());
 	Matrix3 poseTM = maxNodeActor->GetCurrentTM();
 	SaveLastPose(poseTM);
+#endif 
 }
 

@@ -1,6 +1,6 @@
 #ifndef MX_EXPORT_H
 #define MX_EXPORT_H
-
+#if 0
 void SaveScene(NxScene* scene, const char* pFilename, NXU::NXU_FileType type)
 {
 	if ( scene )
@@ -42,5 +42,5 @@ void SaveScene(NxScene* scene, const char* pFilename, NXU::NXU_FileType type)
 		NXU::releaseCollection(c);
 	}
 }
-
+#endif
 #endif //MX_EXPORT_H

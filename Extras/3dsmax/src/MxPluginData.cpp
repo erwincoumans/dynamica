@@ -1,6 +1,6 @@
 
-#include <NxPhysics.h>
-#include <NxCooking.h>
+//#include <NxPhysics.h>
+//#include <NxCooking.h>
 
 #include <max.h>
 #include <SimpObj.h>
@@ -9,16 +9,16 @@
 #include "MxUtils.h"
 #include "MxUserOutputStream.h"
 #include "MxPluginData.h"
-#include "MxFluid.h"
-#include "MxFluidEmitter.h"
+//#include "MxFluid.h"
+//#include "MxFluidEmitter.h"
 #include "MxMesh.h"
 #include "MxJoint.h"
 //#include "MxShape.h"
 #include "MxMaterial.h"
-#include "MxCloth.h"
+//#include "MxCloth.h"
 #include "MxActor.h"
-#include "MxSoftBody.h"
-#include "MxForceField.h"
+//#include "MxSoftBody.h"
+//#include "MxForceField.h"
 
 #include "PxFunctions.h"
 #include "MxContactReport.h"
@@ -63,7 +63,7 @@ void MxPluginData::getObjectsFromNode(INode* node, NxArray<MxObject*>& destinati
 	NxArray<MxObject*>& objects = m_instance->getObjectArray();
 	for (NxU32 i = 0; i < objects.size(); i++)
 	{
-		if (objects[i]->getNode() == node) destination.pushBack(objects[i]);
+		if (objects[i]->getNode() == node) destination.push_back(objects[i]);
 	}	
 }
 
@@ -75,7 +75,7 @@ void MxPluginData::getObjectsFromName(const char* name, NxArray<MxObject*>& dest
 	NxArray<MxObject*>& objects = m_instance->getObjectArray();
 	for (NxU32 i = 0; i < objects.size(); i++)
 	{
-		if (strcmp(name, objects[i]->getName().data()) == 0) destination.pushBack(objects[i]);
+		if (strcmp(name, objects[i]->getName().data()) == 0) destination.push_back(objects[i]);
 	}
 }
 
@@ -87,7 +87,7 @@ void MxPluginData::getAllObjects(NxArray<MxObject*>& destination)
 	destination.reserve(objects.size());
 	for (NxU32 i = 0; i < objects.size(); i++)
 	{
-		destination.pushBack(objects[i]);
+		destination.push_back(objects[i]);
 	}
 }
 
@@ -126,7 +126,7 @@ MxActor* MxPluginData::createActor(INode* node, bool createShapes)
 
 	if (node == NULL) return false;
 	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
+//	if (m_instance->getScene() == NULL) return NULL;
 
 	//check so that this node has not already been added, should it be possible to do that?
 	if (getObjectFromNode(node) != NULL)
@@ -136,7 +136,7 @@ MxActor* MxPluginData::createActor(INode* node, bool createShapes)
 	}
 
 	MxActor* actor = new MxActor(node->GetName(), node);
-	m_instance->getObjectArray().pushBack(actor);
+	m_instance->getObjectArray().push_back(actor);
 	return actor;
 }
 
@@ -165,191 +165,16 @@ bool MxPluginData::releaseActor(MxActor* actor, bool* sideEffects)
 
 	//release all shapes in the actor
 	//NxU32 shapeCount = actor->m_shapes.size();
-	NxActor* pa = actor->getNxActor();
-	NxU32 shapeCount = pa? 1 : 0;
+	//NxActor* pa = actor->getNxActor();
+	//NxU32 shapeCount = pa? 1 : 0;
 	actor->releaseAllShapes();
-	if (sideEffects != NULL && shapeCount > 0) *sideEffects = true;
+	//if (sideEffects != NULL && shapeCount > 0) *sideEffects = true;
 	
 	m_instance->removeObjectFromArray(actor);
 	delete actor;
 	return true;
 }
 
-
-class PxCCDSkeleton
-{
-public:
-	static NxCCDSkeleton* createSkeleton(NxConvexShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxSphereShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxBoxShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxCapsuleShapeDesc* shape, PX_CCD_SKELETON type);
-	static NxCCDSkeleton* createSkeleton(NxTriangleMeshShapeDesc* shape, PX_CCD_SKELETON type);
-	static float zoomScale;
-};
-float PxCCDSkeleton::zoomScale = 0.9f;
-
-NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxConvexShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-
-	NxConvexMeshDesc mesh;
-	shape->meshData->saveToDesc(mesh);
-	
-	PxSimpleMesh sm;
-	sm.buildFrom(mesh);
-
-	MxUtils::scaleMesh(sm, PxCCDSkeleton::zoomScale);
-	PxSimpleMesh hull;
-	MxUtils::pxCreateConvexHull(hull, sm, 64, 0.0025f);  // max 64 faces
-	sm.release();
-
-	NxSimpleTriangleMesh pointSkeleton;
-	pointSkeleton.numVertices = hull.numPoints;
-	pointSkeleton.numTriangles = hull.numFaces;
-	pointSkeleton.pointStrideBytes = sizeof(NxVec3);
-	pointSkeleton.triangleStrideBytes = sizeof(NxU32) * 3;
-
-	pointSkeleton.points = hull.points;
-	pointSkeleton.triangles = hull.faces;
-	pointSkeleton.flags |= NX_MF_FLIPNORMALS;
-	ret = MxPluginData::getPhysicsSDKStatic()->createCCDSkeleton(pointSkeleton);
-	hull.release();
-	return ret;
-}
-
-NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxSphereShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxReal radius = shape->radius * PxCCDSkeleton::zoomScale;
-	NxU32 triangles[] = {
-		1, 0, 2,
-		2, 0, 3,
-		3, 0, 4,
-		4, 0, 1,
-		1, 5, 4,
-		2, 5, 1,
-		3, 5, 2,
-		4, 5, 3
-	};
-	NxVec3 points[6];
-	points[0].set(0, radius, 0);
-	points[1].set(0, 0, radius);
-	points[2].set(-radius, 0, 0);
-	points[3].set(0, 0, -radius);
-	points[4].set(radius, 0, 0);
-	points[5].set(0, -radius, 0);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = MxPluginData::getPhysicsSDKStatic()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxBoxShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxU32 triangles[3 * 12] = { 
-		0,1,3,
-		0,3,2,
-		3,7,6,
-		3,6,2,
-		1,5,7,
-		1,7,3,
-		4,6,7,
-		4,7,5,
-		1,0,4,
-		5,1,4,
-		4,0,2,
-		4,2,6
-	};
-	NxVec3 points[8];
-
-	//static mesh
-	NxVec3 size = shape->dimensions * PxCCDSkeleton::zoomScale;
-	points[0].set( size.x, -size.y, -size.z);
-	points[1].set( size.x, -size.y,  size.z);
-	points[2].set( size.x,  size.y, -size.z);
-	points[3].set( size.x,  size.y,  size.z);
-
-	points[4].set(-size.x, -size.y, -size.z);
-	points[5].set(-size.x, -size.y,  size.z);
-	points[6].set(-size.x,  size.y, -size.z);
-	points[7].set(-size.x,  size.y,  size.z);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = MxPluginData::getPhysicsSDKStatic()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxCapsuleShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	NxReal radius = shape->radius * PxCCDSkeleton::zoomScale;
-	NxReal height = shape->height;
-
-	NxU32 triangles[] = {
-		2, 0, 1,
-		3, 0, 2,
-		4, 0, 3,
-		1, 0, 4,
-		6, 2, 1,
-		5, 6, 1,
-		3, 2, 6,
-		6, 7, 3,
-		4, 3, 7,
-		8, 4, 7,
-		1, 4, 8,
-		8, 5, 1,
-		8, 9, 5,
-		7, 9, 8,
-		6, 9, 7,
-		5, 9, 6
-	};
-	NxVec3 points[10];
-	points[0].set(0, height + radius, 0);
-	points[1].set(radius, height, 0);
-	points[2].set(0, height, radius);
-	points[3].set(-radius, height, 0);
-	points[4].set(0, height, -radius);
-	points[5].set(radius, -height, 0);
-	points[6].set(0, -height, radius);
-	points[7].set(-radius, -height, 0);
-	points[8].set(0, -height, -radius);
-	points[9].set(0, -height - radius, 0);
-
-	NxSimpleTriangleMesh stm;
-	stm.numVertices = sizeof(points)/sizeof(NxVec3);
-	stm.numTriangles = sizeof(triangles)/sizeof(NxU32)/3;
-	stm.pointStrideBytes = sizeof(NxVec3);
-	stm.triangleStrideBytes = sizeof(NxU32)*3;
-
-	stm.points = points;
-	stm.triangles = triangles;
-	stm.flags |= NX_MF_FLIPNORMALS;
-	ret = MxPluginData::getPhysicsSDKStatic()->createCCDSkeleton(stm);
-	return ret;
-}
-
-NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_CCD_SKELETON type)
-{
-	NxCCDSkeleton* ret = NULL;
-	return ret;
-}
 
 //MxShape* MxPluginData::createShape(INode* node, NxShapeType type, bool needCCD)
 //{
@@ -373,7 +198,7 @@ NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_
 //				nxShapeDesc->meshData = mesh->getNxTriangleMesh();
 //
 //				MxShape* shape = new MxShape(node->GetName(), node, nxShapeDesc, mesh);
-//				m_instance->m_shapes.pushBack(shape);
+//				m_instance->m_shapes.push_back(shape);
 //				resultShape = shape;
 //			} else {
 //				m_instance->releaseMesh(mesh);
@@ -395,7 +220,7 @@ NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_
 //					nxShapeDesc->ccdSkeleton = PxCCDSkeleton::createSkeleton(nxShapeDesc, CONVEX_SKELETON);
 //				}
 //				MxShape* shape = new MxShape(node->GetName(), node, nxShapeDesc, mesh);
-//				m_instance->m_shapes.pushBack(shape);
+//				m_instance->m_shapes.push_back(shape);
 //				resultShape = shape;
 //			} else {
 //				m_instance->releaseMesh(mesh);
@@ -421,7 +246,7 @@ NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_
 //		}
 //
 //		MxShape* shape = new MxShape(node->GetName(), node, sphereDesc, NULL);
-//		m_instance->m_shapes.pushBack(shape);
+//		m_instance->m_shapes.push_back(shape);
 //		resultShape = shape;
 //	} else if (type == NX_SHAPE_BOX)
 //	{
@@ -448,7 +273,7 @@ NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_
 //		}
 //
 //		MxShape* shape = new MxShape(node->GetName(), node, boxDesc, NULL);
-//		m_instance->m_shapes.pushBack(shape);
+//		m_instance->m_shapes.push_back(shape);
 //		resultShape = shape;
 //
 //		/*/ test
@@ -491,7 +316,7 @@ NxCCDSkeleton* PxCCDSkeleton::createSkeleton(NxTriangleMeshShapeDesc* shape, PX_
 //		}
 //
 //		MxShape* shape = new MxShape(node->GetName(), node, capsuleDesc, NULL);
-//		m_instance->m_shapes.pushBack(shape);
+//		m_instance->m_shapes.push_back(shape);
 //		resultShape = shape;
 //	} else
 //	{
@@ -541,7 +366,7 @@ MxJoint* MxPluginData::createUninitializedJoint(INode* node)
 	if (m_instance == NULL) return NULL;
 
 	MxJoint* mxJoint = new MxJoint(node->GetName(), node, NULL, NULL);
-	m_instance->getObjectArray().pushBack(mxJoint);
+	m_instance->getObjectArray().push_back(mxJoint);
 
 	return mxJoint;
 }
@@ -565,8 +390,8 @@ MxJoint* MxPluginData::createJoint(INode* node)
 		if (gCurrentstream) gCurrentstream->printf("Unable to add the joint \"%s\", both actor references can't be NULL.\n", node->GetName());
 		return 0;
 	}
-	MxActor* mxActor0 = MxUtils::GetActorFromNode(node0);
-	MxActor* mxActor1 = MxUtils::GetActorFromNode(node1);
+	MxActor* mxActor0 = 0;//MxUtils::GetActorFromNode(node0);
+	MxActor* mxActor1 = 0;//MxUtils::GetActorFromNode(node1);
 	if (mxActor0 == NULL && mxActor1 == NULL)
 	{
 		if (gCurrentstream) gCurrentstream->printf("Unable to add the joint \"%s\", both actor references can't be NULL.\n", node->GetName());
@@ -576,7 +401,7 @@ MxJoint* MxPluginData::createJoint(INode* node)
 	if (mxActor1 != NULL) mxActor1->incRef();
 
 	MxJoint* mxJoint = new MxJoint(node->GetName(), node, mxActor0, mxActor1); //for some reason the old plugin code swaps these, all the calculations are done with this order, so need to keep it that way (don't want to play around with the joint properties code at this moment)
-	m_instance->getObjectArray().pushBack(mxJoint);
+	m_instance->getObjectArray().push_back(mxJoint);
 
 	return mxJoint;
 }
@@ -746,28 +571,7 @@ bool MxPluginData::releaseJoint(MxJoint* joint)
 MxFluid* MxPluginData::createFluid(INode* node)
 {
 	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
-	
-	//check so that this node has not already been added
-	if (getObjectFromNode(node) != NULL)
-	{
-		if (gCurrentstream) gCurrentstream->printf("Error: trying to create a fluid of node \"%s\", but it is already added as another object.\n", node->GetName());
-		return NULL;
-	}
 
-	MxFluid* fluid = new MxFluid(node->GetName(), node);
-	if (fluid != NULL)
-	{
-		if (fluid->getNxFluid() != NULL)
-		{
-			//add the fluid to the list and return it
-			m_instance->getObjectArray().pushBack(fluid);
-			return fluid;
-		} else {
-			//need to remove the fluid object, since the fluid could not be created
-			delete fluid;
-		}
-	}
 	return NULL;
 }
 
@@ -775,205 +579,48 @@ bool MxPluginData::releaseFluid(MxFluid* fluid, bool* sideEffects)
 {
 	//the caller should make sure that there are no emitters referencing the fluid before releasing it
 
-	if (sideEffects != NULL) *sideEffects = false;
-	if (fluid == NULL) return false;
-	if (m_instance == NULL) return false;
-
-	NxArray<MxObject*> emitters;
-	m_instance->getAllObjectsOfType(MX_OBJECTTYPE_FLUIDEMITTER, emitters);
-	for (NxU32 i = 0; i < emitters.size(); i++)
-	{
-		MxFluidEmitter* emitter = emitters[i]->isFluidEmitter();
-		if (emitter != NULL)
-		{
-			if (emitter->getFluid() == fluid)
-			{
-				if (gCurrentstream) gCurrentstream->printf("Warning: removing fluid \"%s\" also required the emitter \"%s\" to be removed.\n", fluid->getName(), emitter->getName());
-				if (sideEffects != NULL) *sideEffects = true;
-				releaseFluidEmitter(emitter);
-			}
-		}
-	}
-
-	//the fluid object itself will have to release the NxFluid
-	m_instance->removeObjectFromArray(fluid);
-	delete fluid;
 	return true;
 }
 
 MxFluidEmitter* MxPluginData::createFluidEmitter(INode* node)
 {
-	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
-
-	//check so that this node has not already been added
-	if (getObjectFromNode(node) != NULL)
-	{
-		if (gCurrentstream) gCurrentstream->printf("Error: trying to create a fluid emitter of node \"%s\", but it is already added as another object.\n", node->GetName());
-		return NULL;
-	}
-
-	//first, find the fluid (must attach to a fluid)
-	TimeValue t = GetCOREInterface()->GetTime();
-
-	ObjectState osEmitter  = node->EvalWorldState(t); 
-	if (osEmitter.obj == NULL) {
-		if (gCurrentstream) gCurrentstream->printf("Unable to process fluid emitter \"%s\" - no worldstate.\n", node->GetName());
-		return NULL;
-	}
-	Class_ID temptemp = osEmitter.obj->ClassID();
-	if (osEmitter.obj->ClassID() != PXFLUIDEMITTER_CLASSID) {
-		if (gCurrentstream) gCurrentstream->printf("Unable to process object \"%s\" as a fluid emitter.", node->GetName());
-		return NULL;
-	}
-	IParamBlock2* pb = osEmitter.obj->GetParamBlockByID(0);
-	if (pb == NULL) {
-		if (gCurrentstream) gCurrentstream->printf("Unable to find parameter block for fluid emitter \"%s\".\n", node->GetName());
-		return NULL;
-	}
-	INode* fluidNode = MxParamUtils::GetINodeParam(pb, t, "Fluid", NULL);
-	MxFluid* mxFluid = NULL;
-	if (fluidNode != NULL)
-	{
-		ObjectState os = fluidNode->EvalWorldState(t);
-		if (os.obj)
-		{
-			if (os.obj->ClassID() == PXFLUID_CLASSID)
-			{
-				//it is a fluid, now make sure that it has been added
-				MxObject* mxFluidObj = MxUtils::GetFirstObjectOfTypeFromNode(fluidNode, MX_OBJECTTYPE_FLUID);
-				if (mxFluidObj == NULL || !mxFluidObj->isFluid())
-				{
-					if (gCurrentstream) gCurrentstream->printf("Unable to create fluid emitter \"%s\", the fluid it is attached to (\"%s\")must first be added to the simulation.\n", node->GetName(), fluidNode->GetName());
-					return NULL;
-				} else {
-					mxFluid = mxFluidObj->isFluid();
-				}
-			}
-		}
-	}
-	if (mxFluid == NULL) 
-	{
-		if (gCurrentstream) gCurrentstream->printf("Unable to create the fluid emitter \"%s\", it is not attached to a Fluid object\n", node->GetName());
-		return NULL;
-	}
-
-	MxFluidEmitter* emitter = new MxFluidEmitter(node->GetName(), node, mxFluid);
-	if (emitter != NULL)
-	{
-		if (emitter->getNxEmitter() != NULL)
-		{
-			m_instance->getObjectArray().pushBack(emitter);
-			return emitter;
-		} else {
-			delete emitter;
-			emitter = NULL;
-		}
-	}
+	
 	return NULL;
 }
 
 bool MxPluginData::releaseFluidEmitter(MxFluidEmitter* emitter)
 {
-	if (emitter == NULL) return false;
-	if (m_instance == NULL) return false;
-
-	//the emitter object itself will have to release the NxFluidEmitter
-	m_instance->removeObjectFromArray(emitter);
-	delete emitter;
+	
 	return true;
 }
 
 void MxPluginData::getAllEmitters(NxArray<MxFluidEmitter*>& destination)
 {
-	if (m_instance == NULL) return;
-
-	NxArray<MxObject*> objects;
-	m_instance->getAllObjectsOfType(MX_OBJECTTYPE_FLUIDEMITTER, objects);
-
-	for (NxU32 i = 0; i < objects.size(); i++)
-	{
-		MxFluidEmitter* emitter = objects[i]->isFluidEmitter();
-		if (emitter) destination.pushBack(emitter);
-	}
+	
 }
 
 
 MxCloth* MxPluginData::createCloth(INode* node, bool isMetalCloth)
 {
-	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
-
-	//check so that this node has not already been added
-	if (getObjectFromNode(node) != NULL)
-	{
-		if (gCurrentstream) gCurrentstream->printf("Error: trying to create a cloth of node \"%s\", but it is already added as another object.\n", node->GetName());
-		return NULL;
-	}
-
-	MxCloth* cloth = new MxCloth(node->GetName(), node, isMetalCloth);
-	if (cloth != NULL)
-	{
-		if (cloth->getNxCloth() != NULL)
-		{
-			//add the cloth to the list and return it
-			m_instance->getObjectArray().pushBack(cloth);
-			return cloth;
-		} else {
-			//need to remove the cloth object, since the cloth could not be created
-			delete cloth;
-		}
-	}
+	
 	return NULL;
 }
 
 bool MxPluginData::releaseCloth(MxCloth* cloth)
 {
-	if (cloth == NULL) return false;
-	if (m_instance == NULL) return false;
-
-	//the cloth object itself will have to release the NxCloth
-	m_instance->removeObjectFromArray(cloth);
-	delete cloth;
+	
 	return true;
 }
 
 MxForceField* MxPluginData::createForceField(INode* node)
 {
-	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
-
-	//check so that this node has not already been added
-	if (getObjectFromNode(node) != NULL)
-	{
-		if (gCurrentstream) gCurrentstream->printf("Error: trying to create a ForceField of node \"%s\", but it is already added as another object.\n", node->GetName());
-		return NULL;
-	}
-
-	MxForceField* mx = new MxForceField(node->GetName(), node);
-	if (mx != NULL)
-	{
-		if (mx->getNxForceField() != NULL)
-		{
-			//add the SoftBody to the list and return it
-			m_instance->getObjectArray().pushBack(mx);
-			return mx;
-		} else {
-			//need to remove the SoftBody object, since the NxSoftBody could not be created
-			delete mx;
-		}
-	}
+	
 	return NULL;
 }
 
 bool MxPluginData::releaseForceField(MxForceField* forceField)
 {
-	if (forceField == NULL) return false;
-	if (m_instance == NULL) return false;
-
-	//the cloth object itself will have to release the NxCloth
-	m_instance->removeObjectFromArray(forceField);
-	delete forceField;
+	
 	return true;
 }
 
@@ -997,7 +644,7 @@ MxSoftBody* MxPluginData::createSoftBody(INode* node)
 		if (softbody->getNxSoftBody() != NULL)
 		{
 			//add the SoftBody to the list and return it
-			m_instance->getObjectArray().pushBack(softbody);
+			m_instance->getObjectArray().push_back(softbody);
 			return softbody;
 		} else {
 			//need to remove the SoftBody object, since the NxSoftBody could not be created
@@ -1027,103 +674,20 @@ bool MxPluginData::releaseSoftBody(MxSoftBody* softbody)
 
 MxCompartment* MxPluginData::createCompartment(NxCompartmentType type, NxU32 compartmentID)
 {
-	if (m_instance == NULL) return NULL;
-	if (m_instance->getScene() == NULL) return NULL;
-
-	NxArray<MxObject*> objects;
-	m_instance->getAllObjectsOfType(MX_OBJECTTYPE_COMPARTMENT, objects);
-
-	//first check if there is a compartment of the right kind and id
-	for (NxU32 i = 0; i < objects.size(); i++)
-	{
-		MxCompartment* comp = objects[i]->isCompartment();
-		if (comp)
-		{
-			if (comp->getCompartmentID() == compartmentID && comp->getCompartmentType() == type)
-			{
-				comp->incRef();
-				return comp;
-			}
-		}
-	}
-
-	//no matching (existing) compartment found, now try "dead" compartments
-	MxCompartment* mxComp = NULL;
-	NxArray<MxCompartment*>& deadList = m_instance->getDeadCompartments();
-	for (NxU32 i = 0; i < deadList.size(); i++)
-	{
-		MxCompartment* tempComp = deadList[i];
-		if (tempComp->getCompartmentType() == type) 
-		{
-			tempComp->m_compartmentID = compartmentID;
-#if NX_SDK_VERSION_NUMBER >= 270
-			tempComp->getNxCompartment()->setTimeScale(1.0f);
-#endif
-			deadList.replaceWithLast(i);
-			mxComp = tempComp;
-			break;
-		}
-	}
-
-	if (mxComp == NULL)
-	{
-		//no matching "dead" compartments found, create a new one
-		NxCompartmentDesc compartmentDesc;
-		compartmentDesc.type = type;
-		compartmentDesc.deviceCode = NX_DC_PPU_AUTO_ASSIGN;
-		//TODO: some way for users to control the other settings of the compartment
-		//perhaps a "px_setdefaultcompartmentsettings()" method in the plugin object?
-		NxCompartment* compartment = m_instance->getScene()->createCompartment(compartmentDesc);
-		if (compartment == NULL) 
-		{
-			return NULL;
-		}
-
-		MxCompartment* mxComp = new MxCompartment(NULL, type, compartmentID, compartment);
-	}
-
-	if (mxComp) 
-	{
-		mxComp->incRef();
-		m_instance->getObjectArray().pushBack(mxComp);
-	}
-	return mxComp;
+	return 0;
 }
 
 bool MxPluginData::releaseCompartment(MxCompartment* compartment)
 {
-	if (compartment == NULL) return false;
-	if (m_instance == NULL) return false;
-
-	//release one reference
-	compartment->decRef();
-
-	//if the reference count is down to zero, then it is time to release the object
-	//which is however a problem with compartments, since they can't be released
-	if (compartment->getRefCount() == 0)
-	{
-		NxCompartment* comp = compartment->getNxCompartment();
-		//TODO: inactivate compartment, if possible
-#if NX_SDK_VERSION_NUMBER >= 270
-		comp->setTimeScale(0.0f);
-#endif
-		m_instance->getDeadCompartments().pushBack(compartment);
-		m_instance->removeObjectFromArray(compartment);
-	}
+	
 	return true;
 }
 
 bool MxPluginData::removeObjectFromArray(MxObject* obj)
 {
 	if (obj == NULL) return false;
-	for (NxU32 i = 0; i < m_objects.size(); i++)
-	{
-		if (m_objects[i] == obj)
-		{
-			m_objects.replaceWithLast(i);
-			return true;
-		}
-	}
+	m_objects.remove(obj);
+
 	return false;
 }
 
@@ -1147,6 +711,7 @@ MxPluginData::MxPluginData(CharStream* outputStream)
 
 bool MxPluginData::init()
 {
+#if 0
 	assert(m_physicsSDK == NULL); //should not have been created
 	assert(m_scene == NULL); //should not have been created
 
@@ -1246,12 +811,14 @@ bool MxPluginData::init()
 	m_scene = m_physicsSDK->createScene(sceneDesc);
 
 	m_scene->setActorGroupPairFlags(0,0,NX_NOTIFY_ON_START_TOUCH|NX_NOTIFY_ON_TOUCH|NX_NOTIFY_ON_END_TOUCH);
+#endif
 
 	return true;
 }
 
 MxPluginData::~MxPluginData()
 {
+#if 0
 	//first release all joints (they can reference rigid bodies)
 	for (NxU32 i = 0; i < m_objects.size(); i++)
 	{
@@ -1392,11 +959,14 @@ MxPluginData::~MxPluginData()
 	}
 	m_outputStream = NULL;
 	m_instance = NULL;
+#endif
+
 }
 
 //creates a new mesh, or uses an already existing one and refcounts
 MxMesh* MxPluginData::createMesh(INode* node, MxMeshType type)
 {
+#if 0
 	if (m_instance == NULL) return NULL;
 	if (m_instance->getScene() == NULL) return NULL;
 
@@ -1416,7 +986,7 @@ MxMesh* MxPluginData::createMesh(INode* node, MxMeshType type)
 	MxMesh* mxMesh = new MxMesh(node->GetName(), node, type);
 	if (mxMesh != NULL && mxMesh->isInitialized())
 	{
-		m_objects.pushBack(mxMesh);
+		m_objects.push_back(mxMesh);
 		mxMesh->incRef();
 		return mxMesh;
 	}
@@ -1428,12 +998,15 @@ MxMesh* MxPluginData::createMesh(INode* node, MxMeshType type)
 		delete mxMesh;
 		mxMesh = NULL;
 	}
+#endif
+
 	return NULL;
 }
 
 //decrease the refcount of the mesh, if it reaches zero, then release it
 bool MxPluginData::releaseMesh(MxMesh* mesh)
 {
+#if 0
 	if (mesh == NULL) return false;
 
 	mesh->decRef();
@@ -1442,6 +1015,8 @@ bool MxPluginData::releaseMesh(MxMesh* mesh)
 		removeObjectFromArray(mesh);
 		delete mesh;
 	}
+#endif
+
 	return true;
 }
 
@@ -1452,13 +1027,14 @@ void MxPluginData::getAllObjectsOfType(MxObjectType type, NxArray<MxObject*>& de
 	{
 		if (m_objects[i]->isType(type) != NULL)
 		{
-			destination.pushBack(m_objects[i]);
+			destination.push_back(m_objects[i]);
 		}
 	}
 }
 
 NxCookingInterface* MxPluginData::getCookingInterface()
 {
+#if 0
 	if (m_cookingInterface == NULL)
 	{
 		m_cookingInterface = NxGetCookingLib(NX_PHYSICS_SDK_VERSION);
@@ -1481,179 +1057,14 @@ NxCookingInterface* MxPluginData::getCookingInterface()
 	{
 		return m_cookingInterface;
 	}
+#endif
+
 	return NULL;
 }
 
 void MxPluginData::debugPrint() 
 {
-	if (gCurrentstream == NULL) return;
 
-	if (m_physicsSDK)
-	{
-		gCurrentstream->printf("PhysX SDK version: %X, HW version: %d", NX_PHYSICS_SDK_VERSION, m_physicsSDK->getHWVersion());
-		gCurrentstream->printf("   Number of PPUs: %d\n", m_physicsSDK->getNbPPUs());
-#if NX_SDK_VERSION_NUMBER >= 270
-		gCurrentstream->printf("   Number of Triangle meshes: %d\n", m_physicsSDK->getNbTriangleMeshes());
-		for (NxU32 i = 0; i < m_physicsSDK->getNbTriangleMeshes(); i++)
-		{
-			NxArray<NxTriangleMesh*> meshes;
-			for (NxU32 j = 0; j < m_physicsSDK->getNbScenes(); j++)
-			{
-				NxScene* scene = m_physicsSDK->getScene(j);
-				for (NxU32 k = 0; k < scene->getNbActors(); k++)
-				{
-					NxActor* actor = scene->getActors()[k];
-					for (NxU32 l = 0; l < actor->getNbShapes(); l++)
-					{
-						NxShape* shape = actor->getShapes()[l];
-						NxTriangleMeshShape* meshShape = shape->isTriangleMesh();
-						if (meshShape != NULL && ((&meshShape->getTriangleMesh()) != NULL))
-						{
-							NxTriangleMesh* mesh = &meshShape->getTriangleMesh();
-							bool alreadyExists = false;
-							for (NxU32 m = 0; m < meshes.size(); m++)
-							{
-								if (meshes[m] == mesh)
-								{
-									alreadyExists = true;
-									break;
-								}
-							}
-							if (!alreadyExists)
-							{
-								meshes.pushBack(mesh);
-							}
-						}
-					}
-				}
-			}
-
-			for (NxU32 j = 0; j < meshes.size(); j++)
-			{
-				NxTriangleMesh* mesh = meshes[j];
-				NxTriangleMeshDesc meshDesc;
-				mesh->saveToDesc(meshDesc);
-				gCurrentstream->printf("      %X: Refcount: %d, vertices: %d, triangles: %d\n", (size_t) mesh, mesh->getReferenceCount(), meshDesc.numVertices, meshDesc.numTriangles);
-			}
-		}
-		gCurrentstream->printf("   Number of HeightFields: %d\n", m_physicsSDK->getNbHeightFields());
-#endif //NX_SDK_VERSION_NUMBER >= 270
-
-		gCurrentstream->printf("   Number of Cloth meshes: %d\n", m_physicsSDK->getNbClothMeshes());
-		for (NxU32 i = 0; i < m_physicsSDK->getNbClothMeshes(); i++)
-		{
-			NxClothMesh* mesh = m_physicsSDK->getClothMeshes()[i];
-			NxClothMeshDesc meshDesc;
-			mesh->saveToDesc(meshDesc);
-			gCurrentstream->printf("      %X: Refcount: %d, vertices: %d, triangles: %d\n", (size_t) mesh, mesh->getReferenceCount(), meshDesc.numVertices, meshDesc.numTriangles);
-		}
-#ifdef PXPLUGIN_SOFTBODY
-		gCurrentstream->printf("   Number of SoftBody meshes: %d\n", m_physicsSDK->getNbSoftBodyMeshes());
-		for (NxU32 i = 0; i < m_physicsSDK->getNbSoftBodyMeshes(); i++)
-		{
-			NxSoftBodyMesh* mesh = m_physicsSDK->getSoftBodyMeshes()[i];
-			NxSoftBodyMeshDesc meshDesc;
-			mesh->saveToDesc(meshDesc);
-			//gCurrentstream->printf("      %X: Refcount: %d, vertices: %d, triangles: %d\n", (int) mesh, mesh->getReferenceCount(), meshDesc.numVertices, meshDesc.numTriangles);
-			gCurrentstream->printf("      %X: Refcount: %d\n", (size_t) mesh, mesh->getReferenceCount());
-		}
-#endif
-#if NX_SDK_VERSION_NUMBER >= 270
-		gCurrentstream->printf("   Number of CCD skeletons: %d\n", m_physicsSDK->getNbCCDSkeletons());
-#endif
-		gCurrentstream->printf("   Number of Scenes: %d\n", m_physicsSDK->getNbScenes());
-		for (NxU32 i = 0; i < m_physicsSDK->getNbScenes(); i++)
-		{
-			NxScene* scene = m_physicsSDK->getScene(i);
-			gCurrentstream->printf("   Scene object: %X\n", (size_t) scene);
-			gCurrentstream->printf("      Number of NxActors: %d\n", scene->getNbActors());
-			for (NxU32 j = 0; j < scene->getNbActors(); j++)
-			{
-				NxActor* actor = scene->getActors()[j];
-				gCurrentstream->printf("         %X: Number of shapes: %d\n", (size_t) actor, actor->getNbShapes());
-				for (NxU32 k = 0; k < actor->getNbShapes(); k++)
-				{
-					NxShape* shape = actor->getShapes()[k];
-					gCurrentstream->printf("            %X: shape type: %d", (size_t) shape, (int) shape->getType());
-					if (shape->isTriangleMesh())
-					{
-						gCurrentstream->printf(", mesh: %X", (size_t) (&shape->isTriangleMesh()->getTriangleMesh()));
-					}
-					if (shape->isConvexMesh())
-					{
-						gCurrentstream->printf(", convex mesh: %X", (size_t) (&shape->isConvexMesh()->getConvexMesh()));
-					}
-					gCurrentstream->printf("\n");
-				}
-			}
-		}
-	} else {
-		gCurrentstream->printf("PhysX SDK: None\n");
-	}
-
-	gCurrentstream->printf("Our scene object: %X\n", (size_t) m_scene);
-	gCurrentstream->printf("Cooking interface object: %X, initialized: %s\n", (size_t) m_cookingInterface, (m_cookingInitialized?"true":"false"));
-
-	gCurrentstream->printf("---------------------------------------------------\n");
-
-	gCurrentstream->printf("Number of objects in internal object array: %d\n", m_objects.size());
-	for (NxU32 i = 0; i < m_objects.size(); i++)
-	{
-		MxObject* object = m_objects[i];
-		gCurrentstream->printf("   %X: name: %s, id: %d, refcount: %d, INode: %X (%s)\n", (size_t) object, object->getName(), object->getID(), object->getRefCount(), object->getNode(), object->getNode()?object->getNode()->GetName():"");
-		if (object->isActor())
-		{
-			MxActor* mxActor  = object->isActor();
-			//gCurrentstream->printf("      Actor: number of shapes: %d\n", mxActor->m_shapes.size());
-			NxActor* pa       = mxActor->getNxActor();
-			if(pa)
-			{
-				gCurrentstream->printf("      Actor: number of shapes: %d\n", pa->getNbShapes());
-			}
-			
-			//for (NxU32 j = 0; j < mxActor->m_shapes.size(); j++)
-			//{
-			//	MxShape* shape = mxActor->m_shapes[j];
-			//	gCurrentstream->printf("         %X: NxShape: %X, name: %s, INode: %X (%s)\n", (size_t) shape, (size_t) shape->getNxShape(), shape->getName(), (size_t) shape->getNode(), shape->getNode()?shape->getNode()->GetName():"");
-			//}
-		} else if (object->isCloth())
-		{
-			gCurrentstream->printf("      Cloth: mesh: %X\n", 0);
-		} else if (object->isCompartment())
-		{
-			gCurrentstream->printf("      Compartment\n");
-		} else if (object->isFluid())
-		{
-			gCurrentstream->printf("      Fluid\n");
-		} else if (object->isFluidEmitter())
-		{
-			gCurrentstream->printf("      Fluid emitter\n");
-		} else if (object->isJoint())
-		{
-			gCurrentstream->printf("      Joint\n");
-		} else if (object->isMaterial())
-		{
-			gCurrentstream->printf("      Material\n");
-		} else if (object->isMesh())
-		{
-			gCurrentstream->printf("      Mesh\n");
-		}
-		//else if (object->isShape())
-		//{
-		//	gCurrentstream->printf("      Shape\n");
-		//}
-#ifdef PXPLUGIN_SOFTBODY
-		else if (object->isSoftBody())
-		{
-			gCurrentstream->printf("      SoftBody\n");
-#endif
-		} else 
-		{
-			gCurrentstream->printf("      Error: unknown object type\n");
-		}
-	}
-
-	gCurrentstream->printf("Number of dead compartments: %d\n", m_deadCompartments.size());
 }
 
 NxU32 MxPluginData::removeOldObjects(INode* node, const char* name)
