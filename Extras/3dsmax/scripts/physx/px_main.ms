@@ -52,7 +52,7 @@ filein "px_emitter.ms"      -- the fluid emitter object (helper)
 filein "px_d6joint.ms"      -- new D6 joint spec.
 filein "px_ragdoll.ms"      -- new D6 joint spec.
 filein "px_settings.ms"		-- utilities for controlling PhysX settings
-filein "px_control.ms"      -- the physx control panel
+filein "px_control.ms"      -- the Bullet control panel
 
 function px_removesubrollouts =
 (

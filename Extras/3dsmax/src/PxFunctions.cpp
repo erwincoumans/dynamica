@@ -6,6 +6,7 @@
 #include <MAXScrpt\MAXScrpt.h>
 #include "iparamb2.h"
 #include <iiksys.h> 
+#include "btBulletDynamicsCommon.h"
 
 //#include <NxCooking.h>
 
@@ -427,9 +428,16 @@ void* PXPluginClassDesc::Create(BOOL loading)
 
 MxPluginData*		gPluginData		= NULL;
 MxDebugVisualizer*	gDebugVisualizer= NULL;
-NxScene*			gScene			= NULL;
+//NxScene*			gScene			= NULL;
 MxSDKParam*			gSDKParamSettings=NULL;
-NxActor**			permutation		= NULL;
+//NxActor**			permutation		= NULL;
+
+//following the existing coding style/conventions of the PhysX plugin for now, adding some globals:
+btDiscreteDynamicsWorld* gDynamicsWorld = NULL;
+btCollisionConfiguration* gCollisionConfiguration= NULL;
+btCollisionDispatcher* gDispatcher = NULL;
+btBroadphaseInterface* gBroadphase = NULL;
+btConstraintSolver* gConstraintSolver = NULL;
 
 //Settings that are available through the interface
 Point3	PxFunctions::mSetting_gravity				 (0.0f,0.0f,-9.81f);
@@ -441,6 +449,8 @@ BOOL	PxFunctions::mSetting_debugphysics			= FALSE;
 BOOL	PxFunctions::mSetting_useHardware			= TRUE; //Use hardware if available
 BOOL	PxFunctions::mSetting_savedefaults			= TRUE; //Save defaults in the XML stream
 
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Implementation
@@ -450,6 +460,7 @@ BOOL	PxFunctions::mSetting_savedefaults			= TRUE; //Save defaults in the XML str
 //this is called by the maxscript part of the plugin to set the stream, so if that is not successful, then the stream will continue to be null
 int PxFunctions::pxSetOutputStream(Value* val)
 {
+//	MaxMsgBox(NULL, _T("pxSetOutputStream"), _T("Error"), MB_OK);
 	if (!val->_is_charstream()) return 0;
 	CharStream* stream = (CharStream*)val;
 	gCurrentstream = stream;
@@ -1793,7 +1804,7 @@ int PxFunctions::pxvisualizephysics(BOOL enable)
 #if 0
 	if(!gDebugVisualizer)
 	{
-		MaxMsgBox(NULL, _T("Please add physics objects to the scene from the PhysX Control Panel before enabling debug visualization"), _T("Error"), MB_OK);
+		MaxMsgBox(NULL, _T("Please add physics objects to the scene from the Bullet Control Panel before enabling debug visualization"), _T("Error"), MB_OK);
 		return 0;
 	}
 
@@ -2512,31 +2523,41 @@ int PxFunctions::pxnxuexport(char *fname, char *ext)
 
 	int ret = 0;
 
-	MaxMsgBox(NULL, _T("File not written: please add physics objects to the scene from the PhysX Control Panel before exporting the scene."), _T("Error"), MB_OK);
-
-#if 0
-	pxprep(); //make sure that e.g. deleted objects are removed before export
-
-	NxScene* scene = MxPluginData::getSceneStatic();
-	if (scene)
+	if (!gDynamicsWorld)
 	{
-		NXU::NXU_FileType type = NXU::FT_XML;
-		if ( stricmp(ext,"dae") == 0 ) type = NXU::FT_COLLADA;
-		if ( stricmp(ext,"nxb") == 0 ) type = NXU::FT_BINARY;
-
-		SaveScene(scene, fname, type);
-		NXU::releasePersistentMemory();
-		ret = 1;
-	}
-	else
-	{
-		MaxMsgBox(NULL, _T("File not written: please add physics objects to the scene from the PhysX Control Panel before exporting the scene."), _T("Error"), MB_OK);
+		MaxMsgBox(NULL, _T("No dynamics data to export"), _T("Error"), MB_OK);
+		return 0;
 	}
 
-#endif
+	if ( stricmp(ext,"bullet") == 0 )
+	{
+		//create a large enough buffer. There is no method to pre-calculate the buffer size yet.
+		
+			//todo: copy names into rigid bodies, using serializer->registerNameForPointer(ptr,name);
+
+			int maxSerializeBufferSize = 1024*1024*5;
+		 
+			btDefaultSerializer*	serializer = new btDefaultSerializer(maxSerializeBufferSize);
+			gDynamicsWorld->serialize(serializer);
+		 
+			FILE* file = fopen(fname,"wb");
+			fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
+			fclose(file);
+			delete serializer;
+
+			ret = 1;
+	}  else
+	{
+		//todo	
+		//	if ( stricmp(ext,"dae") == 0 )
+		MaxMsgBox(NULL, _T("Unsupported extension"), _T("Error"), MB_OK);
+	}
+
+
 
 	return ret;
 }
+
 
 int PxFunctions::debugprint()
 {

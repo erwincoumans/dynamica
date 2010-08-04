@@ -49,7 +49,7 @@ public:
 //	NxActor* getPhysXActor() { return m_actor; }
 
 protected:
-	bool createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode);
+	class btCollisionShape* createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode);
 
 	friend class MxJoint; //hack to be able to set the refcount
 	friend class MxPluginData;
@@ -57,6 +57,9 @@ protected:
 	virtual ~MxActor();
 
 	//NxActor*           m_actor;
+
+	class	btRigidBody* m_bulletBody; // might want to use CollisionObject* m_bulletObject if we add soft body support
+
 	NxActorDesc        m_desc;
 	NxBodyDesc         m_bodyDesc;
 	//NxArray<MxShape*>  m_shapes;

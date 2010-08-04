@@ -182,8 +182,8 @@ global pxLastExportedFileFormat = 1;
 
 utility px_control "PhysX Utility" 
 (
-	label	lbl_about								"PhysX SDK Version unknown"
-	checkbutton		pxbutton_control				"PhysX Control Panel"	checked:true	width:140 height:16 tooltip:"Shows the PhysX Control Panel"
+	label	lbl_about								"Bullet SDK Version unknown"
+	checkbutton		pxbutton_control				"Bullet Control Panel"	checked:true	width:140 height:16 tooltip:"Shows the Bullet Control Panel"
 	checkbutton 	pxbutton_convexdecomposition	"Geometry Tools"	checked:false	width:140 height:16 tooltip:"Geometry tools, e.g. convert a mesh into a convex."
   	checkbutton 	pxbutton_params					"PhysX Parameters"		checked:false	width:140 height:16 tooltip:"Sets PhysX SDK Parameters"
 	
@@ -320,15 +320,15 @@ utility px_control "PhysX Utility"
 	  print(format "% objects added\n" nrAdded);
 	)
 
-	rollout mainui_roll	"PhysX Control Panel"
+	rollout mainui_roll	"Bullet Control Panel"
 	(
 		timer       	clock          		"clock"                         interval:1		active:false
 	
 		label			lbl_a				"Add/remove objects from sim:"	pos:[5,8]
-		button      	addAll    		"Add All Phys."         		pos:[4,25]		width:75 	tooltip:"Add all nodes in scene that are physically driven to the PhysX scene"
-		button      	addselected    		"Add Selected"                  pos:[4,50]  	width:75 	tooltip:"Add selected objects to the PhysX scene"
-		button      	removeall      		"Remove All"                    pos:[82,25] 	width:75 	tooltip:"Removes all physical nodes currently in the PhysX scene"
-		button      	removeselected 		"Remove Sel."                	pos:[82,50] 	width:75 	tooltip:"Remove selected objects to the PhysX scene (if the are in the scene)"
+		button      	addAll    		"Add All Phys."         		pos:[4,25]		width:75 	tooltip:"Add all nodes in scene that are physically driven to the Bullet world"
+		button      	addselected    		"Add Selected"                  pos:[4,50]  	width:75 	tooltip:"Add selected objects to the Bullet world"
+		button      	removeall      		"Remove All"                    pos:[82,25] 	width:75 	tooltip:"Removes all physical nodes currently in the Bullet world"
+		button      	removeselected 		"Remove Sel."                	pos:[82,50] 	width:75 	tooltip:"Remove selected objects from the Bullet world (if the are in the scene)"
 		
 		label			lbl_b				"Simulation:"					pos:[5,80]
 		--added by Spider
@@ -343,7 +343,7 @@ utility px_control "PhysX Utility"
 		
 		label			lbl_c				"Export:"						pos:[5,175]
 		button			export_ui			"Export to"						pos:[4,190]		width:55
-		dropdownlist 	exportformat_ui		""								pos:[62,190]	width:52 	items:#("XML", "Binary", "Collada")
+		dropdownlist 	exportformat_ui		""								pos:[62,190]	width:52 	items:#("bullet", "Collada")
 		button			quickexport_ui		"Redo"							pos:[117,190]
 	
 		label			lbl_d				"Simulate selected object(s) as:" pos:[4,220]
@@ -732,12 +732,11 @@ utility px_control "PhysX Utility"
 		(
 			local exportformat = exportformat_ui.selection;
 	
-			local format_ext = "xml";
-			local format_name = "NxuStream XML";
+			local format_ext = "bullet";
+			local format_name = "Bullet .bullet";
 	
-			if(exportformat == 3) then ( format_ext = "dae"; format_name = "COLLADA"; )
-			if(exportformat == 1) then ( format_ext = "xml"; format_name = "NxuStream XML"; )
-			if(exportformat == 2) then ( format_ext = "nxb"; format_name = "NxuStream BINARY"; )
+			if(exportformat == 2) then ( format_ext = "dae"; format_name = "COLLADA"; )
+			if(exportformat == 1) then ( format_ext = "bullet"; format_name = "Bullet .bullet"; )
 	
 			local filename = "";
 			local searchmask = format_name + "(*." + format_ext + ")|*." + format_ext;
@@ -758,9 +757,8 @@ utility px_control "PhysX Utility"
 		(
 			local format_ext = "xml";
 	
-			if(pxLastExportedFileFormat == 3) then ( format_ext = "dae" )
-			if(pxLastExportedFileFormat == 1) then ( format_ext = "xml" )
-			if(pxLastExportedFileFormat == 2) then ( format_ext = "nxb" )
+			if(pxLastExportedFileFormat == 1) then ( format_ext = "bullet" )
+			if(pxLastExportedFileFormat == 2) then ( format_ext = "dae" )
 	
 			local result = px.pxnxuexport pxLastExportedFile format_ext;
 			if (result == 0) then

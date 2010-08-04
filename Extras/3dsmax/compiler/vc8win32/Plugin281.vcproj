@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin281"
+	Name="3dsMaxBulletPlugin"
 	ProjectGUID="{0A39E3A2-1482-7545-3A6C-048E8D16C436}"
+	RootNamespace="BulletPlugin"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -324,7 +325,7 @@
 		</Configuration>
 		<Configuration
 			Name="debugMax2009|Win32"
-			OutputDirectory="..\..\bin\debug\281\2009"
+			OutputDirectory="$(MAX2009_BIN_PATH)/plugins"
 			IntermediateDirectory="build/Win32/Plugin281/debugMax2009"
 			ConfigurationType="2"
 			CharacterSet="2"
@@ -686,14 +687,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\PxPlugin.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="SoftBody"
-			>
-			<File
-				RelativePath="c:\Program Files\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\Tools\SoftBody\NxTetra.h"
 				>
 			</File>
 		</Filter>

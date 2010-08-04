@@ -15,6 +15,13 @@ extern CharStream* gCurrentstream;
 struct MxSDKParam;
 extern MxSDKParam* gSDKParamSettings;
 
+///Bullet data structures, in PxFunctions.cpp
+extern btDiscreteDynamicsWorld* gDynamicsWorld;
+extern btCollisionConfiguration* gCollisionConfiguration;
+extern btCollisionDispatcher* gDispatcher;
+extern btBroadphaseInterface* gBroadphase;
+extern btConstraintSolver* gConstraintSolver;
+
 bool MxUtils::PreparePlugin()
 {
 	//should we remember that we failed the initialization, or try every time we are called?
@@ -29,6 +36,17 @@ bool MxUtils::PreparePlugin()
 			gPluginData = NULL;
 		}
 	}
+
+	if (gDynamicsWorld == NULL)
+	{
+
+		gCollisionConfiguration= new btDefaultCollisionConfiguration();
+		gDispatcher = new btCollisionDispatcher(gCollisionConfiguration);
+		gBroadphase = new btDbvtBroadphase();
+		gConstraintSolver = new btSequentialImpulseConstraintSolver();
+		gDynamicsWorld = new btDiscreteDynamicsWorld(gDispatcher,gBroadphase,gConstraintSolver,gCollisionConfiguration);
+	}
+
 	return gPluginData != NULL;
 }
 
@@ -46,6 +64,20 @@ bool MxUtils::ReleasePlugin(bool quitting)
 			delete[] gSDKParamSettings;
 			gSDKParamSettings = NULL;
 		}
+	}
+
+	if (gDynamicsWorld)
+	{
+			delete gDynamicsWorld;
+			gDynamicsWorld = NULL;
+			delete gConstraintSolver;
+			gConstraintSolver = NULL;
+			delete gDispatcher;
+			gDispatcher = NULL;
+			delete gBroadphase;
+			gBroadphase = NULL;
+			delete gCollisionConfiguration;
+			gCollisionConfiguration= NULL;
 	}
 	return true;
 }

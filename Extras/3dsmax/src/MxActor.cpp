@@ -11,11 +11,10 @@
 //#include "MxShape.h"
 #include "MaxNode.h"
 #include "MaxWorld.h"
-
+#include "btBulletDynamicsCommon.h"
 
 extern CharStream *gCurrentstream;
-
-
+extern btDiscreteDynamicsWorld* gDynamicsWorld;
 
 
 
@@ -82,6 +81,7 @@ MxActor::MxActor(const char* name, INode* node) : MxObject(name, node), maxNodeA
 	m_desc.name = m_name.data(); //safe, since MxActor lives longer than the NxActor created by it
 	m_desc.userData = this;
 	m_proxyNode = NULL;
+	m_bulletBody = NULL;
 	m_sleep = false;
 	m_isKenematic = false;
 	m_mass = 0.0f;
@@ -93,7 +93,8 @@ MxActor::~MxActor()
 	//all shapes should have been removed before deleting the actor
 	//assert(m_shapes.size() == 0);
 
-	
+	if (m_bulletBody)
+		delete m_bulletBody;
 }
 
 void MxActor::releaseAllShapes()
@@ -121,11 +122,13 @@ void MxActor::releaseNxActor()
 /*
   Use the shape of node to create PhysX shape for the actor. ActorNode is the main Max node.
 */
-bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode)
+btCollisionShape* MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode)
 {
+	btCollisionShape* shape = NULL;
+
 	const TimeValue t = ccMaxWorld::MaxTime();
 
-	MaxMsgBox(NULL, _T("createShape"), _T("Error"), MB_OK);
+//	MaxMsgBox(NULL, _T("createShape"), _T("Error"), MB_OK);
 
 	int geomType = MxUserPropUtils::GetUserPropInt(m_node, "GeometryType",1);
 	NxShapeType type = node->ShapeType;
@@ -134,18 +137,19 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 	{
 	case 1:
 		{
-			MaxMsgBox(NULL, _T("automatic"), _T("Error"), MB_OK);
+//			MaxMsgBox(NULL, _T("automatic"), _T("Error"), MB_OK);
 		
 			switch (type)
 			{
 			case NX_SHAPE_SPHERE:
 				{
-					MaxMsgBox(NULL, _T("sphere shape"), _T("Error"), MB_OK);
+					btScalar radius = node->PrimaryShapePara.Radius;
+					shape = new btSphereShape(radius);
 					break;
 				};
 			case NX_SHAPE_BOX:
 				{
-					MaxMsgBox(NULL, _T("box shape"), _T("Error"), MB_OK);
+					shape = new btBoxShape(node->PrimaryShapePara.BoxDimension);
 					break;
 				}
 			case NX_SHAPE_CAPSULE:
@@ -264,7 +268,7 @@ bool MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* ac
 	actorDesc.shapes.push_back(pd);
 #endif
 
-	return true;
+	return shape;
 }
 
 NxActor* MxActor::createNxActor()
@@ -346,14 +350,46 @@ NxActor* MxActor::createNxActor()
 	ccMaxNode* baseNode = pActorNode;
 	if(maxNodeProxy)
 		baseNode = maxNodeProxy;
+
+	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
 	for (int i = 0; i < shapes.size(); i++) 
 	{
 		INode* current = shapes[i];
 		//DEBUG_F(" Debug adding shape node: %s\n", current->GetName());
 		ccMaxNode* pn = ccMaxWorld::FindNode(current);
 		assert(pn);
-		createShape(actorDesc, pn, pActorNode);
+		btCollisionShape* collisionShape = createShape(actorDesc, pn, pActorNode);
+		collisionShapes.push_back(collisionShape);
 	}
+
+	//create a rigid body and add it to the world
+	if (collisionShapes.size())
+	{
+		btCollisionShape* collisionShape = 0;
+		if (collisionShapes.size()==1)
+		{
+			collisionShape = collisionShapes[0];
+
+		} else
+		{
+			//not yet
+		}
+		if (collisionShape)
+		{
+			btVector3 localInertia(0,0,0);
+			if (actorDesc.mass)
+			{
+				collisionShape->calculateLocalInertia(actorDesc.mass,localInertia);
+			}
+			m_bulletBody = new btRigidBody(actorDesc.mass,0,collisionShape,localInertia);
+			gDynamicsWorld->addRigidBody(m_bulletBody);
+			MaxMsgBox(NULL, _T("adding rigid body"), _T("Error"), MB_OK);
+
+		}
+	}
+	
+	
 	bool isvalid = actorDesc.isValid();
 	actorDesc.name = m_node->GetName();
 	//NxMat34 pose0 = actorDesc.globalPose;
