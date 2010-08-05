@@ -382,7 +382,22 @@ NxActor* MxActor::createNxActor()
 			{
 				collisionShape->calculateLocalInertia(actorDesc.mass,localInertia);
 			}
+
+			
+			
+			Point3& wp = actorDesc.globalPose.GetRow(3);//Column(3);//[3];
+			btVector3 worldPos(wp.x,wp.y,wp.z);
+			btMatrix3x3 bm(actorDesc.globalPose.GetRow(0).x,actorDesc.globalPose.GetRow(0).y,	actorDesc.globalPose.GetRow(0).z,
+				actorDesc.globalPose.GetRow(1).x,actorDesc.globalPose.GetRow(1).y,	actorDesc.globalPose.GetRow(1).z,
+				actorDesc.globalPose.GetRow(2).x,actorDesc.globalPose.GetRow(2).y,	actorDesc.globalPose.GetRow(2).z);
+			btTransform worldTrans;
+			worldTrans.setOrigin(worldPos);
+			worldTrans.setBasis(bm);
+			
+
 			m_bulletBody = new btRigidBody(actorDesc.mass,0,collisionShape,localInertia);
+			m_bulletBody->setWorldTransform(worldTrans);
+
 			gDynamicsWorld->addRigidBody(m_bulletBody);
 			MaxMsgBox(NULL, _T("adding rigid body"), _T("Error"), MB_OK);
 

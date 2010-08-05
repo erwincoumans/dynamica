@@ -180,7 +180,7 @@ global pxLastExportedFileFormat = 1;
 		)
 		
 
-utility px_control "PhysX Utility" 
+utility px_control "Bullet Utility" 
 (
 	label	lbl_about								"Bullet SDK Version unknown"
 	checkbutton		pxbutton_control				"Bullet Control Panel"	checked:true	width:140 height:16 tooltip:"Shows the Bullet Control Panel"
@@ -915,7 +915,7 @@ utility px_control "PhysX Utility"
 				281: "2.8.1"
 				277: "2.77"
 			)
-			lbl_about.text = "PhysX SDK Version " + version
+			lbl_about.text = "Bullet SDK Version " + version
 		)
 	)
   

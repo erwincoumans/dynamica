@@ -121,6 +121,7 @@ Point3 ccMaxWorld::ParseScale(const Matrix3& tm, Matrix3 &scaleTM, Matrix3 &pose
 }
 
 
+
 /*
   Find the created ccMaxNode from node. If not find it, generate a new one.
 */

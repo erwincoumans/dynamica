@@ -14,7 +14,6 @@
 		button		simulatedas_ui	"..."	pos:[115,43]	height:15	width:40
 	
 		spinner       	mass_ui            "Mass"                                       range:[0,1000000,0]  pos:[15,70] width:60
-		spinner       	density_ui            "Density"                                       range:[0,10000000,0] pos:[95,70] width:60
 		
 		label		lbl_c	"Material settings:"	align:#left
 	    dropdownlist	material_ui			""						items:#("Use 3ds max material", "Use object material settings", "Use PhysX default material")	pos:[5,108] width:150
@@ -86,7 +85,7 @@
 				if (checkFloatProperty n &props "InitialSpinZ" 0.0) then differences = true;
 				if (checkStringProperty n &props "Proxy_Geometry" "") then differences = true;
 				if (checkFloatProperty n &props "Mass" 0.0) then differences = true;
-				if (checkFloatProperty n &props "Density" 0.0) then differences = true;
+--				if (checkFloatProperty n &props "Density" 0.0) then differences = true;
 				if (checkBoolProperty n &props "PutToSleep" false) then differences = true;
 				if (checkBoolProperty n &props "EnableCCD" false) then differences = true;
 				if (massFoundFirst == 0) then
@@ -169,18 +168,21 @@
 			initSpinX.value = (pxMap_getValue &props "InitialSpinX" 0.0) * RATE_RAD_TO_DEGREE;
 			initSpinY.value = (pxMap_getValue &props "InitialSpinY" 0.0) * RATE_RAD_TO_DEGREE;
 			initSpinZ.value = (pxMap_getValue &props "InitialSpinZ" 0.0) * RATE_RAD_TO_DEGREE;
-			if (massFoundFirst == 0 or massFoundFirst == 1) then
+			
+			local tmpType = px_control.mainUI_roll.simulationmethod_ui.selection;
+			if (tmpType ==3) then
+			(
+				mass_ui.value = 0.0;
+			) else
 			(
 				mass_ui.value = pxMap_getValue &props "Mass" 0.0;
+				if (	mass_ui.value == 0.0) then
+				(
+					mass_ui.value = 1.0;
+				)
 			)
-			if (mass_ui.value == 0.0 or massFoundFirst == 2) then
-			(
-				density_ui.value = pxMap_getValue &props "Density" 0.0;
-			)
-			if (mass_ui.value == 0.0 and density_ui.value == 0.0) then
-			(
-				mass_ui.value = 1.0;
-			)
+			
+
 			material_ui.selection = pxMap_getValue &props "MaterialType" 2;
 			geometrytype_ui.selection = pxMap_getValue &props "GeometryType" 1;
 			
@@ -220,21 +222,12 @@
 			(
 				updateRigidBodyLists();
 			)
-			local density = density_ui.value;
 			local mass = mass_ui.value;
 			local trimesh = (geometrytype_ui.selection == 6);
 			local n = undefined;
 			for n in rbprops_mRigidBodies do
 			(
-				if (mass > 0) then
-				(
-					setuserprop n "Mass" mass
-					eraseprop n "Density"
-				) else 
-				(
-					setuserprop n "Density" density
-					eraseprop n "Mass"
-				)
+				setuserprop n "Mass" mass
 			)
 			for n in rbprops_mShapes do
 			(
@@ -400,7 +393,7 @@
 			rigidbodyproperties_roll.puttosleep.enabled = editState;
 			rigidbodyproperties_roll.useCCD.enabled = editState;
 			rigidbodyproperties_roll.mass_ui.enabled = editState;
-			rigidbodyproperties_roll.density_ui.enabled = editState;
+
 			rigidbodyproperties_roll.material_ui.enabled = editState;
 			if editState then
 			(
@@ -415,15 +408,9 @@
 
 		on mass_ui changed val do
 		(
-			if (mass_ui.value != 0.0) then density_ui.value = 0.0;
 			updateEditProperties();
 		)
 
-		on density_ui changed val do
-		(
-			if (density_ui.value != 0.0) then mass_ui.value = 0.0;
-			updateEditProperties();
-		)
 		
 		on material_ui selected selIndex do
 		(

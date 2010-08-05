@@ -40,7 +40,6 @@ extends:dummy replaceui:true
 		
 		RestParticlesMeter		type:#float		ui:restparticles_ui				default:10
 		
-		RestDensity				type:#float		ui:restdensity_ui				default:1000
 		
 		KernelRadiusMultiplier	type:#float		ui:kernelradius_ui				default:1.2
 		MotionLimitMultiplier	type:#float		ui:motionlimit_ui				default:3.6		--is 3.0*kernelradiusmultiplier
@@ -140,7 +139,6 @@ extends:dummy replaceui:true
 		spinner			restparticles_ui			""				range:[0,9999999,10.0]	type:#float	pos:[85,448]
 
 		label			restdensity_lb				"Rest Density"			align:#left
-		spinner			restdensity_ui				""				range:[0,9999999,1.0]	type:#float	pos:[85,469]
 
 		label			kernelradius_lb				"Radius Mult."			align:#left
 		spinner			kernelradius_ui				""				range:[0,9999999,1.0]	type:#float	pos:[85,490]
