@@ -17,6 +17,8 @@ public:
 	//virtual bool addShape(MxShape* shape); //add a shape to the actor (you can only add one shape to one actor)
 	//virtual bool removeShape(MxShape* shape); //doesn't release the shape, just removes it from the actor
 
+	void	syncGlobalPose();
+
 	virtual NxActorDesc* getActorDesc() { return &m_desc; }
 	virtual NxBodyDesc* getBodyDesc() { return &m_bodyDesc; }
 

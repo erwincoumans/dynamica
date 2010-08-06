@@ -525,7 +525,7 @@ int PxFunctions::pxremoveall()
 
 int PxFunctions::pxremove(INode *node)
 {
-	MaxMsgBox(NULL, _T("pxremove"), _T("Error"), MB_OK);
+//	MaxMsgBox(NULL, _T("pxremove"), _T("Error"), MB_OK);
 
 	ccMaxWorld::FreeNode(node);
 
@@ -548,9 +548,6 @@ int PxFunctions::pxadd(INode *node)
 {
 	MxUtils::PreparePlugin();
 
-	MaxMsgBox(NULL, _T("pxadd"), _T("Error"), MB_OK);
-
-
 	TimeValue t = GetCOREInterface()->GetTime();
 
 	//remove previous objects with same name
@@ -565,39 +562,70 @@ int PxFunctions::pxadd(INode *node)
 	if (mxActor == NULL) return 0;
 
 
-	MaxMsgBox(NULL, _T("mxActor created"), _T("Error"), MB_OK);
-
-
 	NxActorDesc&  actordesc  = *mxActor->getActorDesc();
 	NxBodyDesc&   body       = *mxActor->getBodyDesc();
 	body.solverIterationCount = (NxU32)mSetting_solveriterationcount;
 
 	bool staticactor = false;
 	int phystype = 0;
-	mxActor->getInteractivity() = RB_DYNAMIC;
 	if (node->GetUserPropInt("PhysicsType", phystype))
 	{
-		if(phystype == 3) {
-			staticactor = true;
-			mxActor->getInteractivity() = RB_STATIC;
-		}else if(phystype == 2) {
-			mxActor->getInteractivity() = RB_KINEMATIC;
-		}
+		staticactor = (phystype == 3);
 	}
 
-	actordesc.body = staticactor ? 0 : &body;
-	if (MxUserPropUtils::GetUserPropFloat(node, "Mass", body.mass))
+	char blaa[1024];
+
+	actordesc.mass = 1.f;
+	mxActor->getInteractivity() = RB_DYNAMIC;
+
+	switch (phystype)
 	{
-		if (body.mass < FLT_EPSILON)
+	case 1:
 		{
-			body.flags |= NX_BF_KINEMATIC;
-			actordesc.density = 1.0f;
-			mxActor->getInteractivity() = RB_KINEMATIC;
+			mxActor->getInteractivity() = RB_DYNAMIC;
+			if (MxUserPropUtils::GetUserPropFloat(node, "Mass", body.mass))
+			{
+				actordesc.mass = body.mass;
+
+				if (body.mass < FLT_EPSILON)
+				{
+					actordesc.mass = 1.f;
+//					body.flags |= NX_BF_KINEMATIC;
+				}
+			} else
+			{
+				actordesc.mass = 1.f;
+			}
+
+			break;
 		}
-	} else
-	{
-		actordesc.density = 1.0f;
-	}
+	case 2:
+		{
+			actordesc.mass = 0.f;
+			mxActor->getInteractivity() = RB_KINEMATIC;
+			break;
+		}
+	
+	case 3:
+	default:
+		{
+			mxActor->getInteractivity() = RB_STATIC;
+			staticactor = true;
+			actordesc.mass = 0.f;
+		
+
+		}
+	};
+
+	
+	
+	
+	actordesc.body = staticactor ? 0 : &body;
+	
+//	char bla[1024];
+//	sprintf(bla,"actor %s mass=%f\n",node->GetName(),actordesc.mass);
+//	MaxMsgBox(NULL, _T(bla), _T("Error"), MB_OK);
+
 
 	if (!MxUserPropUtils::GetUserPropFloat(node, "InitialVelocityX", body.linearVelocity[0]))
 		body.linearVelocity[0] = 0.0f;
@@ -1678,6 +1706,26 @@ int PxFunctions::isjoint(INode *node)
 
 int PxFunctions::pxsync()
 {
+
+//	MaxMsgBox(NULL, _T("pxsync"), _T("Error"), MB_OK);
+	if (gDynamicsWorld)
+	{
+		for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+		{
+			btCollisionObject* colObj = gDynamicsWorld->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(colObj);
+			if (body && body->getInvMass()>0)
+			{
+				MxActor* actor = (MxActor*)body->getUserPointer();
+				if (actor)
+				{
+					actor->syncGlobalPose();
+				}
+			}
+		}
+	}
+
+
 #if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
@@ -1705,6 +1753,9 @@ int PxFunctions::pxsync()
 
 int PxFunctions::pxrestart()
 {
+
+//	MaxMsgBox(NULL, _T("pxrestart"), _T("Error"), MB_OK);
+
 #if 0
 
 	NxScene* scene = MxPluginData::getSceneStatic();
@@ -1826,9 +1877,7 @@ int PxFunctions::pxvisualizephysics(BOOL enable)
 
 int PxFunctions::pxsnap(float)
 {
-#if 0
-	NxScene* scene = MxPluginData::getSceneStatic();
-	if (scene == NULL) return 0;
+//	MaxMsgBox(NULL, _T("pxsnap"), _T("Error"), MB_OK);
 
 	int i;
 	if(!theHold.Holding())
@@ -1869,6 +1918,8 @@ int PxFunctions::pxsnap(float)
 	};
 	TimeValue t = GetCOREInterface()->GetTime();
 	theHold.Put(new RestoreTime(t));
+
+	/*
 	i = (int) scene->getNbActors();
 	while(i--)
 	{
@@ -1885,7 +1936,9 @@ int PxFunctions::pxsnap(float)
 			theHold.Put(new RestoreTrans(node,node->GetNodeTM(t),t));
 		}
 	}
-#endif
+	*/
+
+
 	return 1;
 }
 
@@ -1984,6 +2037,29 @@ bool PxFunctions::printFPS(bool onoff)
 
 int PxFunctions::pxsim(float deltat)
 {
+
+	if (gDynamicsWorld)
+	{
+
+		gDynamicsWorld->setGravity(btVector3(mSetting_gravity.x,mSetting_gravity.y,mSetting_gravity.z));
+
+		gDynamicsWorld->stepSimulation(deltat);
+		
+		for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+		{
+			btCollisionObject* colObj = gDynamicsWorld->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(colObj);
+			if (body)
+			{
+				MxActor* actor = (MxActor*)body->getUserPointer();
+				if (actor)
+				{
+					actor->ActionAfterSimulation();
+				}
+			}
+		}
+	}
+
 #if 0
 	NxScene* scene = MxPluginData::getSceneStatic();
 	if (scene == NULL) return 0;
@@ -2248,6 +2324,16 @@ Matrix3 PxFunctions::getGlobalPose(INode *node)
 // it only sets the physics pose and  does not change the node's max pose
 int PxFunctions::setGlobalPose(INode *node, Matrix3& pose)
 {
+//	MaxMsgBox(NULL, _T("setGlobalPose"), _T("Error"), MB_OK);
+
+	MxActor* mxActor = MxUtils::GetActorFromName(node->GetName());
+	if (mxActor == NULL) 
+		return 0;
+	mxActor->syncGlobalPose();
+
+	TimeValue t = GetCOREInterface()->GetTime();
+	node->SetNodeTM(t, pose);
+
 #if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;

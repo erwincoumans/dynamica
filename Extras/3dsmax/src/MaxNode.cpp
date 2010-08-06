@@ -20,7 +20,7 @@ ccMaxNode::~ccMaxNode()
 
 void ccMaxNode::SetNode(INode* node)
 {
-	MaxMsgBox(NULL, _T("SetNode"), _T("Error"), MB_OK);
+//	MaxMsgBox(NULL, _T("SetNode"), _T("Error"), MB_OK);
 	MaxINode = node;
 	SimpleMesh.release();
 	ScaledIsUnified = true;
@@ -85,7 +85,7 @@ bool IsScaled(Matrix3& tm)
 */
 void ccMaxNode::SyncFromMaxMesh()
 {
-	MaxMsgBox(NULL, _T("SyncFromMaxMesh"), _T("Error"), MB_OK);
+	//MaxMsgBox(NULL, _T("SyncFromMaxMesh"), _T("Error"), MB_OK);
 
 	ShapeType           = NX_SHAPE_MESH;
 	const TimeValue  t  = ccMaxWorld::MaxTime();
@@ -106,6 +106,13 @@ void ccMaxNode::SyncFromMaxMesh()
 	MaxPivotTM.SetTrans(MaxINode->GetObjOffsetPos()); 
 	PreRotateMatrix(MaxPivotTM, MaxINode->GetObjOffsetRot()); 
 	ApplyScaling(MaxPivotTM, MaxINode->GetObjOffsetScale());
+
+
+	
+	
+//	char blaat[1024];
+//	sprintf(blaat,"MaxPivotTM.MaxPivotTM.GetTrans()=(%f,%f,%f)",MaxPivotTM.GetTrans().x,MaxPivotTM.GetTrans().y,MaxPivotTM.GetTrans().z);
+//	MaxMsgBox(NULL, _T(blaat), _T("Error"), MB_OK);
 
 	// GetObjectTM() = MaxPivotTM * MaxNodeTM
 	MaxNodeObjectTM = MaxINode->GetObjectTM(t);

@@ -94,7 +94,11 @@ MxActor::~MxActor()
 	//assert(m_shapes.size() == 0);
 
 	if (m_bulletBody)
+	{
+		if (gDynamicsWorld)
+			gDynamicsWorld->removeRigidBody(m_bulletBody);
 		delete m_bulletBody;
+	}
 }
 
 void MxActor::releaseAllShapes()
@@ -120,102 +124,162 @@ void MxActor::releaseNxActor()
 }
 
 /*
-  Use the shape of node to create PhysX shape for the actor. ActorNode is the main Max node.
+  Use the shape of node to create Bullet shape for the actor. ActorNode is the main Max node.
 */
 btCollisionShape* MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode)
 {
+	actorDesc.localPose.IdentityMatrix();
+
 	btCollisionShape* shape = NULL;
 
 	const TimeValue t = ccMaxWorld::MaxTime();
+	Matrix3 nodePose = node->PhysicsNodePoseTM;
 
 //	MaxMsgBox(NULL, _T("createShape"), _T("Error"), MB_OK);
 
 	int geomType = MxUserPropUtils::GetUserPropInt(m_node, "GeometryType",1);
 	NxShapeType type = node->ShapeType;
 
+	//first apply manual overrides
 	switch (geomType)
 	{
-	case 1:
-		{
-//			MaxMsgBox(NULL, _T("automatic"), _T("Error"), MB_OK);
-		
-			switch (type)
-			{
-			case NX_SHAPE_SPHERE:
-				{
-					btScalar radius = node->PrimaryShapePara.Radius;
-					shape = new btSphereShape(radius);
-					break;
-				};
-			case NX_SHAPE_BOX:
-				{
-					shape = new btBoxShape(node->PrimaryShapePara.BoxDimension);
-					break;
-				}
-			case NX_SHAPE_CAPSULE:
-				{
-					MaxMsgBox(NULL, _T("capsule shape"), _T("Error"), MB_OK);
-					break;
-				}
-
-			case NX_SHAPE_CONVEX:
-				{
-					MaxMsgBox(NULL, _T("convex shape"), _T("Error"), MB_OK);
-					break;
-				}
-			case 	NX_SHAPE_MESH:
-				{
-					MaxMsgBox(NULL, _T("mesh shape"), _T("Error"), MB_OK);
-					break;
-				}
-
-			default:
-				{
-					MaxMsgBox(NULL, _T("unknown shape type"), _T("Error"), MB_OK);
-				}
-			};
-			break;
-		}
-
 	case 2:
 		{
-			MaxMsgBox(NULL, _T("override sphere shape"), _T("Error"), MB_OK);
 			type = NX_SHAPE_SPHERE;
 			break;
 		}
-
 	case 3:
 		{
-			MaxMsgBox(NULL, _T("override box shape"), _T("Error"), MB_OK);
 			type = NX_SHAPE_BOX;
 			break;
 		}
 	case 4:
 		{
-			MaxMsgBox(NULL, _T("override capsule shape"), _T("Error"), MB_OK);
 			type = NX_SHAPE_CAPSULE;
 			break;
 		}
-
 	case 5:
-	{
-		MaxMsgBox(NULL, _T("override convex shape"), _T("Error"), MB_OK);
-		type = NX_SHAPE_CONVEX;
-		break;
-	}
-
+		{
+			type = NX_SHAPE_CONVEX;
+			break;
+		}
 	case 6:
+		{
+			type = NX_SHAPE_MESH;
+			break;
+		}
+	default:
+		{
+		}
+	};
+
+	switch (type)
 	{
-		MaxMsgBox(NULL, _T("override concave trimesh shape"), _T("Error"), MB_OK);
-		type = NX_SHAPE_MESH;
-		break;
-	}
+	case NX_SHAPE_SPHERE:
+		{
+			btScalar radius = node->PrimaryShapePara.Radius;
+			shape = new btSphereShape(radius);
+			break;
+		};
+	case NX_SHAPE_BOX:
+		{
+			//adjust for difference in pivot points between 3ds max and Bullet (Bullet uses the box center)
+			actorDesc.localPose.SetTrans(2,node->PrimaryShapePara.BoxDimension.z());
+
+			//why is this "node->PhysicsNodePoseTM * actorNode->PhysicsNodePoseTMInv;" necessary, isn't it identity?
+			//Matrix3 pose = localPose * node->PhysicsNodePoseTM * actorNode->PhysicsNodePoseTMInv;
+
+			shape = new btBoxShape(node->PrimaryShapePara.BoxDimension.absolute());
+
+			break;
+		}
+	case NX_SHAPE_CAPSULE:
+		{
+			MaxMsgBox(NULL, _T("capsule shape not supported (yet)"), _T("Error"), MB_OK);
+			break;
+		}
+
+	case NX_SHAPE_CONVEX:
+		{
+			if(m_proxyNode)
+			{
+				MaxMsgBox(NULL, _T("Error: convex shape proxy not supported (yet)"), _T("Error"), MB_OK);
+				//d->meshData = MxUtils::nodeToNxConvexMesh(proxyMesh);
+				//Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
+				//d->localPose = MxMathUtils::MaxMatrixToNx(pose);
+			}
+			else
+			{
+				if(node->SimpleMesh.numFaces > 255)
+				{
+					MaxMsgBox(NULL, _T("Error: number of vertices in a convex shape should be less than 256"), _T("Error"), MB_OK);
+					//warning/Error
+				} else
+				{
+
+					BOOL needDel = FALSE;
+					TriObject* tri = MxUtils::GetTriObjectFromNode(node->GetMaxNode(),0.f,needDel);
+					if (tri)
+					{
+						int numVerts = tri->NumPoints();
+						btConvexHullShape* convexHull = new btConvexHullShape();
+						for (int i=0;i<numVerts;i++)
+						{
+							convexHull->addPoint(btVector3(tri->GetPoint(i).x,tri->GetPoint(i).y,tri->GetPoint(i).z));
+						}
+						shape = convexHull;
+						if (needDel)
+							delete tri;
+					}
+				}
+				//d->meshData = MxUtils::nodeToNxConvexMesh(node->SimpleMesh);
+				//Matrix3 pose = nodePose * actorNode->PhysicsNodePoseTMInv;
+				//d->localPose = MxMathUtils::MaxMatrixToNx(pose);
+			}
+			break;
+		}
+	case 	NX_SHAPE_MESH:
+		{
+
+			BOOL needDel = FALSE;
+			TriObject* tri = MxUtils::GetTriObjectFromNode(node->GetMaxNode(),0.f,needDel);
+
+			if (tri)
+			{
+				int numVerts = tri->NumPoints();
+				btTriangleMesh* meshInterface = new btTriangleMesh();
+				Mesh& mesh = tri->GetMesh();
+
+				for (int i=0;i<mesh.getNumFaces();i++)
+				{
+					Point3 p0=tri->GetPoint(mesh.faces[i].v[0]);
+					Point3 p1=tri->GetPoint(mesh.faces[i].v[1]);
+					Point3 p2=tri->GetPoint(mesh.faces[i].v[2]);
+
+					meshInterface->addTriangle( btVector3(p0.x,p0.y,p0.z),btVector3(p1.x,p1.y,p1.z),btVector3(p2.x,p2.y,p2.z));
+				}
+
+
+				btBvhTriangleMeshShape* trimesh = new btBvhTriangleMeshShape(meshInterface,true);
+				//might need btGImpactMeshShape for moving objects
+				shape = trimesh;
+				if (needDel)
+					delete tri;
+				shape = trimesh;
+			} else
+			{
+				MaxMsgBox(NULL, _T("Error: couldn't GetTriObjectFromNode"), _T("Error"), MB_OK);
+			}
+
+			break;
+		}
 
 	default:
-			{
-				MaxMsgBox(NULL, _T("unknown shape type"), _T("Error"), MB_OK);
-			}
-	}
+		{
+			MaxMsgBox(NULL, _T("unknown shape type"), _T("Error"), MB_OK);
+		}
+	};
+
 
 #if 0
 	NxShapeDesc* pd = NULL;
@@ -273,6 +337,11 @@ btCollisionShape* MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, 
 
 NxActor* MxActor::createNxActor()
 {
+	if (m_bulletBody)
+	{
+		MaxMsgBox(NULL, _T("Error: body was already added to the dynamics world"), _T("Error"), MB_OK);
+		return 0;
+	}
 
 	// find proxy node
 	m_proxyNode = NULL;
@@ -383,23 +452,16 @@ NxActor* MxActor::createNxActor()
 				collisionShape->calculateLocalInertia(actorDesc.mass,localInertia);
 			}
 
-			
-			
-			Point3& wp = actorDesc.globalPose.GetRow(3);//Column(3);//[3];
-			btVector3 worldPos(wp.x,wp.y,wp.z);
-			btMatrix3x3 bm(actorDesc.globalPose.GetRow(0).x,actorDesc.globalPose.GetRow(0).y,	actorDesc.globalPose.GetRow(0).z,
-				actorDesc.globalPose.GetRow(1).x,actorDesc.globalPose.GetRow(1).y,	actorDesc.globalPose.GetRow(1).z,
-				actorDesc.globalPose.GetRow(2).x,actorDesc.globalPose.GetRow(2).y,	actorDesc.globalPose.GetRow(2).z);
-			btTransform worldTrans;
-			worldTrans.setOrigin(worldPos);
-			worldTrans.setBasis(bm);
+			m_bulletBody = new btRigidBody(actorDesc.mass,0,collisionShape,localInertia);
+			m_bulletBody->setUserPointer(this);
+
 			
 
-			m_bulletBody = new btRigidBody(actorDesc.mass,0,collisionShape,localInertia);
-			m_bulletBody->setWorldTransform(worldTrans);
+			syncGlobalPose();
+			
 
 			gDynamicsWorld->addRigidBody(m_bulletBody);
-			MaxMsgBox(NULL, _T("adding rigid body"), _T("Error"), MB_OK);
+//			MaxMsgBox(NULL, _T("adding rigid body"), _T("Error"), MB_OK);
 
 		}
 	}
@@ -439,6 +501,23 @@ NxActor* MxActor::createNxActor()
 
 	//return m_actor;
 	return 0;
+}
+
+void MxActor::syncGlobalPose()
+{
+	NxActorDesc&  actorDesc  = m_desc;
+	ccMaxNode* pActorNode = ccMaxWorld::FindNode(m_node);
+	actorDesc.globalPose = pActorNode->PhysicsNodePoseTM;
+
+	btTransform worldTrans;
+	max2Bullet( actorDesc.globalPose,worldTrans);
+
+	btTransform localTrans;
+	max2Bullet(actorDesc.localPose,localTrans);
+
+	worldTrans = worldTrans*localTrans;
+	m_bulletBody->setWorldTransform(worldTrans);
+
 }
 
 void MxActor::resetObject()
@@ -494,7 +573,6 @@ void MxActor::ActionBeforeSimulation()
 */
 void MxActor::ActionAfterSimulation()
 {
-#if 0
 	// update pose to max node
 	if(getInteractivity() != RB_DYNAMIC)
 		return;
@@ -502,9 +580,17 @@ void MxActor::ActionAfterSimulation()
 	// update rigid body's last pose
 	//ccMaxNode* pn = ccMaxWorld::FindNode(m_node);
 	assert(maxNodeActor);
-	maxNodeActor->SetSimulatedPose(m_actor->getGlobalPose());
-	Matrix3 poseTM = maxNodeActor->GetCurrentTM();
-	SaveLastPose(poseTM);
-#endif 
+	Matrix3 globalPose;
+	globalPose.IdentityMatrix();
+
+	if (m_bulletBody)
+	{
+		bullet2Max(m_bulletBody->getWorldTransform(),globalPose);
+		//@todo: need correction for boxes (off center etc)
+
+		maxNodeActor->SetSimulatedPose(globalPose);
+		Matrix3 poseTM = maxNodeActor->GetCurrentTM();
+		SaveLastPose(poseTM);
+	}
 }
 

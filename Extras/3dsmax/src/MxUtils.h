@@ -14,6 +14,53 @@ typedef btVector3 NxVec3;
 typedef unsigned int NxU32;
 #define NxArray btAlignedObjectArray
 
+///bullet2Max and max2Bullet are not optimized!
+
+static inline void bullet2Max(const btTransform& trans, Matrix3& outMatrix)
+{
+	Point3 pos(trans.getOrigin().getX(),trans.getOrigin().getY(),trans.getOrigin().getZ());
+	outMatrix.SetRow(3,pos);
+
+	Point3 row;
+
+	row.x = trans.getBasis()[0].getX();
+	row.y = trans.getBasis()[1].getX();
+	row.z = trans.getBasis()[2].getX();
+	outMatrix.SetRow(0,row);
+
+	row.x = trans.getBasis()[0].getY();
+	row.y = trans.getBasis()[1].getY();
+	row.z = trans.getBasis()[2].getY();
+	outMatrix.SetRow(1,row);
+
+	row.x = trans.getBasis()[0].getZ();
+	row.y = trans.getBasis()[1].getZ();
+	row.z = trans.getBasis()[2].getZ();
+	outMatrix.SetRow(2,row);
+
+}
+
+static inline void max2Bullet(const Matrix3& mat, btTransform& outTrans )
+{
+	//todo: check this
+	btTransform trans;
+
+	Point3& wp = mat.GetRow(3);
+	btVector3 worldPos(wp.x,wp.y,wp.z);
+	//btMatrix3x3 bm(
+	//	mat.GetRow(0).x,mat.GetRow(0).y,	mat.GetRow(0).z,
+	//	mat.GetRow(1).x,mat.GetRow(1).y,	mat.GetRow(1).z,
+	//	mat.GetRow(2).x,mat.GetRow(2).y,	mat.GetRow(2).z);
+	
+	btMatrix3x3 bm(
+		mat.GetRow(0).x,mat.GetRow(1).x,	mat.GetRow(2).x,
+		mat.GetRow(0).y,mat.GetRow(1).y,	mat.GetRow(2).y,
+		mat.GetRow(0).z,mat.GetRow(1).z,	mat.GetRow(2).z);
+	
+	outTrans.setOrigin(worldPos);
+	outTrans.setBasis(bm);
+}
+
 enum NxCompartmentType
 {
 	NX_SCT_SOFTBODY = 1,
@@ -131,6 +178,7 @@ struct NxActorDesc
 	char* name;
 	void* userData;
 	Matrix3 globalPose;
+	Matrix3 localPose;
 	bool isValid() { return true;}
 };
 
