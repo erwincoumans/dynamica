@@ -1918,6 +1918,29 @@ int PxFunctions::pxsnap(float)
 	};
 	TimeValue t = GetCOREInterface()->GetTime();
 	theHold.Put(new RestoreTime(t));
+	
+	if (gDynamicsWorld)
+	{
+
+		gDynamicsWorld->setGravity(btVector3(mSetting_gravity.x,mSetting_gravity.y,mSetting_gravity.z));
+
+		
+		for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+		{
+			btCollisionObject* colObj = gDynamicsWorld->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(colObj);
+			if (body)
+			{
+				MxActor* actor = (MxActor*)body->getUserPointer();
+				if (actor)
+				{
+					INode* node = actor->getNode();
+					theHold.Put(new RestoreTrans(node,node->GetNodeTM(t),t));
+				}
+			}
+		}
+	}
+
 
 	/*
 	i = (int) scene->getNbActors();
@@ -2293,16 +2316,17 @@ Point3 PxFunctions::getGlobalPosition(INode *node)
 // it only sets the physics position and  does not change the node's max position
 int PxFunctions::setGlobalPosition(INode *node, Point3& position)
 {
-#if 0
+	/*
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
-	NxActor* actor = mxActor->getNxActor();
-	if (actor == NULL) return 0;
-	actor->setGlobalPosition((NxVec3&) position);
+	
+	ccMaxNode* pActorNode = ccMaxWorld::FindNode(mxActor->getNode());
+	pActorNode->PhysicsNodePoseTM.SetTrans(position);
+	mxActor->syncGlobalPose();
 
 	TimeValue t = GetCOREInterface()->GetTime();
-	node->SetNodeTM(t, MxMathUtils::NxMatrixToMax(actor->getGlobalPose()));
-#endif
+	node->SetNodeTM(t, pActorNode->PhysicsNodePoseTM);//actor->getGlobalPose());
+*/
 
 	return 1;
 }
@@ -2329,6 +2353,10 @@ int PxFunctions::setGlobalPose(INode *node, Matrix3& pose)
 	MxActor* mxActor = MxUtils::GetActorFromName(node->GetName());
 	if (mxActor == NULL) 
 		return 0;
+
+	ccMaxNode* pActorNode = ccMaxWorld::FindNode(mxActor->getNode());
+	pActorNode->PhysicsNodePoseTM = pose;
+
 	mxActor->syncGlobalPose();
 
 	TimeValue t = GetCOREInterface()->GetTime();
@@ -2621,9 +2649,25 @@ int PxFunctions::pxnxuexport(char *fname, char *ext)
 		
 			//todo: copy names into rigid bodies, using serializer->registerNameForPointer(ptr,name);
 
-			int maxSerializeBufferSize = 1024*1024*5;
+			int maxSerializeBufferSize = 1024*1024*25;
 		 
 			btDefaultSerializer*	serializer = new btDefaultSerializer(maxSerializeBufferSize);
+
+
+			for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+			{
+				btCollisionObject* colObj = gDynamicsWorld->getCollisionObjectArray()[i];
+				btRigidBody* body = btRigidBody::upcast(colObj);
+				if (body)
+				{
+					MxActor* actor = (MxActor*)body->getUserPointer();
+					if (actor && actor->getNode() && actor->getNode()->GetName())
+					{
+						serializer->registerNameForPointer(body,actor->getNode()->GetName());
+					}
+				}
+			}
+
 			gDynamicsWorld->serialize(serializer);
 		 
 			FILE* file = fopen(fname,"wb");

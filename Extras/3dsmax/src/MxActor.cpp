@@ -585,7 +585,16 @@ void MxActor::ActionAfterSimulation()
 
 	if (m_bulletBody)
 	{
-		bullet2Max(m_bulletBody->getWorldTransform(),globalPose);
+		NxActorDesc&  actorDesc  = m_desc;
+
+		btTransform localTrans;
+		max2Bullet(actorDesc.localPose,localTrans);
+
+
+
+		btTransform maxWorldTrans = m_bulletBody->getWorldTransform()*localTrans.inverse();
+
+		bullet2Max(maxWorldTrans,globalPose);
 		//@todo: need correction for boxes (off center etc)
 
 		maxNodeActor->SetSimulatedPose(globalPose);
