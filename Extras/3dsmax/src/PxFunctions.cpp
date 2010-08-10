@@ -1,3 +1,26 @@
+/* Copyright (c) 2008 NVIDIA CORPORATION
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+//For feedback and latest version see http://dynamica.googlecode.com
+
 #include <max.h>
 #undef min
 #undef max
@@ -944,6 +967,9 @@ int PxFunctions::pxaddfluidemitter(INode *node)
 
 int PxFunctions::pxcalcD6jointfromIK(INode *node)
 {
+	MaxMsgBox(NULL, _T("pxcalcD6jointfromIK not implemented yet"), _T("Error"), MB_OK);
+
+	
 	Control* tempControl = node->GetTMController();
 	if(!tempControl) return 0;
 
@@ -1018,6 +1044,9 @@ int PxFunctions::pxcalcD6jointfromIK(INode *node)
 
 int setnxjointlinearlimits(MxJoint* mxJoint,Point3 &translimitmin, Point3 &translimitmax)
 {
+
+	MaxMsgBox(NULL, _T("setnxjointlinearlimits not implemented yet"), _T("Error"), MB_OK);
+	
 #if 0
 	if (mxJoint == NULL) return 0;
 	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
@@ -1051,6 +1080,8 @@ int PxFunctions::setjointlinearlimits(INode *node, Point3& translimitmin, Point3
 
 void setjointdescangularlimits(NxD6JointDesc &jointdesc,Point4 &limits)
 {
+	MaxMsgBox(NULL, _T("setjointdescangularlimits not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	jointdesc.twistLimit.low.value  = limits.z*DEG2RAD;   // assume z is the twist axis  
 	jointdesc.twistLimit.high.value = limits.w*DEG2RAD;  // preprocessing should set z to be the one with highest limit.
@@ -1067,6 +1098,8 @@ void setjointdescangularlimits(NxD6JointDesc &jointdesc,Point4 &limits)
 
 int PxFunctions::setjointangularlimits(INode *node,Point3 &rotlimitmin, Point3 &rotlimitmax)
 {
+
+	MaxMsgBox(NULL, _T("setjointangularlimits not implemented yet"), _T("Error"), MB_OK);
 #if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
@@ -1085,6 +1118,8 @@ int PxFunctions::setjointangularlimits(INode *node,Point3 &rotlimitmin, Point3 &
 
 int PxFunctions::setjointslerpdrive(INode *node,float spring,float damping)
 {
+	MaxMsgBox(NULL, _T("setjointslerpdrive not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
@@ -1111,6 +1146,9 @@ int PxFunctions::setjointslerpdrive(INode *node,float spring,float damping)
 
 int PxFunctions::setjointtwistswingdrive(INode *node,float twistspring,float swingspring,float damping)
 {
+	MaxMsgBox(NULL, _T("setjointtwistswingdrive not implemented yet"), _T("Error"), MB_OK);
+
+
 #if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
@@ -1137,6 +1175,8 @@ int PxFunctions::setjointtwistswingdrive(INode *node,float twistspring,float swi
 
 int PxFunctions::setjointdriver(INode* node, INode* driver, int fromstartframe)
 {
+	MaxMsgBox(NULL, _T("setjointdriver not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxJoint* mxJoint = MxUtils::GetJointFromNode(node);
 	if (mxJoint == NULL) return 0;
@@ -1150,6 +1190,9 @@ int PxFunctions::setjointdriver(INode* node, INode* driver, int fromstartframe)
 
 int PxFunctions::pxcreateD6JointDesc(INode* node)
 {
+	MaxMsgBox(NULL, _T("pxcreateD6JointDesc not implemented yet"), _T("Error"), MB_OK);
+
+	
 	if (node == NULL) return 0;
 
 	MxUtils::PreparePlugin();
@@ -1163,6 +1206,8 @@ int PxFunctions::pxcreateD6JointDesc(INode* node)
 //This method is not of much use at the moment, since the D6 joint is created by the MxJoint object
 int PxFunctions::pxaddD6Joint(int jointDesc)
 {
+	MaxMsgBox(NULL, _T("pxaddD6Joint not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	//TODO: check so that the NxJoint object can be created almost directly after the "desc" has been created
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
@@ -1191,6 +1236,8 @@ int PxFunctions::pxaddD6Joint(int jointDesc)
 
 int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL locked, Point4 values)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointSwing not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1239,6 +1286,8 @@ int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL 
 
 int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistLow, float twistHigh, Point3 values)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointTwist not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1279,6 +1328,8 @@ int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistL
 
 int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int modeZ, float radius)
 {
+
+	MaxMsgBox(NULL, _T("pxsetD6JointLinear not implemented yet"), _T("Error"), MB_OK);
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1315,6 +1366,8 @@ int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int mod
 
 int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Point3 normal, Point3 anchor)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointLocalAxis not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1349,6 +1402,8 @@ int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Po
 
 int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce, float maxTorque)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointBreakable not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(joint);
 	if (object == NULL)
@@ -1380,6 +1435,8 @@ int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce
 
 int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, float angle)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointProjection not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1420,6 +1477,8 @@ int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, flo
 
 int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointCollision not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1447,6 +1506,8 @@ int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 
 int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 {
+	MaxMsgBox(NULL, _T("pxsetD6JointGear not implemented yet"), _T("Error"), MB_OK);
+
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1481,6 +1542,8 @@ int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 
 int PxFunctions::pxaddjoint(INode* node, Point3& axis, Point3& normal, Point4& limits, Point3& translimitmin, Point3& translimitmax)
 {
+	MaxMsgBox(NULL, _T("pxaddjoint not implemented yet"), _T("Error"), MB_OK);
+
 
 	if (node == NULL) return 0;
 #if 0
@@ -1555,6 +1618,7 @@ int PxFunctions::pxaddjoint(INode* node, Point3& axis, Point3& normal, Point4& l
 
 void PxFunctions::updateskinwidth(NxReal skinWidth)
 {
+
 #if 0
 
 	NxScene* scene = MxPluginData::getSceneStatic();
@@ -2058,11 +2122,16 @@ bool PxFunctions::printFPS(bool onoff)
 	return gPxPrintFPS = onoff;
 }
 
+
 int PxFunctions::pxsim(float deltat)
 {
 
+
+
 	if (gDynamicsWorld)
 	{
+
+		pxsync();
 
 		gDynamicsWorld->setGravity(btVector3(mSetting_gravity.x,mSetting_gravity.y,mSetting_gravity.z));
 
@@ -2450,7 +2519,16 @@ float      PxFunctions::getStaticFriction(INode *node)
 
 float      PxFunctions::getRestitution(INode *node)
 {
-	float result = 0.0f;
+	float restitution = 0.f;
+
+	if (MxUserPropUtils::GetUserPropFloat(node, "Restitution", restitution))
+	{
+		return restitution;
+	}
+	
+	return 0.f;
+	
+
 #if 0
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return result;
@@ -2469,13 +2547,14 @@ float      PxFunctions::getRestitution(INode *node)
 	}
 #endif
 
-	return result;
 }
 
 int      PxFunctions::setDynamicFriction(INode *node, float value)
 {
-#if 0
 	node->SetUserPropFloat("Friction", value);
+
+#if 0
+	
 
 	MxActor* mxActor = MxUtils::GetActorFromNode(node);
 	if (mxActor == NULL) return 0;
@@ -2643,8 +2722,11 @@ int PxFunctions::pxnxuexport(char *fname, char *ext)
 		return 0;
 	}
 
+	
 	if ( stricmp(ext,"bullet") == 0 )
 	{
+		pxsync();
+
 		//create a large enough buffer. There is no method to pre-calculate the buffer size yet.
 		
 			//todo: copy names into rigid bodies, using serializer->registerNameForPointer(ptr,name);

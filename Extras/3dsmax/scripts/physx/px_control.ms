@@ -184,8 +184,8 @@ utility px_control "Bullet Utility"
 (
 	label	lbl_about								"Bullet SDK Version unknown"
 	checkbutton		pxbutton_control				"Bullet Control Panel"	checked:true	width:140 height:16 tooltip:"Shows the Bullet Control Panel"
-	checkbutton 	pxbutton_convexdecomposition	"Geometry Tools"	checked:false	width:140 height:16 tooltip:"Geometry tools, e.g. convert a mesh into a convex."
-  	checkbutton 	pxbutton_params					"PhysX Parameters"		checked:false	width:140 height:16 tooltip:"Sets PhysX SDK Parameters"
+--	checkbutton 	pxbutton_convexdecomposition	"Geometry Tools"	checked:false	width:140 height:16 tooltip:"Geometry tools, e.g. convert a mesh into a convex."
+  	checkbutton 	pxbutton_params					"Bullet Parameters"		checked:false	width:140 height:16 tooltip:"Sets Bullet SDK Parameters"
 	
 	local mOpenTopRollout = undefined;
 	local mSimDelta = 1.0/frameRate;
@@ -343,7 +343,7 @@ utility px_control "Bullet Utility"
 		
 		label			lbl_c				"Export:"						pos:[5,175]
 		button			export_ui			"Export to"						pos:[4,190]		width:55
-		dropdownlist 	exportformat_ui		""								pos:[62,190]	width:52 	items:#("bullet", "Collada")
+		dropdownlist 	exportformat_ui		""								pos:[62,190]	width:52 	items:#("bullet")
 		button			quickexport_ui		"Redo"							pos:[117,190]
 	
 		label			lbl_d				"Simulate selected object(s) as:" pos:[4,220]
@@ -941,130 +941,31 @@ utility px_control "Bullet Utility"
 		)
     )
 
-	rollout convexdecomposition_roll "Geometry Tools"
-	(
-		label	lbl_k	"Create editable SoftBody mesh:"
-		checkbox	editable_ui					"Create editable mesh"		checked:true
-		checkbox	isosurface_ui				"Create iso surface"		checked:true
-		checkbox	isosurfacesingle_ui			"Single iso surface"
-		spinner		subdivisionlevel_ui			"Subdivision lvl"			range:[2,90,10]		type:#integer
-		spinner		surfacesimplification_ui	"Surface simpl."			range:[0.0,1.0,0.5]	type:#float
-		button		buildmesh_ui				"Build mesh"				tooltip:"Push this button to build a mesh suitable for SoftBody simulation using the parameters above"
-		
-		
-		label	lbl_e	"Create convex hulls"	align:#left								pos:[4,160]
-		spinner	vertcount	"Max. vertices"	range:[3, 64, 32]			type:#integer	pos:[5,180]
-		spinner	inflation	"Inflate hull"	range:[0.0, 100.0, 0.025]	type:#float		pos:[5,200]
-		button	skinwidth	"SW"			tooltip:"Press to set inflation to current skin width"	width:30	height:16	pos:[125,200]
-		button	createhull	"Create Hulls"	tooltip:"Press to create convex representations of the selected objects"
-
---		label	lbl_d
---		label	lbl_f	"----- ALPHA Features -----"
---		label	lbl_h
---		label	lbl_c	"Create convex decompositions"
---		button  build   "Build Decompositions"	tooltip:"Press to create convex decompositions of the selected objects"	
---		label	lbl_i	""
---		label	lbl_j	"Replace bones with hulls"
---		spinner wmin "Minimum Weight" type:#float range:[0,0.50,0.50] scale:0.01
---		button rbwhm "Replace Bones With Hulls"
---		on rbwhm pressed do
---		(
---			bonehullit $ wmin.value
---		)
---
---		on build pressed do
---		(
---			MessageBox "Not implemented - use the 'AggregateHull' geometry object instead";
-----			local n
-----			local g = $selection
-----			for n in g do
-----			(
-----				if (superclassof n) != GeometryClass then continue
-----				count = px.convexDecomposition n;
-----			)
---		)
-		
-		on buildmesh_ui pressed do
-		(
-			local n = undefined;
-			for n in $selection do (
-				local tempMesh = px.createSoftBodyMesh n editable_ui.checked subdivisionlevel_ui.value surfacesimplification_ui.value isosurface_ui.checked isosurfacesingle_ui.checked;
-
-				if (tempMesh == undefined) then
-				(
-					print ("Unable to create mesh for " + n.name);
-					continue;
-				)
-			
-			
-				local tempName = uniquename(n.name + "_tetra");
-				local b = box width:10 height:10 length:10 name:tempName;
-				convertToMesh b;
-				b.transform = n.transform;
-				b.mesh = tempMesh.mesh;
-			)
-		)	
-
-		on createhull pressed do
-		(
-			local sel = #();
-			local n = undefined;
-			for n in $selection do append sel n;
-			for n in sel do
-			(
-				r = px_convertToConvex n vertcount.value inflation.value;
-			)
-		)
-		
-		on skinwidth pressed do
-		(
-			local temp = px.getSDKParameter "NX_SKIN_WIDTH";
-			if (temp >= 0.0) then
-			(
-				inflation.value = temp;
-			) else
-			(
-				inflation.value = 0.025;
-			)
-		)
-		
-		on convexdecomposition_roll open do
-		(
-			local temp = px.getSDKParameter "NX_SKIN_WIDTH";
-			if (temp >= 0.0) then
-			(
-				inflation.value = temp;
-			)
-		)
-		
-        function onSystemReset = 
-        (
-        )
 	
-	) -- end of convex decomposition rollout
-	
-	rollout physxparams_roll "PhysX SDK Parameters"
+	rollout physxparams_roll "Bullet SDK Parameters"
 	(
-		spinner    spin_skinwidth       "Skin Width"        type:#float range:[0,    100,  0.025] scale:0.01
-		spinner    spin_sleeplinvel     "Sleep Lin Vel"     type:#float range:[0,    100,  0.15]  scale:0.01
-		spinner    spin_sleepangvel     "Sleep Ang Vel"     type:#float range:[0,    100,  0.14]  scale:0.01
-		spinner    spin_bouncethreshold "Bounce Thresh."   	type:#float range:[-100, 0,   -2]     scale:0.01
-		spinner    spin_dynfrictscaling "Dyn Frict Scaling" type:#float range:[0,    100,  1]     scale:0.01
-		spinner    spin_stafrictscaling "Sta Frict Scaling" type:#float range:[0,    100,  1]     scale:0.01
-		spinner    spin_maxangvel       "Max Ang Vel"       type:#float range:[0,    1000, 7]     scale:0.01
+--		spinner    spin_skinwidth       "Skin Width"        type:#float range:[0,    100,  0.025] scale:0.01
+--		spinner    spin_sleeplinvel     "Sleep Lin Vel"     type:#float range:[0,    100,  0.15]  scale:0.01
+--		spinner    spin_sleepangvel     "Sleep Ang Vel"     type:#float range:[0,    100,  0.14]  scale:0.01
+--		spinner    spin_bouncethreshold "Bounce Thresh."   	type:#float range:[-100, 0,   -2]     scale:0.01
+--		spinner    spin_dynfrictscaling "Dyn Frict Scaling" type:#float range:[0,    100,  1]     scale:0.01
+--		spinner    spin_stafrictscaling "Sta Frict Scaling" type:#float range:[0,    100,  1]     scale:0.01
+--		spinner    spin_maxangvel       "Max Ang Vel"       type:#float range:[0,    1000, 7]     scale:0.01
+
+--		radiobuttons sleeping "Enable Sleeping"	labels:#("Yes","No") 	default:2 align:#left
 
 		radiobuttons gravity			"Gravity Direction"	labels:#("X","Y","Z") 	default:3 align:#left
 		spinner    gravityZ				"Magnitude"			type:#float range:[-100000,1000000, -9.81] scale:1 
 
-		on spin_skinwidth changed sk do (px.setSDKParameter "NX_SKIN_WIDTH" spin_skinwidth.value)
-		--on spin_sleeplinvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_LIN_VEL_SQUARED" (spin_sleeplinvel.value*spin_sleeplinvel.value*px_setting_scenescale*px_setting_scenescale))
-		on spin_sleeplinvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_LIN_VEL_SQUARED" (spin_sleeplinvel.value*spin_sleeplinvel.value))
-		on spin_sleepangvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_ANG_VEL_SQUARED" (spin_sleepangvel.value*spin_sleepangvel.value))
-		--on spin_bouncethreshold changed sk do (px.setSDKParameter "NX_BOUNCE_THRESHOLD" (spin_bouncethreshold.value*px_setting_scenescale))
-		on spin_bouncethreshold changed sk do (px.setSDKParameter "NX_BOUNCE_THRESHOLD" (spin_bouncethreshold.value))
-		on spin_dynfrictscaling changed sk do (px.setSDKParameter "NX_DYN_FRICT_SCALING" spin_dynfrictscaling.value)
-		on spin_stafrictscaling changed sk do (px.setSDKParameter "NX_STA_FRICT_SCALING" spin_stafrictscaling.value)
-		on spin_maxangvel changed sk do (px.setSDKParameter "NX_MAX_ANGULAR_VELOCITY" spin_maxangvel.value)
+--		on spin_skinwidth changed sk do (px.setSDKParameter "NX_SKIN_WIDTH" spin_skinwidth.value)
+--		--on spin_sleeplinvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_LIN_VEL_SQUARED" (spin_sleeplinvel.value*spin_sleeplinvel.value*px_setting_scenescale*px_setting_scenescale))
+--		on spin_sleeplinvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_LIN_VEL_SQUARED" (spin_sleeplinvel.value*spin_sleeplinvel.value))
+--		on spin_sleepangvel changed sk do (px.setSDKParameter "NX_DEFAULT_SLEEP_ANG_VEL_SQUARED" (spin_sleepangvel.value*spin_sleepangvel.value))
+--		--on spin_bouncethreshold changed sk do (px.setSDKParameter "NX_BOUNCE_THRESHOLD" (spin_bouncethreshold.value*px_setting_scenescale))
+--		on spin_bouncethreshold changed sk do (px.setSDKParameter "NX_BOUNCE_THRESHOLD" (spin_bouncethreshold.value))
+--		on spin_dynfrictscaling changed sk do (px.setSDKParameter "NX_DYN_FRICT_SCALING" spin_dynfrictscaling.value)
+--		on spin_stafrictscaling changed sk do (px.setSDKParameter "NX_STA_FRICT_SCALING" spin_stafrictscaling.value)
+--		on spin_maxangvel changed sk do (px.setSDKParameter "NX_MAX_ANGULAR_VELOCITY" spin_maxangvel.value)
   
 		function updateGravity =
 		(
@@ -1104,29 +1005,7 @@ utility px_control "Bullet Utility"
 		
 		function initParamsRoll = 
 		(
-			local sk = px.getSDKParameter "NX_SKIN_WIDTH"
-			spin_skinwidth.value = if sk < -1e10 then 0.025 else sk;
-
-			local slv = px.getSDKParameter "NX_DEFAULT_SLEEP_LIN_VEL_SQUARED"
-			--spin_sleeplinvel.value = sqrt(slv/px_setting_scenescale/px_setting_scenescale)
-			spin_sleeplinvel.value = if slv < -1e10 then 0.15 else sqrt(slv);
-
-			local sav = px.getSDKParameter "NX_DEFAULT_SLEEP_ANG_VEL_SQUARED"
-			spin_sleepangvel.value = if sav < -1e10 then 0.14 else sqrt(sav);
-
-			local bt = px.getSDKParameter "NX_BOUNCE_THRESHOLD"
-			--spin_bouncethreshold.value = bt/px_setting_scenescale
-			spin_bouncethreshold.value = if bt < -1e10 then -2 else bt;
-
-			local dfs = px.getSDKParameter "NX_DYN_FRICT_SCALING"
-			spin_dynfrictscaling.value = if dfs < -1e10 then 1 else dfs;
-
-			local sfs = px.getSDKParameter "NX_STA_FRICT_SCALING"
-			spin_stafrictscaling.value = if sfs < -1e10 then 1 else sfs;
-
-			local mav = px.getSDKParameter "NX_MAX_ANGULAR_VELOCITY"
-			spin_maxangvel.value = if mav < -1e10 then 7 else mav;
-			
+				
 			local grav = px.getGravity();
 			local axis = biggestIndex grav;
 			gravity.state = axis;
@@ -1149,7 +1028,7 @@ utility px_control "Bullet Utility"
 	function changeTopRollout = 
 	(
 		local newRollout = mainUI_roll;
-		if pxbutton_convexdecomposition.checked then newRollout = convexdecomposition_roll;
+--		if pxbutton_convexdecomposition.checked then newRollout = convexdecomposition_roll;
 		if pxbutton_params.checked then newRollout = physxparams_roll;
 		if (newRollout != mOpenTopRollout) then
 		(
@@ -1171,24 +1050,24 @@ utility px_control "Bullet Utility"
 	on pxbutton_control changed state do
 	(
 		if (not state) then pxbutton_control.checked = true;
-		pxbutton_convexdecomposition.checked = false;
+		--pxbutton_convexdecomposition.checked = false;
 		pxbutton_params.checked = false;
 		changeTopRollout();
 	)
 	
-	on pxbutton_convexdecomposition changed state do
-	(
-		pxbutton_control.checked = false;
-		if (not state) then pxbutton_control.checked = true;
-		pxbutton_params.checked = false;
-		changeTopRollout();
-	)
+--	on pxbutton_convexdecomposition changed state do
+--	(
+--		pxbutton_control.checked = false;
+--		if (not state) then pxbutton_control.checked = true;
+--		pxbutton_params.checked = false;
+--		changeTopRollout();
+--	)
 
   	on pxbutton_params changed state do
 	(
 		pxbutton_control.checked = false;
 		if (not state) then pxbutton_control.checked = true;
-		pxbutton_convexdecomposition.checked = false;
+		--pxbutton_convexdecomposition.checked = false;
 		changeTopRollout();
 	)
 )
