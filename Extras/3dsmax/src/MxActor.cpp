@@ -119,8 +119,15 @@ MxActor::~MxActor()
 
 	if (m_bulletBody)
 	{
+
 		if (gDynamicsWorld)
+		{
+			for (int i=0;i<m_bulletBody->getNumConstraintRefs();i++)
+			{
+				gDynamicsWorld->removeConstraint(m_bulletBody->getConstraintRef(i));
+			}
 			gDynamicsWorld->removeRigidBody(m_bulletBody);
+		}
 		delete m_bulletBody;
 	}
 }
@@ -225,7 +232,7 @@ btCollisionShape* MxActor::createShape(NxActorDesc& actorDesc, ccMaxNode* node, 
 		{
 
 			char bla[1024];
-			sprintf(bla,"capsule radius=%f,height=%f",node->PrimaryShapePara.Radius,node->PrimaryShapePara.Height);
+			sprintf(bla,"capsule not properly supported yet, radius=%f,height=%f",node->PrimaryShapePara.Radius,node->PrimaryShapePara.Height);
 			MaxMsgBox(NULL, _T(bla), _T("Error"), MB_OK);
 
 			shape = new btCapsuleShape(node->PrimaryShapePara.Radius,node->PrimaryShapePara.Height);

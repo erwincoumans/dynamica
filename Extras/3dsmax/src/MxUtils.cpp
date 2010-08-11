@@ -91,6 +91,19 @@ bool MxUtils::ReleasePlugin(bool quitting)
 
 	if (gDynamicsWorld)
 	{
+		//remove all bodies/constraints
+			for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+			{
+				btRigidBody* body = btRigidBody::upcast(gDynamicsWorld->getCollisionObjectArray()[i]);
+				if (body)
+				{
+					for (int j=0;j<body->getNumConstraintRefs();j++)
+					{
+						btTypedConstraint* constraint = body->getConstraintRef(j);
+						gDynamicsWorld->removeConstraint(constraint);
+					}
+				}
+			}
 			delete gDynamicsWorld;
 			gDynamicsWorld = NULL;
 			delete gConstraintSolver;
@@ -144,23 +157,7 @@ NxShape* MxUtils::GetNxShapeFromName(const char* name)
 	return nxShape;
 }
 
-MxActor* MxUtils::GetActorFromNode(INode* node)
-{
-	if (node == NULL) return NULL;
 
-	//There can possibly be several objects with the same name, take the first actor found
-	NxArray<MxObject*> objects;
-	MxPluginData::getObjectsFromNode(node, objects);
-	for (NxU32 i = 0; i < objects.size(); i++)
-	{
-		MxActor* mxActor = objects[i]->isActor();
-		if (mxActor != NULL)
-		{
-			return mxActor;
-		}
-	}
-	return NULL;
-}
 
 
 
@@ -457,6 +454,24 @@ NxConvexMesh* MxUtils::nodeToNxConvexMesh(PxSimpleMesh& mesh)
 
 
 #endif
+
+MxActor* MxUtils::GetActorFromNode(INode* node)
+{
+	if (node == NULL) return NULL;
+
+	//There can possibly be several objects with the same name, take the first actor found
+	NxArray<MxObject*> objects;
+	MxPluginData::getObjectsFromNode(node, objects);
+	for (NxU32 i = 0; i < objects.size(); i++)
+	{
+		MxActor* mxActor = objects[i]->isActor();
+		if (mxActor != NULL)
+		{
+			return mxActor;
+		}
+	}
+	return NULL;
+}
 
 MxActor* MxUtils::GetActorFromName(const char* name)
 {

@@ -1190,9 +1190,6 @@ int PxFunctions::setjointdriver(INode* node, INode* driver, int fromstartframe)
 
 int PxFunctions::pxcreateD6JointDesc(INode* node)
 {
-	MaxMsgBox(NULL, _T("pxcreateD6JointDesc not implemented yet"), _T("Error"), MB_OK);
-
-	
 	if (node == NULL) return 0;
 
 	MxUtils::PreparePlugin();
@@ -1206,9 +1203,8 @@ int PxFunctions::pxcreateD6JointDesc(INode* node)
 //This method is not of much use at the moment, since the D6 joint is created by the MxJoint object
 int PxFunctions::pxaddD6Joint(int jointDesc)
 {
-	MaxMsgBox(NULL, _T("pxaddD6Joint not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
+
 	//TODO: check so that the NxJoint object can be created almost directly after the "desc" has been created
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
@@ -1223,22 +1219,21 @@ int PxFunctions::pxaddD6Joint(int jointDesc)
 		return 0;
 	}
 
-	NxD6Joint* nxjoint = mxJoint->getNxJoint()!=NULL?mxJoint->getNxJoint()->isD6Joint():NULL;
-	if (nxjoint == NULL) {
+	btTypedConstraint* bulletConstraint = mxJoint->getBulletConstraint();
+	if (bulletConstraint == NULL) {
 		if (gCurrentstream) gCurrentstream->printf("Unable to create the specified D6 joint, the descriptor is not valid.\n");
 		return 0;
 	}
 	return mxJoint->getID();
-#endif
+
+
 	return 1;
 
 }
 
 int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL locked, Point4 values)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointSwing not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1280,15 +1275,13 @@ int PxFunctions::pxsetD6JointSwing(int jointDesc, int index, BOOL limited, BOOL 
 		desc->swing2Limit.spring = values[2];
 		desc->swing2Limit.damping = values[3];
 	}
-#endif
+
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistLow, float twistHigh, Point3 values)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointTwist not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1321,7 +1314,6 @@ int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistL
 	{
 		desc->twistMotion = NX_D6JOINT_MOTION_LOCKED;
 	}
-#endif
 
 	return 1;
 }
@@ -1329,8 +1321,7 @@ int PxFunctions::pxsetD6JointTwist(int jointDesc, BOOL twistEnable, float twistL
 int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int modeZ, float radius)
 {
 
-	MaxMsgBox(NULL, _T("pxsetD6JointLinear not implemented yet"), _T("Error"), MB_OK);
-#if 0
+
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1359,30 +1350,35 @@ int	PxFunctions::pxsetD6JointLinear(int jointDesc, int modeX, int modeY, int mod
 	else if(modeZ == 3) desc->zMotion = NX_D6JOINT_MOTION_FREE;
 
 	desc->linearLimit.value = radius;
-#endif
 
 	return 1;
 }
 
 int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Point3 normal, Point3 anchor)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointLocalAxis not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
+//	MaxMsgBox(NULL, _T("pxsetD6JointLocalAxis"), _T("Error"), MB_OK);
+
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
+		MaxMsgBox(NULL, _T("pxsetD6JointLocalAxis Unknown object identifier "), _T("Error"), MB_OK);
 		if (gCurrentstream) gCurrentstream->printf("Unknown object identifier (%d) supplied to pxsetD6JointLocalAxis.\n", jointDesc);
 		return 0;
 	}
 	MxJoint* mxJoint = object->isJoint();
 	if (mxJoint == NULL)
 	{
+		MaxMsgBox(NULL, _T("pxsetD6JointLocalAxis not a joint ID"), _T("Error"), MB_OK);
 		if (gCurrentstream) gCurrentstream->printf("The object identifier (%d) supplied to pxsetD6JointLocalAxis is not a joint ID.\n", jointDesc);
 		return 0;
 	}
 
 	NxD6JointDesc* desc = mxJoint->getD6JointDesc();
+
+//	char msg[1024];
+//	sprintf(msg,"index = %d, axis=(%f,%f,%f), normal=(%f,%f,%f), anchor=(%f,%f,%f)",index,axis[0], axis[1], axis[2],normal[0], normal[1], normal[2],anchor[0], anchor[1], anchor[2]);
+//	MaxMsgBox(NULL, _T(msg), _T("Error"), MB_OK);
 
 	if(index == 1)
 	{
@@ -1396,13 +1392,13 @@ int	PxFunctions::pxsetD6JointLocalAxis(int jointDesc, int index, Point3 axis, Po
 		desc->localNormal[1] = NxVec3(normal[0], normal[1], normal[2]);
 		desc->localAnchor[1] = NxVec3(anchor[0], anchor[1], anchor[2]);
 	}
-#endif
+
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce, float maxTorque)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointBreakable not implemented yet"), _T("Error"), MB_OK);
+//	MaxMsgBox(NULL, _T("pxsetD6JointBreakable not implemented yet"), _T("Error"), MB_OK);
 
 #if 0
 	MxObject* object = MxPluginData::getObjectFromId(joint);
@@ -1435,9 +1431,8 @@ int PxFunctions::pxsetD6JointBreakable(int joint, BOOL breakable, float maxForce
 
 int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, float angle)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointProjection not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
+
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1471,15 +1466,13 @@ int PxFunctions::pxsetD6JointProjection(int jointDesc, int mode, float dist, flo
 		desc->projectionDistance = dist;
 		desc->projectionAngle = angle;
 	}
-#endif
+
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointCollision not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1499,16 +1492,14 @@ int PxFunctions::pxsetD6JointCollision(int jointDesc, BOOL enabled)
 		desc->jointFlags |= NX_JF_COLLISION_ENABLED;
 	else
 		desc->jointFlags &= (0xFFFF - NX_JF_COLLISION_ENABLED);
-#endif
+
 
 	return 1;
 }
 
 int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 {
-	MaxMsgBox(NULL, _T("pxsetD6JointGear not implemented yet"), _T("Error"), MB_OK);
 
-#if 0
 	MxObject* object = MxPluginData::getObjectFromId(jointDesc);
 	if (object == NULL)
 	{
@@ -1535,7 +1526,6 @@ int PxFunctions::pxsetD6JointGear(int jointDesc, BOOL enabled, float ratio)
 		desc->jointFlags &= (0xFFFF - NX_D6JOINT_GEAR_ENABLED);
 		desc->gearRatio = 1.0f;
 	}
-#endif
 
 	return 1;
 }
@@ -1819,6 +1809,23 @@ int PxFunctions::pxrestart()
 {
 
 //	MaxMsgBox(NULL, _T("pxrestart"), _T("Error"), MB_OK);
+
+	if (gDynamicsWorld)
+	{
+		for (int i=0;i<gDynamicsWorld->getNumCollisionObjects();i++)
+		{
+			btCollisionObject* colObj = gDynamicsWorld->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(colObj);
+			if (body && body->getInvMass()>0)
+			{
+				MxActor* actor = (MxActor*)body->getUserPointer();
+				if (actor)
+				{
+					actor->resetObject();
+				}
+			}
+		}
+	}
 
 #if 0
 

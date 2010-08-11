@@ -411,8 +411,8 @@ MxJoint* MxPluginData::createJoint(INode* node)
 		if (gCurrentstream) gCurrentstream->printf("Unable to add the joint \"%s\", both actor references can't be NULL.\n", node->GetName());
 		return 0;
 	}
-	MxActor* mxActor0 = 0;//MxUtils::GetActorFromNode(node0);
-	MxActor* mxActor1 = 0;//MxUtils::GetActorFromNode(node1);
+	MxActor* mxActor0 = MxUtils::GetActorFromNode(node0);
+	MxActor* mxActor1 = MxUtils::GetActorFromNode(node1);
 	if (mxActor0 == NULL && mxActor1 == NULL)
 	{
 		if (gCurrentstream) gCurrentstream->printf("Unable to add the joint \"%s\", both actor references can't be NULL.\n", node->GetName());

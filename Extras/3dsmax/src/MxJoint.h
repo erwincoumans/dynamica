@@ -37,7 +37,7 @@ public:
 	virtual bool setActor0(MxActor* actor);
 	virtual bool setActor1(MxActor* actor);
 
-	virtual NxJoint* getNxJoint();
+	virtual btTypedConstraint* getBulletConstraint();
 	virtual NxD6JointDesc* getD6JointDesc() { return &m_desc; }
 
 	//TODO: Are these needed anymore?
@@ -56,7 +56,8 @@ protected:
 	MxActor* m_actor1;
 
 	NxD6JointDesc m_desc;
-	NxJoint* m_joint;
+	
+	class btTypedConstraint* m_bulletConstraint;
 };
 
 

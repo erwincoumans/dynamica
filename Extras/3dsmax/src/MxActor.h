@@ -72,6 +72,10 @@ public:
 	const Matrix3& GetLastPose() { return LastPose; }
 
 //	NxActor* getPhysXActor() { return m_actor; }
+	btRigidBody* getBulletRigidBody() 
+	{ 
+		return m_bulletBody;
+	}
 
 protected:
 	class btCollisionShape* createShape(NxActorDesc& actorDesc, ccMaxNode* node, ccMaxNode* actorNode);
@@ -99,6 +103,7 @@ protected:
 	Point3          ProxyDistance;             // the distance vector from proxy to actor
 
 	Matrix3         LastPose;
+	Matrix3         InitialPose;
 
 	PxRBInteractivity   Interactivity;
 

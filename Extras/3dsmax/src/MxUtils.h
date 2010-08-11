@@ -140,13 +140,84 @@ enum NxErrorCode
 	NXE_DB_INFO = 1
 };
 
+struct	NxSwingLimit
+{
+	float value;
+	float restitution;
+	float spring;
+	float damping;
+};
+
+enum SwingMotion
+{
+	NX_D6JOINT_MOTION_FREE = 1,
+	NX_D6JOINT_MOTION_LIMITED,
+	NX_D6JOINT_MOTION_LOCKED,
+	
+
+};
+
+struct	NxTwistLimit
+{
+	NxSwingLimit low;
+	NxSwingLimit high;
+};
+
+struct NxLinearLimit
+{
+	float value;
+};
+
+enum NxProjectionMode
+{
+	NX_JPM_NONE=1,
+	NX_JPM_POINT_MINDIST,
+	NX_JPM_LINEAR_MINDIST
+};
+
+enum NxJointFlags
+{
+	NX_JF_COLLISION_ENABLED = 1,
+	NX_D6JOINT_GEAR_ENABLED = 2
+};
+
+
 
 struct NxD6JointDesc
 {
 	char* name;
-	NxActor* actor[2];
+	//NxActor* actor[2];
+	class btRigidBody* bulletBodies[2];
+
 	bool isValid() { return true;}
+
+	btVector3 localAxis[2];
+	btVector3  localNormal[2];
+	btVector3  localAnchor[2];
+
+	int swing1Motion;
+	NxSwingLimit	swing1Limit;
+
+	int swing2Motion;
+	NxSwingLimit	swing2Limit;
+
+	int twistMotion;
+	NxTwistLimit	twistLimit;
+
+	int	xMotion;
+	int	yMotion;
+	int	zMotion;
+
+	NxLinearLimit linearLimit;
+
+	short int projectionMode;
+	float projectionDistance;
+	float projectionAngle;
+
+	int jointFlags;
+	float gearRatio;
 };
+
 
 enum NxAssertResponse
 {
@@ -237,6 +308,7 @@ public:
 	static TriObject* GetTriObjectFromNode(INode* node, TimeValue t, int& needDelete);
 	static MxJoint* GetJointFromNode(INode* node);
 	static MxActor* GetActorFromName(const char* name);
+	static MxActor* GetActorFromNode(INode* node);
 	static int checkNodeValidity(INode* node, const ObjectState& os);
 	static void     PrintMatrix3(Matrix3& m);
 };
