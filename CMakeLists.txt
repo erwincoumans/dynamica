@@ -26,6 +26,11 @@ OPTION(BUILD_BLEND_DEMO "Build BlendParse demo reading data from a .blend file "
 OPTION(USE_BLEND_DEMO_TEXTURES "Enable texture loading using jpeglib in BlendParse demo" OFF)
 ENDIF()
 
+IF( UNIX AND USE_GCC_FPIC) 
+	SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fPIC" )
+	SET( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fPIC" )
+ENDIF()
+
 IF(WIN32)
 SET (VECTOR_MATH_INCLUDE ${BULLET_PHYSICS_SOURCE_DIR}/src/BulletMultiThreaded/vectormath/sse CACHE PATH "Vector Math library include path.")
 ELSE(WIN32)
