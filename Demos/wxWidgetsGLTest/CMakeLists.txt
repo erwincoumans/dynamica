@@ -1,6 +1,11 @@
-set(NS_SRC   main.cpp)
+set(NS_SRC   
+	main.cpp
+	MyFrame.cpp
+)
 
-set(NS_HDR)
+set(NS_HDR
+	MyFrame.h
+)
 
 if (WIN32)
 	set(PLAT_RESOURCE Win32/application.rc)

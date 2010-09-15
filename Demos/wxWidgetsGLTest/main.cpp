@@ -5,7 +5,8 @@
 #include "wx/sizer.h"
 #include "wx/glcanvas.h"
 #include "main.h"
- 
+#include "MyFrame.h"
+
 // include OpenGL
 #ifdef __WXMAC__
 #include "OpenGL/glu.h"
@@ -32,7 +33,9 @@ IMPLEMENT_APP(MyApp)
 bool MyApp::OnInit()
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    frame = new wxFrame((wxFrame *)NULL, -1,  wxT("Hello GL World"), wxPoint(50,50), wxSize(400,200));
+    //frame = new wxFrame((wxFrame *)NULL, -1,  wxT("Hello GL World"), wxPoint(50,50), wxSize(400,200));
+	frame = new MyFrame((wxFrame *)NULL,  wxT("Hello GL World"));
+	
 	
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
     
