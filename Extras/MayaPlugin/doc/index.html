@@ -119,8 +119,15 @@ pre {
     be used, for faster simulation.</div>
   <div class="term">dRigidBodyArray</div>
   <div class="definition">Like a rigid body but can contain multiple rigid bodies sharing the same collision shape and simulation parameters. It's 
-    the node of choice when the rigid bodies have the same shape and speed is required. The attributes that control the initial configuration are: <strong>NumRigidBodies</strong>, <strong>InitialPosition (Multi)</strong>, <strong>InitialRotation (Multi)</strong>, <strong>InitialVelocity (Multi)</strong>, <strong>InitialSpin (Multi) </strong></div>
-  <div class="section-title">Quick Start</div>
+    the node of choice when the rigid bodies have the same shape and speed is required. The attributes that control the initial configuration are: <strong>NumRigidBodies</strong>, <strong>InitialPosition (Multi)</strong>, <strong>InitialRotation (Multi)</strong>, <strong>InitialVelocity (Multi)</strong>, <strong>InitialSpin (Multi). </strong></div>
+  <div class="term">
+      Constraints
+</div>
+  <div class="definition">
+    Constraints inhibit the natural (unconstrained) behavior of an active rigid body. Constraints require a single rigid body or pair of rigid bodies to be selected. Rigid bodies can be influenced by multiple constraints.
+  </div>
+  <div class="section-title">
+  Quick Start</div>
   <div class="definition">The following are simple examples that show the basic functionalities of Dynamica. All the commands can be accessed by clicking on the Bullet icon in the Dynamica shelf.</div>
   <p class="list-intro">To create a simple rolling sphere</p>
   <ol>
@@ -184,7 +191,7 @@ proc setConfiguration()
   <div class="term">Sample scenes</div>
   <div class="definition">In the subdirectory scenes/ there are some sample setups.</div>
   <div class="term">Online instruction movies for usage of the Maya Plugin</div>
-  <div class="definition">You can download (right-click - save) or watch those instruction movies on-line.</div>
+  <div class="definition">You can download (right-click - save) or watch these instruction movies on-line:</div>
   <ul>
     <li><a href="http://www.bulletphysics.com/ftp/pub/test/index.php?dir=physics/movies/&amp;file=bullet_intro.mp4">Maya Plugin Intro (28Mb)</a></li>
     <li><a href="http://www.bulletphysics.com/ftp/pub/test/index.php?dir=physics/movies/&amp;file=bullet_fields.mp4">Using Maya Force Fields (17Mb)</a></li>
@@ -256,14 +263,16 @@ proc setConfiguration()
   <div class="section-title">Build</div>
   <div class="definition">The Build tab contains settings for creating multiple rigid bodies from a set of selected mesh objects. The source meshes  must have conformed outward-facing normals to prevent collision mesh distortion. When the Build process runs, each source mesh is parented to a corresponding Dynamica rigid body of the same topology, but scaled by a user specified collision margin. This configuration allows for visually accurate collisions without popping or gaps. The default collision margin of -0.060 should produce accurate collisions for most geometry. <img src="images/dynamica-UI-Build.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Build tab.</div></div>
   <div class="term">Rigid Body Type</div>
-  <div class="definition">This setting specifies that the resulting rigid bodies be either <strong>Active </strong>or <strong>Passive</strong>. If passive is selected, optional Processing Options are enabled (see next item) </div>
+  <div class="definition">This setting specifies that the resulting rigid bodies be either <strong>Active </strong>or <strong>Passive</strong>. If passive is selected, optional Processing Options are enabled (see next item).</div>
   <div class="term">Processing Options</div>
   <div class="definition">If Rigid Body Type is set to passive and the Preserve Keyframes box is checked (default), any pre-existing transform key frames will be preserved and the resulting rigid bodies will be animated according to those keys. </div>
   <div class="term">Collision Type</div>
   <div class="definition">Controls the creation of collision shapes based on the source geometry. Hull is default and recommended for performance reasons. Mesh can be selected to force the solver to respect any concave surfaces - at the expense of slower solve times.</div>
   <div class="term">Collision Margin</div>
   <div class="definition">Specifies an offset value by which the source geometry is scaled to compensate for built-in collision tolerances. This results in visually accurate collisions free of visible gaps. The default value of -0.060 should be suitable for most applications.</div>
-  <div class="term">Build Rigid Bodies (Button)</div>
+  <div class="term">
+    Build Rigid Bodies (button)
+  </div>
   <div class="definition">Builds rigid bodies from the current selection using the options above.</div>
   <div class="section-title">Constrain</div>
   <div class="definition">The Constrain tab contains settings for constraining multiple selected rigid bodies to each other. Each of the standard four constraint types is supported and can be created according to four search methods: Nearest Neighbor, Farthest Neighbor, Random, and Axis. <img src="images/dynamica-UI-Constrain.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Constrain tab.</div></div>
@@ -275,9 +284,9 @@ proc setConfiguration()
   <div class="definition">This option is only available when Nearest Neighbor or Farthest Neighbor is selected as the Search Method. The specified value (default is 1) controls how many constraints are connected to each rigid body. </div>
   <div class="term">Axis Direction</div>
   <div class="definition">This  becomes active when Axis is selected as the Search Method. Options include <strong>+X</strong>, <strong>-X</strong>, <strong>+Y</strong>, <strong>-Y</strong>, <strong>+Z</strong>, and <strong>-Z</strong>. Constraints are created in chain-like succession along the specified axis.</div>
-  <div class="term">Delete Constraints (Button)</div>
+  <div class="term">Delete Constraints (button)</div>
   <div class="definition">This should be used to delete any unwanted constraints created with the above options. Deleting constraints manually with the delete key will not remove all dependencies, resulting in inefficiency and errors.</div>
-  <div class="term">Constrain Rigid Bodies (Button)</div>
+  <div class="term">Constrain Rigid Bodies (button)</div>
   <div class="definition">Creates constraints among selected rigid bodies using the options above.</div>
   <div class="section-title">Activate/Break</div>
   <div class="definition">
@@ -292,7 +301,7 @@ proc setConfiguration()
   </div>
   <div class="term">Activate/Break</div>
   <div class="definition">This option specifies the type of object to operate on: <strong>Rigid Bodies</strong>, <strong>Constraints</strong>, or <strong>Auto</strong>.</div>
-  <div class="note">Note: Constraits will not break or reset correctly if the Dynamica window has not been launched. </div>
+  <div class="note">Note: Constraits will not break or reset correctly if the Dynamica window has not been opened. </div>
   <div class="term">Control Method</div>
   <div class="definition">Options are Single Frame or Multi Frame. Single Frame (default) enables the Start frame field below. Multi Frame enables both the Start and End frame fields, and the Input Method options.</div>
   <div class="term">Start/End Frame</div>
@@ -310,13 +319,20 @@ proc setConfiguration()
     <p class="term">Axis Gradient</p>
     <div class="definition">Axis Gradient will progressively activate rigid bodies or break constraints along the selected Axis Direction (<strong>+X</strong>, <strong>-X</strong>, <strong>+Y</strong>, <strong>-Y</strong>, <strong>+Z</strong>, or <strong>-Z</strong>.) during the Start/End Frame range.<img src="images/dynamica-UI-Activate-multi-axis.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Activate/Break tab - Axis Gradient Input Method.</div></div>
     <p class="term">Radial Gradient</p>
-    <div class="definition">Radial Gradient will progressively activate rigid bodies or break constraints away from, or converging toward, a single focal point. A reference object in the scene serves as the focal point from which a spherical activation gradient is created. The Search Radius can be set via Numeric Input or automatically (based on the reference object's bounding box). rigid bodies and constraints within the Search Radius are activated/broken outward by default, or inward if the Inverted option is checked. activation/breaking proceeds linearly during the Start/End Frame range.<img src="images/dynamica-UI-Activate-multi-radial.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Activate/Break tab - Radial Gradient Input Method.</div></div>
+    <div class="definition">
+      Radial Gradient will progressively activate rigid bodies or break constraints away from, or converging toward, a single focal point. A reference object in the scene serves as the focal point from which a spherical activation gradient is created. The Search Radius can be set via Numeric Input or automatically (based on the reference object's bounding volume). rigid bodies and constraints within the Search Radius are activated/broken outward by default, or inward if the Inverted option is checked. activation/breaking proceeds linearly during the Start/End Frame range.
+      <img src="images/dynamica-UI-Activate-multi-radial.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Activate/Break tab - Radial Gradient Input Method.</div></div>
     <p class="term">3D Texture</p>
-    <div class="definition">3D Texture will progressively activate dRBs across the black to white (or 0 to 1) gradient defined by the specified 3D texture during the Start/End Frame range.<img src="images/dynamica-UI-Activate-multi-texture.jpg" width="530" height="450" alt="" /><div class="caption">Dynamica Activate/Break tab - 3D Texture Input Method.</div></div>
+    <div class="definition">3D Texture will progressively activate rigid bodies across the black to white (or 0 to 1) gradient defined by the specified 3D texture during the Start/End Frame range.<img src="images/dynamica-UI-Activate-multi-texture.jpg" width="530" height="450" alt="" />
+    <div class="caption">Dynamica Activate/Break tab - 3D Texture Input Method.</div></div>
   </div>
-  <div class="term">Deactivate Dynamica Rigid Bodies and Constraints (Button)</div>
+  <div class="term">
+    Deactivate Dynamica Rigid Bodies and Constraints (button)
+  </div>
   <div class="definition">This button is provided as a convenient way to reset the activationFrame and/or breakConstraintFrame back to 0, effectively deactivating the selected rigid bodies or constraints.</div>
-  <div class="term">Activate/Break Rigid Bodies and Constraints (Button)</div>
+  <div class="term">
+    Activate/Break Rigid Bodies and Constraints (button)
+  </div>
   <div class="definition">Configures rigid bodies and constraints using the options above. After this, the scene can be re-initialized (set time slider back to start frame) and played back to see the results.</div>
   <div class="section-title">Bake</div>
   <div class="definition">
@@ -331,8 +347,12 @@ proc setConfiguration()
   <div class="term">Start/End Frame</div>
   <div class="definition">Controls the frame range to bake.</div>
   <div class="term">Post Processing Options</div>
-  <div class="definition"><strong>Delete History (Recommended) </strong>will purge all construction history on the baked objects. <strong>Delete Static Channels (Recommended)</strong> removes any flat keyed channels (animation curves which do not change over time). <strong>Delete Empty Nodes (Recommended)</strong> deletes all unused and empty nodes.</div>
-  <div class="term">Bake Rigid Bodies (Button)</div>
+  <div class="definition">
+    <p><strong>Delete History (Recommended) </strong>will purge all construction history on the baked objects. </p>
+    <p><strong>Delete Static Channels (Recommended)</strong> removes any flat keyed channels (animation curves which do not change over time).</p>
+    <p><strong>Delete Empty Nodes (Recommended)</strong> deletes all unused and empty nodes.</p>
+  </div>
+  <div class="term">Bake Rigid Bodies (button)</div>
   <div class="definition">Saves bake scene and bakes objects using the options above.</div>
   <div class="section-title">PolyCutter</div>
   <div class="definition">
@@ -346,10 +366,12 @@ proc setConfiguration()
   <div class="definition">This option is enabled when the NURBS Surface Type is set to Cubic. Surface Smoothness controls the overall smoothness of the poly edges resulting from the cut.</div>
   <div class="term">Post Processing Options</div>
   <div class="definition">The only option available is <strong>Center Pivots</strong>. When checked, the resulting poly meshes will have centered pivots.</div>
-  <div class="term">Cut Meshes (Button)</div>
+  <div class="term">Cut Meshes (button)</div>
   <div class="definition">Cuts meshes based on the options above.</div>
   <div class="title"> Dynamica Applied</div>
-  <div class="section-title">Tools and Pipeline</div>
+  <div class="section-title">
+    Tools &amp; Pipeline
+  </div>
   <div class="term">The Tools</div>
   <div class="definition"> 
     <p>The Dynamica tools are designed to address the demanding needs of art directors who often require many iterations of a shot with specific choreographies - all in a short period of time. In order to meet these needs, the simulation artist must have a high degree of control over the simulation and the ability to iterate rapidly. Features such as axis and radial activation, automatic constraint generation, and optimized baking support these rapid workflows. Dynamica also takes advantage of Maya's native scene management features  to keep the simulation organized.</p>
