@@ -38,6 +38,14 @@ Modified by Michael Baker <michael@mBakr.com>
 10/6/2010 : added filter to avoid activating pre-keyed RBs
 10/6/2010 : fixed issue with deletion of static channels
 11/18/2010 : added scriptJob to maintain sync between start frame of timeline and start frame of dSolver
+11/28/2010 : fixed issue with dRB deactivation disabling multiframe activation
+11/28/2010 : fixed issue with Density float field remaining active after activation
+12/11/2010 : fixed issue with decatviation of dRBs
+12/11/2010 : removed Ageia PhysX, and Standford PhysBAM from Solver Type scroll list under Solver tab
+12/11/2010 : fixed issue with failed constraint initialization on start frames other than 1
+12/11/2010 : fixed issue with build xform reset on start frames other than 1
+12/11/2010 : fixed issue with static channel deletion failure
+12/13/2010 : fixed issue with constraint recreation failing to restore initial position
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -53,6 +61,12 @@ known bugs:
 7. activate/break frame range input fields must lose focus to update global vars
 	fixed 9/19/2010
 8. pre-keyed objects don't maintain scale after baking
+9. start frames other than 1 will not initialize dynamically broken constrains correctly. maybe fix with global $dynamicaUI var...
+	fixed 12/11/2010
+	
+known limitations:
+1. constrained dRBs can behave strangely if constraints force penetration - this can happen with large numbers of constraints on tightly packed dRBs
+2. 
 
 future features:
 1. create passive RBs - which maintain previous keys
@@ -60,6 +74,8 @@ future features:
 2. breakable constraints
 	added on 9/10/2010 - experimental system dynamically deletes constraint objects and adds them back to the scene on start frame
 3. add scriptJob to keep first frame of timeline sync'd with dSolver
+	added on 11/28/2010
+4. activation frame annotations in viewport
 */
 
 //dynamicaUI.mel
@@ -94,7 +110,7 @@ global proc dynamicaUI_createWindow()
 	//create dSolver node if necessary
 	dSolver;
 
-	$dynamicaUI_window = `window -t ("Dynamica v MB." + $dynamicaUI_version) -in "Dynamica" dynamicaUI_window`;
+	$dynamicaUI_window = `window -t "Dynamica - powered by Bullet"  -in "Dynamica" dynamicaUI_window`;
 
 		string $mainForm = `formLayout`;
 		string $dynamicaUI_tabs = `tabLayout -innerMarginWidth 5 -innerMarginHeight 5`;
@@ -114,7 +130,7 @@ global proc dynamicaUI_createWindow()
 		string $activateLayt = dynamicaUI_createActivateBreakTab(); //MB
 		string $bakeLayt = dynamicaUI_createBakeTab(); //MB
 		string $polyCutterLayt = dynamicaUI_createPolyCutterTab(); //MB
-		//string $helpLayt = dynamicaUI_createHelpTab(); //MB
+		string $helpLayt = dynamicaUI_createHelpTab(); //MB
 
 		tabLayout 
 			-e 
@@ -125,25 +141,29 @@ global proc dynamicaUI_createWindow()
 			-tabLabel $activateLayt "Activate/Break" 
 			-tabLabel $bakeLayt "Bake"
 			-tabLabel $polyCutterLayt "PolyCutter"
-			//-tabLabel $helpLayt "Help"
+			-tabLabel $helpLayt "Help"
 			$dynamicaUI_tabs;
 
 	showWindow $dynamicaUI_window;
+	
 	//script jobs
 	scriptJob -kws -p dynamicaUI_window -e "playbackRangeChanged" dynamicaUI_syncSolver;
+	//init
+	dynamicaUI_init();
+	
 	window -e -wh 530 450 dynamicaUI_window;
 }
 
 global proc dynamicaUI_createShelfButton()
 {
 	// The shelf we want to add the button to.
-	string $shelf = "EfxToolsLumiere";
+	string $shelf = "Dynamica";
 
 	// The icon we want to use on the button.
 	string $iconImage = "dynamica.xpm";
 
 	// The button label.
-	string $iconBtnLabel = "dynamica";
+	string $iconBtnLabel = "Dynamica";
 
 	// Specify the shelf as the parent for our tool button.  If there
 	// is no such shelf, we create it.
@@ -349,6 +369,7 @@ global proc string dynamicaUI_createActivateBreakTab()
 	global int $dynamicaUI_activateAxis = 0; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z
 	global int $dynamicaUI_activateSearchRadius = 0;
 	global int $dynamicaUI_activateInvert = 0;
+	global int $dynamicaUI_deactivate = 0;
 	global float $dynamicaUI_activateRadius = 1.0;
 	global string $dynamicaUI_activateTexture;
 	global string $dynamicaUI_3dTextureNodes[];
@@ -513,12 +534,12 @@ global proc string dynamicaUI_createActivateBreakTab()
 		separator -h 3 -style "none";
 		frameLayout -label "Deactivate Rigid Bodies and Constraints" -labelAlign "center" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn" deactivateFrame;
 					columnLayout;
-						button -w 480 -label "Deactivate Dynamica Rigid Bodies and Constraints" -bgc 1.0 0.9 0.8 -c "$dynamicaUI_breakMethod = 0;$dynamicaUI_activateStartFrame = 0;dynamicaUI_activateRigidBodies();$dynamicaUI_computeMass = 0;checkBoxGrp -e -v1 0 computeMass";
+						button -w 480 -label "Deactivate Dynamica Rigid Bodies and Constraints" -bgc 1.0 0.9 0.8 -c "$dynamicaUI_deactivate = 1;dynamicaUI_activateRigidBodies();$dynamicaUI_computeMass = 0;checkBoxGrp -e -v1 0 computeMass";
 					setParent ..;
 				setParent ..;
 		
 		separator -style "none" -h 5;
-		button -w 480 -label "Activate/Break Rigid Bodies and Constraints" -bgc 0.8 0.9 1.0 -c "$dynamicaUI_activateStartFrame = `floatFieldGrp -q -v1 activateRange`;$dynamicaUI_activateEndFrame = `floatFieldGrp -q -v2 activateRange`;dynamicaUI_activateRigidBodies();$dynamicaUI_computeMass = 0;checkBoxGrp -e -v1 0 computeMass";
+		button -w 480 -label "Activate/Break Rigid Bodies and Constraints" -bgc 0.8 0.9 1.0 -c "$dynamicaUI_activateStartFrame = `floatFieldGrp -q -v1 activateRange`;$dynamicaUI_activateEndFrame = `floatFieldGrp -q -v2 activateRange`;dynamicaUI_activateRigidBodies();$dynamicaUI_computeMass = 0;checkBoxGrp -e -v1 0 computeMass;floatFieldGrp -e -en1 0 densityFloat;";
 		
 	setParent ..;
 	}
@@ -658,22 +679,26 @@ global proc string dynamicaUI_createPolyCutterTab() //MB
 	return $mainForm;
 }
 
-// global proc string dynamicaUI_createHelpTab() //MB
-// {	
-	// string $mainForm = `columnLayout -adj 1`;
-	// {
-		// columnLayout;
-		// scrollField 
-			// -width 505
-			// -height 390
-			// -wordWrap 1
-			// -editable 0
-			// -bgc 1.0 1.0 1.0
-            //-text "" ;
-	// }
+global proc string dynamicaUI_createHelpTab() //MB
+{	
+	string $mainForm = `columnLayout -adj 1`;
+	{
+		frameLayout -h 355 -label "Documentation" -labelAlign "center" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn";
+			columnLayout;
+				button -label "View the online wiki" -c "system(\"load http://bulletphysics.org\")";
+				
+				separator -style "none" -h 5;
+				text -label "http://bulletphysics.org";
+				separator -style "none" -h 5;
+				text -label "HTML documentation in doc folder under Dynamica install\nex. C:\\Program Files\\DynamicaBullet2.77\\doc\\";
+				
+				setParent ..;
+			setParent ..;
+		setParent ..;
+	}
 
-	// return $mainForm;
-// }
+	return $mainForm;
+}
 
 global proc string dynamicaUI_createSolverTab()
 {	
@@ -692,7 +717,7 @@ global proc string dynamicaUI_createSolverTab()
 			rowLayout -nc 1 -adj 1 -cat 1 "left" 30;
 			{
 				int $solverType = `getAttr dSolver1.ssSolverType` + 1; // 1-based
-				$dynamicaUI_STsolverType = `textScrollList -append "Bullet Physics" -append "Ageia PhysX" -append "Stanford PhysBAM"
+				$dynamicaUI_STsolverType = `textScrollList -append "Bullet Physics" // -append "Ageia PhysX" -append "Stanford PhysBAM"
 				-selectIndexedItem $solverType
 				-numberOfRows 1
 				-sc dynamicaUI_STSolverTypeChanged`;
@@ -905,6 +930,14 @@ global proc string dynamicaUI_createMainTab()
 	return $mainForm;
 }
 
+//needs to be fleshed out...
+global proc dynamicaUI_init()
+{
+	global float $dynamicaUI_startFrame;
+	
+	$dynamicaUI_startFrame = `playbackOptions -q -min`;
+}
+
 global proc dynamicaUI_STSolverTypeChanged()
 {
 	//create dSolver node if necessary
@@ -974,8 +1007,10 @@ global proc dynamicaUI_STsubstepsChanged()
 
 global proc dynamicaUI_syncSolver()
 {
+	global float $dynamicaUI_startFrame;
 	float $startFrame = `playbackOptions -q -min`;
 	setAttr "dSolver1.startTime" $startFrame;
+	$dynamicaUI_startFrame = $startFrame;
 }
 
 proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
@@ -1497,7 +1532,7 @@ global proc dynamicaUI_create6DofConstraint()
 		error("Select one or two bodies to create a 6Dof constraint");
 		return;
 	}
-	// create slider constraint node
+	// create 6Dof constraint node
 	string $constraintNode = `dSixdofConstraint`;
 	string $constraintTransforms[] = `listRelatives -parent $constraintNode`;
 	string $newConstraintTransf = $constraintTransforms[0];
@@ -1532,64 +1567,6 @@ global proc dynamicaUI_create6DofConstraint()
 	}
 	select -r $newConstraintTransf;
 }
-
-// global proc dynamicaUI_create6DofConstraint()
-// {    
-	// string $selection[] = `ls -selection -dag -leaf -showType -type "geometry"`;
-
-	// create dSolver node if necessary
-	// dSolver;
-	// check selection in scene : one or two rigidBodies should be selected
-	// int $selSize = size($selection);
-	// int $selOK = (($selSize == 2) || ($selSize == 4));
-	// for ($i = 0; $i < $selSize/2; $i++) 
-	// {
-		// if($selection[$i * 2 + 1] != "dRigidBody") 
-		// {
-			// $selOK = 0;
-		// }
-	// }
-	// if(!$selOK)
-	// {
-		// error("Select one or two bodies to create a slider constraint");
-		// return;
-	// }
-	// create slider constraint node
-	// string $constraintNode = `dSixdofConstraint`;
-	// string $constraintTransforms[] = `listRelatives -parent $constraintNode`;
-	// string $newConstraintTransf = $constraintTransforms[0];
-	// connect to bodies
-	// if($selSize == 2)
-	// {
-		// connectAttr ($selection[0] + ".message") ($constraintNode + ".inRigidBodyA");
-		// string $rbTransform[] = `listRelatives -parent $selection[0]`;
-		// float $posA[3] = `getAttr ($rbTransform[0] + ".translate")`;
-		// float $iWorldA[16] = `getAttr ($rbTransform[0] + ".worldMatrix")`;
-		// float $pivA[] = dynamicaUI_worldToObj($posA, $iWorldA);
-		// setAttr ($constraintNode + ".pivotInA") -type float3 $pivA[0] $pivA[1] $pivA[2];
-		// setAttr ($newConstraintTransf + ".translate") -type float3 $posA[0] $posA[1] $posA[2];
-	// }
-	// else
-	// {
-		// connectAttr ($selection[0] + ".message") ($constraintNode + ".inRigidBodyA");
-		// connectAttr ($selection[2] + ".message") ($constraintNode + ".inRigidBodyB");
-		// string $rbTransformA[] = `listRelatives -parent $selection[0]`;
-		// string $rbTransformB[] = `listRelatives -parent $selection[2]`;
-		// float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
-		// float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
-		// float $pivW[3];
-		// for ($k=0; $k < 3; $k++) $pivW[$k] = $posA[$k];
-		// float $iWorldA[16] = `getAttr ($rbTransformA[0] + ".worldMatrix")`;
-		// float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
-		// float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
-		// float $pivB[] = dynamicaUI_worldToObj($pivW, $iWorldB);
-		// setAttr ($constraintNode + ".pivotInA") -type float3 $pivA[0] $pivA[1] $pivA[2];
-		// setAttr ($constraintNode + ".pivotInB") -type float3 $pivB[0] $pivB[1] $pivB[2];
-		// setAttr ($newConstraintTransf + ".translate") -type float3 $pivW[0] $pivW[1] $pivW[2];
-	// }
-	// select -r $newConstraintTransf;
-// }
-
 
 global proc dyn_demo1()
 {
@@ -1763,9 +1740,6 @@ proc string[] sortObjectsByAttr(string $_objects[], string $_attr, int $_invert)
 		}
 	}
 	
-	print $objects;
-	print "done";
-	
 	$return = $objects;
 
 	if ($_invert) 
@@ -1906,7 +1880,7 @@ global proc int isKeyed(string $obj)
 }
 //end MB Utility procs
 
-//MB_dUI procs
+//MB_dynamicaUI procs
 global proc dynamicaUI_buildRigidBodies() 
 {
 	global int $dynamicaUI_buildHull;
@@ -1915,6 +1889,7 @@ global proc dynamicaUI_buildRigidBodies()
 	global int $dynamicaUI_buildKeepKeys;
 	global int $dynamicaUI_activationFrames[];
 	global string $dynamicaUI_RBs[];
+	global float $dynamicaUI_startFrame;
 
 	string $selectedNodes[];
 	string $selected[]; // tmp storage of selections
@@ -1960,6 +1935,9 @@ global proc dynamicaUI_buildRigidBodies()
 	
 	if ($go) 
 	{
+		//ensure dynamicaUI_startFrame is up to date
+		$dynamicaUI_startFrame = `playbackOptions -q -min`;
+		
 		/* duplicate array of currently selected objects */
 		string $err;
 		for ($i = 0;$i<size($selectedNodes); $i++) 
@@ -2119,7 +2097,7 @@ global proc dynamicaUI_buildRigidBodies()
 		}
 
 		select -clear;
-		currentTime 1;
+		currentTime $dynamicaUI_startFrame;
 		
 		/* restore original object positions */
 		for ($i = 0;$i<size($RigidBodies); $i++) 
@@ -2157,6 +2135,8 @@ global proc dynamicaUI_constrainRigidBodies()
 	string $sel[];
 	string $sorted[];
 	string $constraints[];
+	string $shape[];
+	string $layers[];
 	string $err;
 	string $axis;
 	string $constraintGroup;
@@ -2171,6 +2151,8 @@ global proc dynamicaUI_constrainRigidBodies()
 	clear($sel);
 	clear($sorted);
 	clear($constraints);
+	clear($shape);
+	clear($layers);
 	
 	/* handle selection */
 	for ($s in `ls -sl`) 
@@ -2201,7 +2183,6 @@ global proc dynamicaUI_constrainRigidBodies()
 	/* ready, set, go! */
 	if ($go)
 	{
-		
 		/* create group */
 		$constraintGroup = `group -em -n dConstraints`;
 		
@@ -2221,7 +2202,6 @@ global proc dynamicaUI_constrainRigidBodies()
 		}
 		
 		/* setAttr ($dConstraintsLayer + ".displayType") 2; //set layer mode to Reference */
-	
 		if ($dynamicaUI_constrainSearchMethod == 0 || $dynamicaUI_constrainSearchMethod == 1) //nearest neighbor or farthest neighbor
 		{
 			string $nearest[];
@@ -2381,8 +2361,10 @@ global proc dynamicaUI_deleteConstraints()
 	int $i;
 	int $go;
 	string $sel[];
+	string $shape[];
 	
 	clear($sel);
+	clear($shape);
 	
 	$sel = `ls -sl`;
 	
@@ -2459,6 +2441,7 @@ global proc dynamicaUI_activateRigidBodies()
 	global int $dynamicaUI_activateSearchRadius;
 	global int $dynamicaUI_activateInvert;
 	global float $dynamicaUI_activateRadius;
+	global int $dynamicaUI_deactivate;
 	global string $dynamicaUI_activateTexture;
 	global string $dynamicaUI_3dTextureNodes[];
 	global string $dynamicaUI_3dTextureList;
@@ -2468,6 +2451,7 @@ global proc dynamicaUI_activateRigidBodies()
 	string $sorted[];
 	float $attrs[];
 	float $position[];
+	string $shape[];
 	int $selSize;
 	string $referenceObject;
 	int $refObHidden = 0;
@@ -2488,6 +2472,7 @@ global proc dynamicaUI_activateRigidBodies()
 	clear($sorted);
 	clear($attrs);
 	clear($position);
+	clear($shape);
 	
 	$sel = `ls -sl`;
 	print ("Dynamica Activate/Break: " + size($sel) + " selected\n");
@@ -2620,19 +2605,26 @@ global proc dynamicaUI_activateRigidBodies()
 				if (!`objExists $expressionName`) 
 				{
 					$expr = "";
+					$expr += "global float $dynamicaUI_startFrame;\n";
 					$expr += "int $go;\n\n";
-					$expr += "if (frame == 1) {\n";
+					$expr += "if (frame == $dynamicaUI_startFrame) {\n";
 					$expr += "\t" + $s + ".mass = 1;\n";
 					$expr += "\t$go = 1;\n";
 					$expr += "}\n";
 					$expr += "if ($go) {\n";
-					$expr += "\tif (frame == 2) { " + $s + ".mass = 0;};\n";
+					$expr += "\tif (frame == $dynamicaUI_startFrame + 1) { " + $s + ".mass = 0;};\n";
 					$expr += "\tif (frame == " + $s + ".activateFrame) {\n";
 					$expr += "\t\t" + $s + ".mass = " + $s + ".activateMass;\n";
 					$expr += "\t\t$go = 0;\n";
 					$expr += "\t}\n";
 					$expr += "}";
 					expression -n $expressionName -s $expr;
+				}
+				
+				/* decativate dRBs by setting .activateFrame to 0 */
+				if ($dynamicaUI_deactivate)
+				{
+					setAttr ($s + ".activateFrame") 0;
 				}
 			}
 			/* handle constraints */
@@ -2669,12 +2661,18 @@ global proc dynamicaUI_activateRigidBodies()
 				{
 					$expr = "";
 					$expr += "int $go;\n";
+					$expr += "global float $dynamicaUI_startFrame;\n";
 					$expr += "string $constraintName = \"" + $s + "\";\n";
+					$expr += "float $x;\n";
+					$expr += "float $y;\n";
+					$expr += "float $z;\n";
 					$expr += "string $constraintGroup = \"" + $constraintGroup[0] + "\";\n\n";
-					$expr += "if (frame == 1) {\n";
+					$expr += "if (frame == $dynamicaUI_startFrame) {\n";
 					$expr += "\tif (!`objExists $constraintName`) {\n";
 					$expr += "\t\tselect -r " + $RBA[0] + " " + $RBB[0] + ";\n";
 					$expr += "\t\t" + $createConstraint + ";\n";
+					$expr += "\t\trefresh;\n";
+					$expr += "\t\tmove -a $x $y $z;\n";
 					$expr += "\t\tparent `ls -sl` $constraintGroup;\n";
 					$expr += "\t\teditDisplayLayerMembers -nr DynamicaConstraints `ls -sl`;\n";
 					$expr += "\t\t$sel = `ls -sl`;\n";
@@ -2682,6 +2680,14 @@ global proc dynamicaUI_activateRigidBodies()
 					$expr += "\t\t$constraintName = $sel[0];\n";
 					$expr += "\t}\n";
 					$expr += "\t$go = 1;\n";
+					$expr += "}\n";
+					$expr += "if (frame == $dynamicaUI_startFrame + 1) {\n";
+					$expr += "\tif (`objExists $constraintName`) {\n";
+					$expr += "\t\tfloat $position[] = `getAttr " + $s + ".translate`;\n";
+					$expr += "\t\t$x = $position[0];\n";
+					$expr += "\t\t$y = $position[1];\n";
+					$expr += "\t\t$z = $position[2];\n";
+					$expr += "\t}\n";
 					$expr += "}\n";
 					$expr += "if ($go) {\n";
 					$expr += "\tif (frame == " + $RBA[0] + ".breakConstraintFrame) {\n";
@@ -2691,12 +2697,18 @@ global proc dynamicaUI_activateRigidBodies()
 					$expr += "}";
 					expression -n $expressionName -s $expr;
 				}
+				
+				/* decativate constraints by setting .breakConstraintFrame to 0 */
+				if ($dynamicaUI_deactivate)
+				{
+					setAttr ($RBA[0] + ".breakConstraintFrame") 0;
+				}
 			}
 		}
 		
-		if ($dynamicaUI_breakMethod) //multi frame
+		if ($dynamicaUI_breakMethod == 1 && $dynamicaUI_deactivate == 0) //multi frame
 		{ 
-			/* axis gradient	 */
+			/* axis gradient */
 			if ($dynamicaUI_activateInputMethod == 0) 
 			{ 
 				/* handle axis */
@@ -2860,7 +2872,6 @@ global proc dynamicaUI_activateRigidBodies()
 				}
 			}
 		}
-		
 		if ($dynamicaUI_activateStartFrame)
 		{
 			print ("Dynamica Activate/Break: " + size($sel) + " Objects Activated!\n");
@@ -2874,9 +2885,12 @@ global proc dynamicaUI_activateRigidBodies()
 	
 	//cleanup
 	clear($sel);
+	clear($DRBNodes);
 	clear($sorted);
 	clear($attrs);
 	clear($position);
+	clear($shape);
+	$dynamicaUI_deactivate = 0;
 }
 
 global proc dynamicaUI_bakeRigidBodies() 
@@ -2894,6 +2908,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	string $children[];
 	string $expressions[];
 	string $constraints[];
+	string $layers[];
 	int $i;
 	string $currentFileName;
 	string $currentFilePath;
@@ -2915,6 +2930,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	clear($children);
 	clear($expressions);
 	clear($constraints);
+	clear($layers);
 
 	/* handle selection */
 	if ($dynamicaUI_bakeAll) 
@@ -3142,7 +3158,7 @@ global proc dynamicaUI_bakeRigidBodies()
 		/* transfer keys, add to bake group and bake layer, delete */
 		for ($s in $sel)
 		{
-			$child = `listRelatives -c $s`;
+			string $child[] = `listRelatives -c $s`;
 			if (size($child))
 			{
 				cutKey -time ":" -hierarchy none -controlPoints 0 -shape 0 $s;
@@ -3175,19 +3191,27 @@ global proc dynamicaUI_bakeRigidBodies()
 		/* delete static channels */
 		if ($dynamicaUI_deleteStaticChannels) 
 		{
+			//delete -staticChannels -uac 0 -hi none -cp 0 -s 0; //brute force - kills all static channels in scene
 			for ($c in $children)
 			{
-				for ($p in $preKeyed)
+				if (size($preKeyed)) 
 				{
-					if ($c != $p)
+					for ($p in $preKeyed)
 					{
-						delete -staticChannels $c;
-						break;
+						if ($c != $p)
+						{
+							delete -staticChannels -uac 0 -hi none -cp 0 -s 0 $c;
+							break;
+						}
+						else
+						{
+							break;
+						}
 					}
-					else
-					{
-						break;
-					}
+				} 
+				else 
+				{
+					delete -staticChannels -uac 0 -hi none -cp 0 -s 0 $c;
 				}
 			}
 		}
@@ -3201,6 +3225,12 @@ global proc dynamicaUI_bakeRigidBodies()
 	
 	/* cleanup */
 	clear($sel);
+	clear($layers);
+	clear($preKeyed);
+	clear($children);
+	clear($expressions);
+	clear($constraints);
+	clear($layers);
 	currentTime 1;
 	
 	/* re-enable undo */
@@ -3221,6 +3251,7 @@ global proc dynamicaUI_polyCutter()
 	string $nodeB[];
 	string $nodeC[];
 	string $boolResult[];
+	string $shape[];
 	string $group;
 	int $centerPivot = 1;
 	int $tesselationMethod = 1; //0 = control points, 1 = General
@@ -3237,6 +3268,7 @@ global proc dynamicaUI_polyCutter()
 	clear($nodeB);
 	clear($nodeC);
 	clear($boolResult);
+	clear($shape);
 
 	for ($s in `ls -sl`) 
 	{
@@ -3334,7 +3366,6 @@ global proc dynamicaUI_polyCutter()
 		clear($nodeB);
 		clear($nodeC);
 		clear($boolResult);
+		clear($shape);
 	}
 }
-
-//dynamicaUI_createWindow();
