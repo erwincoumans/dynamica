@@ -46,6 +46,7 @@ Modified by Michael Baker <michael@mBakr.com>
 12/11/2010 : fixed issue with build xform reset on start frames other than 1
 12/11/2010 : fixed issue with static channel deletion failure
 12/13/2010 : fixed issue with constraint recreation failing to restore initial position
+1/2/2011 : fixed issue with error message appearing when selecting bullet export options under File > Export []
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -84,13 +85,20 @@ future features:
 global proc dynamicaUI_initialize()
 {
 	dynamicaUI_createShelfButton();
-
+	
 	//add script jobs
 	//	scriptJob -e "SceneOpened" gpufxGUI_updateSettings; 
 	//   scriptJob -e "timeChanged" "dynamicaUI_timeChangedCallback";
 	//   scriptJob -cc "playingBack" "dynamicaUI_playingBackCallback";
 	//	expression -string "dynamicaUI_timeChangedCallback";
 
+}
+
+//hack to accept bulletExportOptions expected args
+//http://nccastaff.bournemouth.ac.uk/jmacey/RobTheBloke/www/research/maya/exp_plugin.htm
+global proc int bulletExportOptions( string $parent, string $action, string $settings, string $callback ) 
+{
+	return 1;
 }
 
 //main window      
