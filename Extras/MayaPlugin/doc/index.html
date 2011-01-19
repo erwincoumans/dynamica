@@ -92,17 +92,33 @@ pre {
 </head>
 <body id="dynamica-body">
 <div id="dynamica-canvas">
-  <div class="author">Revised 15 December, 2010 by Michael Baker - <a href="http://mBakr.com">mBakr.com</a>. Visit <a href="http://bulletphysics.org">bulletphysics.org</a> for the latest updates.</div>
+  <div class="author">Revised 18 January, 2011 by Michael Baker - <a href="http://mBakr.com">mBakr.com</a>. Visit <a href="http://bulletphysics.org">bulletphysics.org</a> for the latest updates.</div>
   <div class="title"> Introduction to Dynamica </div>
   <div class="term">Description</div>
   <div class="definition">
-    <p>Dynamica is a rigid body simulation system that uses the open source Bullet Physics framework. The Dynamica toolset allows users to create complex rigid body simulations which can be integrated into a wide range of production pipelines. The performance characteristics of the Bullet Physics framework allow large numbers of rigid bodies to be simulated at reasonable frame rates. This enables the rapid iteration needed to meet art direction requirements. With Dynamica, it is possible to work comfortably with thousands of simulated rigid bodies in a single scene.</p>
+    <p>Dynamica is a rigid body simulation system for Autodesk Maya that uses the open source Bullet Physics framework. The Dynamica toolset allows users to create complex rigid body simulations which can be integrated into a wide range of production pipelines. The performance characteristics of the Bullet Physics framework allow large numbers of rigid bodies to be simulated at reasonable frame rates. This enables the rapid iteration needed to meet art direction requirements. With Dynamica, it is possible to work comfortably with thousands of simulated rigid bodies in a single scene.</p>
   </div>
   <div class="term">History</div>
-  <div class="definition">Dynamica was originally developed at Walt Disney Animation Studios during the production of the animated feature film Bolt. The plugin source code was donated to the Bullet Physics project and is now distributed under the zLib license. </div>
-  <div class="section-title">Basics</div>
+  <div class="definition">Dynamica was originally developed at Walt Disney Animation Studios during the production of the animated feature film Bolt. The plugin source code was donated to the Bullet Physics project and is now distributed under the zLib license.  </div>
+  <div class="section-title">Installation</div>
+  <div class="definition">
+    <p>Download the latest installation files for your OS/Maya version from the Dynamica Project Page:</p>
+    <ul>
+      <li> Precompiled versions of the Dynamica plugin can be downloaded from <a href="http://code.google.com/p/bullet/downloads/list" title="http://code.google.com/p/bullet/downloads/list" rel="nofollow">http://code.google.com/p/bullet/downloads/list</a></li>
+      <li> The source code of the Dynamica plugin has its own repository at <a href="http://dynamica.googlecode.com/" title="http://dynamica.googlecode.com" rel="nofollow">http://dynamica.googlecode.com</a></li></ul>
+  </div>
+  <p class="list-intro">Install and enable the plug-in</p>
+  <ol>
+    <li> Run the installer.</li>
+    <li> Start Maya and go to Window &gt; Settings/Preferences &gt; Plug-in Manager:<br />
+    <img src="images/InstallDynamica01.jpg" width="393" height="466" alt="Window &gt; Settings/Preferences &gt; Plug-in Manager" /></li>
+    <li> Scroll down to find an entry for Dynamica/Bullet and check the boxes labeled <em>Loaded</em> and<em> Auto load</em>:<br />
+    <img src="images/InstallDynamica02.jpg" width="497" height="245" alt="C:/Program Files/DynamicaBulletX.XX/plug-ins | check the boxes labeled Loaded and Auto load" />
+    <div class="caption">Microsoft Windows plug-in path.</div></li>
+    <li>Look for a shelf named Dynamica and click the Bullet icon:<br /><img src="images/dynamica-shelf.jpg" width="749" height="51" alt="" /><div class="caption">Dynamica Shelf and Bullet icon.</div></li></ol>
+<div class="section-title">Basics</div>
   <div class="definition">The functionality is provided by four types of custom Maya nodes that interact with each other: <strong>dSolver</strong>, <strong>dRigidBody</strong>, <strong>dRigidBodyArray</strong>, and <strong>dCollisionShape</strong>. The different nodes can be created through the Dynamica UI. This UI can be accessed
-    by clicking on the Bullet icon in the Dynamica shelf.<img src="images/dynamica-shelf.jpg" width="749" height="51" alt="" /><div class="caption">Dynamica Shelf and Bullet icon.</div></div>
+  by clicking on the Bullet icon in the Dynamica shelf.</div>
   <div class="term">dSolver</div>
   <div class="definition">There is only one of these nodes per scene. It controls the global parameters of the simulation, such as time step, gravity, start frame, etc. It is created automatically every time a Rigid Body or a Rigid Body array is created.</div>
   <div class="term">dRigidBody</div>
@@ -487,7 +503,7 @@ proc setConfiguration()
   <!-- footer -->
   <p>&nbsp;</p>
   <p>&nbsp;</p>
-  <div class="author">Revised 15 December, 2010 by Michael Baker - <a href="http://mBakr.com">mBakr.com</a>. Visit <a href="http://bulletphysics.org">bulletphysics.org</a> for the latest updates.</div>
+  <div class="author">Revised 18 January, 2011 by Michael Baker - <a href="http://mBakr.com">mBakr.com</a>. Visit <a href="http://bulletphysics.org">bulletphysics.org</a> for the latest updates.</div>
 </div>
 </body>
 </html>
