@@ -50,7 +50,8 @@ Modified by Michael Baker <michael@mBakr.com>
 1/27/2011 : optimized bake process - added curve reduction and reordered static channel deletion/key transfer. also added progress windows
 2/3/2011 : fixed depreciated attribute warnings in Maya2011 
 2/15/2011 : fixed issue with dSolver start frame sync failing unless Dynamica window is opened
-2/15/2011 : fixed layout issue with 3d texture scroll list
+2/15/2011 : fixed layout issue with 3d texture scroll list in Maya 2011
+2/15/2011 : fixed layout issue with rigidbody array creation panel in Maya 2011
  
 
 known bugs:
@@ -1133,7 +1134,7 @@ global proc dynamicaUI_createArrayUI()
 
 	// layoutDialog's are not resizable, so hard code a size here,
 	// to make sure all UI elements are visible.
-	formLayout -e -width 350 $form;
+	formLayout -e -width 400 $form;
 
 	string $b1 = `button -l "OK"    -c "dynamicaUI_createArrayUIdismissCB(\"OK\")"`;
 	string $b2 = `button -l "Cancel"-c "dynamicaUI_createArrayUIdismissCB(\"Cancel\")"`;
