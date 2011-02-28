@@ -1031,10 +1031,6 @@ global proc dynamicaUI_syncSolver()
 		$dynamicaUI_startFrame = $startFrame;
 		print("Dynamica: Activated syncSolver\n");
 	}
-	else
-	{
-		warning("Dynamica: start frame sync error: dSolver1 node not found in scene");
-	}
 }
 
 proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
