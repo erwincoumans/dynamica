@@ -52,7 +52,9 @@ Modified by Michael Baker <michael@mBakr.com>
 2/15/2011 : fixed issue with dSolver start frame sync failing unless Dynamica window is opened
 2/15/2011 : fixed layout issue with 3d texture scroll list in Maya 2011
 2/15/2011 : fixed layout issue with rigidbody array creation panel in Maya 2011
- 
+2/22/2011 : fixed issue with "Dynamica: dSolver1 node not found..." error message appearing after loading plugin and opening new blank scene
+3/7/2011 : fixed issue with keyless passive rigid body creation failing if Preserve Keys was checked.
+3/7/2011 : fixed issue with freezing transforms with incoming expression connections. other connection types will need to be addressed in the future.
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -1029,7 +1031,7 @@ global proc dynamicaUI_syncSolver()
 		float $startFrame = `playbackOptions -q -min`;
 		setAttr "dSolver1.startTime" $startFrame;
 		$dynamicaUI_startFrame = $startFrame;
-		print("Dynamica: Activated syncSolver\n");
+		print("Dynamica: Updated solver Start Time to: " + (string)$dynamicaUI_startFrame + "\n");
 	}
 }
 
@@ -1917,6 +1919,7 @@ global proc dynamicaUI_buildRigidBodies()
 	string $RigidBodies[]; // tmp storage of generated Rigid Bodies
 	vector $xforms[]; // tmp storage of xform data
 	string $layers[];
+	string $connections[];
 	string $dRigidBodiesLayer = "DynamicaRigidBodies";
 	string $dRigidBodyMeshesLayer = "DynamicaMeshes";
 	string $createDRBLayer = 1;
@@ -1931,6 +1934,7 @@ global proc dynamicaUI_buildRigidBodies()
 	string $expr;
 	float $progress;
 	int $go = 0;
+	int $isKeyed = 0;
 	
 	/* init */
 	clear($dynamicaUI_activationFrames);
@@ -1940,6 +1944,7 @@ global proc dynamicaUI_buildRigidBodies()
 	clear($RigidBodies);
 	clear($xforms);
 	clear($layers);
+	clear($connections);
 	
 	$selectedNodes = `ls -sl`;
 
@@ -2045,13 +2050,30 @@ global proc dynamicaUI_buildRigidBodies()
 			
 			/* update selection */
 			select -r $currentNode;
+
+			/* store channels if passive and keyed */
+			if ($dynamicaUI_buildType == 1 && `isKeyed($currentNode)`)
+			{	
+				$isKeyed = 1;
+				if ($dynamicaUI_buildKeepKeys)
+				{
+					cutKey -time ":" -hierarchy none -controlPoints 0 -shape 0 $currentNode;
+					move -rpr 0 0 0;
+					rotate -a -p 0 0 0;
+				}
+				else
+				{
+					delete -c $currentNode; //delete keys
+				}
+			}
 			
-			/* store channels if passive */
-			if ($dynamicaUI_buildType == 1 && $dynamicaUI_buildKeepKeys)
-			{
-				cutKey -time ":" -hierarchy none -controlPoints 0 -shape 0 $currentNode;
-				move -rpr 0 0 0;
-				rotate -a -p 0 0 0;
+			//kill off incoming connections
+			$connections = `listConnections $currentNode`
+			for ($c in $connections) {
+				if (`nodeType $c` == "expression")
+				{
+					delete $c;
+				}
 			}
 			
 			/* freeze, delete history, center pivot */
@@ -2114,9 +2136,10 @@ global proc dynamicaUI_buildRigidBodies()
 			hide $sel[0];
 			
 			/* restore channels if passive */
-			if ($dynamicaUI_buildType == 1 && $dynamicaUI_buildKeepKeys)
+			if ($dynamicaUI_buildType == 1 && $dynamicaUI_buildKeepKeys && $isKeyed)
 			{
 				pasteKey -option replaceCompletely $sel[0];
+				$isKeyed = 0;
 			}
 			
 			$progress += 100.0/size($selected);
@@ -2158,6 +2181,7 @@ global proc dynamicaUI_buildRigidBodies()
 	clear($RigidBodies);
 	clear($xforms);
 	clear($layers);
+	clear($connections);
 }
 
 global proc dynamicaUI_constrainRigidBodies() 
