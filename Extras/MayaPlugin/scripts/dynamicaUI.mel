@@ -56,6 +56,7 @@ Modified by Michael Baker <michael@mBakr.com>
 3/7/2011 : fixed issue with keyless passive rigid body creation failing if Preserve Keys was checked.
 3/7/2011 : fixed issue with freezing transforms with incoming expression connections. other connection types will need to be addressed in the future.
 3/8/2011 : increased height of UI window and enabled sizing to improve compatibility with older versions of Maya
+3/8/2011 : fixed issue with unsupported bakeResults flags in Maya2008. flags: -removeBakedAttributeFromLayer -bakeOnOverrideLayer
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -3142,8 +3143,6 @@ global proc dynamicaUI_bakeRigidBodies()
 			-disableImplicitControl true 
 			-preserveOutsideKeys true 
 			-sparseAnimCurveBake false 
-			-removeBakedAttributeFromLayer false 
-			-bakeOnOverrideLayer false
 			-controlPoints false 
 			-shape false 
 			-at "tx" 
