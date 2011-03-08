@@ -55,6 +55,7 @@ Modified by Michael Baker <michael@mBakr.com>
 2/22/2011 : fixed issue with "Dynamica: dSolver1 node not found..." error message appearing after loading plugin and opening new blank scene
 3/7/2011 : fixed issue with keyless passive rigid body creation failing if Preserve Keys was checked.
 3/7/2011 : fixed issue with freezing transforms with incoming expression connections. other connection types will need to be addressed in the future.
+3/8/2011 : increased height of UI window and enabled sizing to improve compatibility with older versions of Maya
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -129,7 +130,7 @@ global proc dynamicaUI_createWindow()
 	//create dSolver node if necessary
 	dSolver;
 
-	$dynamicaUI_window = `window -s 0 -t "Dynamica - powered by Bullet" -in "Dynamica" dynamicaUI_window`;
+	$dynamicaUI_window = `window -s 1 -t "Dynamica - powered by Bullet" -in "Dynamica" dynamicaUI_window`;
 
 		string $mainForm = `formLayout`;
 		string $dynamicaUI_tabs = `tabLayout -innerMarginWidth 5 -innerMarginHeight 5`;
@@ -168,7 +169,7 @@ global proc dynamicaUI_createWindow()
 	//init
 	dynamicaUI_init();
 
-	window -e -wh 530 450 dynamicaUI_window;
+	window -e -wh 530 480 dynamicaUI_window;
 }
 
 //needs to be fleshed out...
