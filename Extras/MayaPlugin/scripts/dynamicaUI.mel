@@ -78,6 +78,7 @@ known bugs:
 	fixed 1/27/2011
 11. 3d texture textScrollList is truncated in Maya2011
 	fixed 2/15/2011
+12. division by zero error occurs when axis activation is attempted on objects which exist at the same position in the scene.
 	
 known limitations:
 1. constrained dRBs can behave strangely if constraints force penetration - this can happen with large numbers of constraints on tightly packed dRBs
@@ -2070,7 +2071,7 @@ global proc dynamicaUI_buildRigidBodies()
 			}
 			
 			//kill off incoming connections
-			$connections = `listConnections $currentNode`
+			$connections = `listConnections $currentNode`;
 			for ($c in $connections) {
 				if (`nodeType $c` == "expression")
 				{
