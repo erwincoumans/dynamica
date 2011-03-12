@@ -28,7 +28,7 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 #include "box_shape_impl.h"
 #include "drawUtils.h"
 
-class bt_box_shape_t: public bt_collision_shape_t, public box_shape_impl_t 
+class bt_box_shape_t: public bt_collision_shape_t 
 {
 public:
     virtual void gl_draw(size_t draw_style) 

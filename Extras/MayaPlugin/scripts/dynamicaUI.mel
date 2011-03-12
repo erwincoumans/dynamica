@@ -231,7 +231,7 @@ global proc string dynamicaUI_createBuildTab() //MB
 
 	string $mainForm = `columnLayout -adj 1`;
 	{
-		frameLayout -h 390 -label "Build Rigid Bodies" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn" buildFrame;
+		frameLayout -h 390 -label "Batch build rigid bodies" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn" buildFrame;
 			columnLayout;
 				
 				radioButtonGrp -numberOfRadioButtons 2 -label "Rigid Body Type:"
@@ -293,7 +293,7 @@ global proc string dynamicaUI_createConstrainTab() //MB
 
 	string $mainForm = `columnLayout -adj 1`;
 	{
-		frameLayout -h 319 -label "Constrain Rigid Bodies" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn" buildFrame;
+		frameLayout -h 319 -label "Batch constrain rigid bodies" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn" buildFrame;
 			columnLayout;
 				
 				radioButtonGrp -numberOfRadioButtons 4 -label "Constraint Type:"

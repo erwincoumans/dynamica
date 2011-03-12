@@ -73,12 +73,22 @@ public:
         return new bt_convex_hull_shape_t(vertices, num_vertices, normals, indices, num_indices);
     }
 
-    virtual collision_shape_impl_t* create_mesh_shape(vec3f const* vertices, size_t num_vertices,
+    virtual collision_shape_impl_t* create_dynamic_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                       vec3f const* normals,
                                                       unsigned int const *indices, size_t num_indices)
     {
-        return new bt_mesh_shape_t(vertices, num_vertices, normals, indices, num_indices);
+		bool dynamicMesh = true;
+        return new bt_mesh_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
     }
+
+	virtual collision_shape_impl_t* create_static_mesh_shape(vec3f const* vertices, size_t num_vertices,
+                                                      vec3f const* normals,
+                                                      unsigned int const *indices, size_t num_indices)
+    {
+		bool dynamicMesh = false;
+        return new bt_mesh_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
+    }
+
 
     virtual nail_constraint_impl_t* create_nail_constraint(rigid_body_impl_t* rb, vec3f const& pivot)
     {

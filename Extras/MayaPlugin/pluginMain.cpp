@@ -61,9 +61,9 @@ MStatus initializePlugin( MObject obj )
 {
     MStatus   status;
 #ifdef BT_DEBUG
-	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.76 (Debug Build)", "Any");
+	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.78 (Debug Build)", "Any");
 #else
-	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.76", "Any");
+	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.78", "Any");
 #endif
 
     solver_t::initialize();

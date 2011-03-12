@@ -27,13 +27,5 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 #include "collision_shape_impl.h"
 
-class mesh_shape_impl_t: public collision_shape_impl_t
-{
-public:
-    //typedefs
-
-private:
-
-};
 
 #endif

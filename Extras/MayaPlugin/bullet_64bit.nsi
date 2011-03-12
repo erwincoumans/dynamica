@@ -8,14 +8,14 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "Dynamica Bullet 2.76 physics plugin for Maya 2011"
+Name "Dynamica Bullet 2.78 physics plugin for Maya 2011"
 
 ; The file to write
-OutFile "DynamicaForMaya2009_64bit.exe"
+OutFile "DynamicaForMaya2011_64bit.exe"
 
 
 ; The default installation directory
-InstallDir $PROGRAMFILES64\DynamicaBullet2.76\
+InstallDir $PROGRAMFILES64\DynamicaBullet2.78\
 
 UninstPage uninstConfirm
 UninstPage instfiles
@@ -30,6 +30,7 @@ Section "" ;No components page, name is not important
 ;Create Dynamica directories
 ;CreateDirectory "$INSTDIR\dll"
 CreateDirectory "$INSTDIR\doc"	
+CreateDirectory "$INSTDIR\doc\images"
 CreateDirectory "$INSTDIR\scenes\"
 CreateDirectory "$INSTDIR\icons"
 CreateDirectory "$INSTDIR\plug-ins"	
@@ -39,6 +40,8 @@ CreateDirectory "$INSTDIR\scripts"
 ;File "dll\*.dll"
 SetOutPath "$INSTDIR\doc"
 File "doc\*.*"
+SetOutPath "$INSTDIR\doc\images"
+File "doc\images\*.*"
 SetOutPath "$INSTDIR\scenes"
 File "scenes\*.*"
 SetOutPath "$INSTDIR\icons"

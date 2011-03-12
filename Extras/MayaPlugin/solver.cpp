@@ -77,11 +77,19 @@ convex_hull_shape_t::pointer solver_t::create_convex_hull_shape(vec3f const* ver
 
 mesh_shape_t::pointer solver_t::create_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                   vec3f const* normals,
-                                                  unsigned int const *indices, size_t num_indices)
+                                                  unsigned int const *indices, size_t num_indices, bool dynamicMesh)
 {
-    return mesh_shape_t::pointer(new mesh_shape_t(m_impl->create_mesh_shape(vertices, num_vertices,
+	if (dynamicMesh)
+	{
+	    return mesh_shape_t::pointer(new mesh_shape_t(m_impl->create_dynamic_mesh_shape(vertices, num_vertices,
                                                                             normals,
                                                                             indices, num_indices)));
+	} else
+	{
+	    return mesh_shape_t::pointer(new mesh_shape_t(m_impl->create_static_mesh_shape(vertices, num_vertices,
+                                                                            normals,
+                                                                            indices, num_indices)));
+	}
 }
 
 rigid_body_t::pointer solver_t::create_rigid_body(collision_shape_t::pointer& cs)

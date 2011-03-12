@@ -32,7 +32,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "plane_shape_impl.h"
 #include "drawUtils.h"
 
-class bt_plane_shape_t: public bt_collision_shape_t, public plane_shape_impl_t 
+class bt_plane_shape_t: public bt_collision_shape_t 
 {
 public:
     virtual void gl_draw(size_t draw_style) 

@@ -67,7 +67,7 @@ public:
 
     static mesh_shape_t::pointer create_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                    vec3f const* normals,
-                                                   unsigned int const *indices, size_t num_indices); 
+                                                   unsigned int const *indices, size_t num_indices, bool dynamicMesh); 
 
     static rigid_body_t::pointer create_rigid_body(collision_shape_t::pointer& cs);
 

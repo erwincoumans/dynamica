@@ -33,7 +33,6 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include <string.h>
 #include <stdio.h>
 
-int maxSerializeBufferSize = 1024*1024*5;
 
 void bt_solver_t::export_collada_file(const char* fileName)
 {
@@ -54,8 +53,8 @@ class MySerializer : public btDefaultSerializer
 	bt_solver_t* m_solver;
 
 public:
-	MySerializer(bt_solver_t* solver, int totalSize)
-		:btDefaultSerializer(totalSize),
+	MySerializer(bt_solver_t* solver)
+		:btDefaultSerializer(),
 		m_solver(solver)
 	{
 	}
@@ -81,7 +80,7 @@ void bt_solver_t::export_bullet_file(const char* fileName)
 		return;
 	}
 
-	btDefaultSerializer* serializer = new MySerializer(this,maxSerializeBufferSize);
+	btDefaultSerializer* serializer = new MySerializer(this);
 
 	m_dynamicsWorld->serialize(serializer);
 	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1,f2);

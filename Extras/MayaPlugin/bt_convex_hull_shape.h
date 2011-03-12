@@ -30,7 +30,7 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 #include "convex_hull_shape_impl.h"
 #include "bt_collision_shape.h"
 
-class bt_convex_hull_shape_t: public bt_collision_shape_t, public convex_hull_shape_impl_t 
+class bt_convex_hull_shape_t: public bt_collision_shape_t 
 {
 public:
     virtual void gl_draw(size_t draw_style) {

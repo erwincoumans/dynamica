@@ -30,8 +30,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 #include "mesh_shape_impl.h"
 #include "bt_collision_shape.h"
+#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 
-class bt_mesh_shape_t: public bt_collision_shape_t, public mesh_shape_impl_t 
+class bt_mesh_shape_t: public bt_collision_shape_t
 {
 public:
     virtual void gl_draw(size_t draw_style) {
@@ -63,10 +64,15 @@ public:
     }
 
     virtual void set_scale(vec3f const& s) {
-        btGImpactMeshShape *gi_shape = static_cast<btGImpactMeshShape*>(shape());
-        gi_shape->setLocalScaling(btVector3(s[0], s[1], s[2]));
-        gi_shape->updateBound();
-        update();
+        btConcaveShape*col_shape = static_cast<btConcaveShape*>(shape());
+        col_shape ->setLocalScaling(btVector3(s[0], s[1], s[2]));
+		if (col_shape ->getShapeType()==GIMPACT_SHAPE_PROXYTYPE)
+		{
+			btGImpactMeshShape *gi_shape = static_cast<btGImpactMeshShape*>(shape());
+	        gi_shape->updateBound();
+		}
+
+		update();
     }
 
     virtual void get_scale(vec3f& s) {
@@ -79,49 +85,77 @@ public:
     virtual vec3f const& center()           { return m_center; }
     virtual quatf const& rotation()         { return m_rotation;  }
 
-protected:
-    friend class bt_solver_t;
+public:
 
-    bt_mesh_shape_t(vec3f const* vertices, size_t num_vertices,
+    bt_mesh_shape_t(vec3f const* vertices, 
+					size_t num_vertices,
                     vec3f const* normals,
-                    unsigned int const *indices, size_t num_indices): 
-                    bt_collision_shape_t(),
-                    m_normals(normals, normals + num_vertices),
-                    m_indices(indices, indices + num_indices)
+                    unsigned int const *indices, 
+					size_t num_indices,
+					bool dynamicMesh):
+						bt_collision_shape_t(),
+						m_normals(normals, normals + num_vertices),
+						m_indices(indices, indices + num_indices),
+						m_dynamicMesh(dynamicMesh)
     { 
-        m_volume = ::volume(vertices, (int*)indices, num_indices);
-        m_center = center_of_mass(vertices, (int*)indices, num_indices);
-        mat3x3f I = inertia(vertices, (int*)indices, num_indices, m_center);
-        m_rotation = diagonalizer(I);
+		if (m_dynamicMesh)
+		{
+			m_volume = ::volume(vertices, (int*)indices, num_indices);
+			m_center = center_of_mass(vertices, (int*)indices, num_indices);
+			mat3x3f I = inertia(vertices, (int*)indices, num_indices, m_center);
+			m_rotation = diagonalizer(I);
 
-        mat3x3f Q, Qinv; 
-        q_to_mat(m_rotation, Q); 
-        q_to_mat(qconj(m_rotation), Qinv);
-        
-        //D = trans(Q) * I * Q;
-        m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
+			mat3x3f Q, Qinv; 
+			q_to_mat(m_rotation, Q); 
+			q_to_mat(qconj(m_rotation), Qinv);
+	        
+			//D = trans(Q) * I * Q;
+			m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
 
-        m_vertices.resize(num_vertices);
-        for(size_t i = 0; i < m_vertices.size(); ++i) {
-            m_vertices[i] = prod(Qinv, vertices[i] - m_center);
-        }
+			m_vertices.resize(num_vertices);
+			for(size_t i = 0; i < m_vertices.size(); ++i) {
+				m_vertices[i] = prod(Qinv, vertices[i] - m_center);
+			}
 
-        m_tiva.reset(new btTriangleIndexVertexArray(num_indices / 3, (int*)&(m_indices[0]), 3 * sizeof(unsigned int),
-                                                    num_vertices, (float*)&(m_vertices[0]), sizeof(vec3f)));
+			m_tiva.reset(new btTriangleIndexVertexArray(num_indices / 3, (int*)&(m_indices[0]), 3 * sizeof(unsigned int),
+														num_vertices, (float*)&(m_vertices[0]), sizeof(vec3f)));
 
-        m_gi_shape.reset(new btGImpactMeshShape(m_tiva.get()));
-	m_gi_shape->setLocalScaling(btVector3(1.0f,1.0f,1.0f));
-        m_gi_shape->updateBound();
-        btCompoundShape *compound_shape = new btCompoundShape;
-        compound_shape->addChildShape(btTransform(btQuaternion(m_rotation[1],
+	       
+		
+			btGImpactMeshShape* gimpact = new btGImpactMeshShape(m_tiva.get());
+			 m_concave_shape.reset(gimpact);
+			m_concave_shape->setLocalScaling(btVector3(1.0f,1.0f,1.0f));
+	        gimpact->updateBound();
+			btCompoundShape *compound_shape = new btCompoundShape;
+	        compound_shape->addChildShape(btTransform(btQuaternion(m_rotation[1],
                                                                m_rotation[2],
                                                                m_rotation[3],
                                                                m_rotation[0]),
                                                   btVector3(m_center[0],
                                                             m_center[1],
                                                             m_center[2])),
-                                      m_gi_shape.get());
-        set_shape(compound_shape);
+															m_concave_shape.get());
+
+			 set_shape(compound_shape);
+		} else
+		{
+			m_center = vec3f(0, 0, 0);
+			m_rotation = quatf(1,0,0,0);
+				m_vertices.resize(num_vertices);
+				for(size_t i = 0; i < m_vertices.size(); ++i) {
+					m_vertices[i] = vertices[i];
+				}
+
+				m_tiva.reset(new btTriangleIndexVertexArray(num_indices / 3, (int*)&(m_indices[0]), 3 * sizeof(unsigned int),
+										num_vertices, (float*)&(m_vertices[0]), sizeof(vec3f)));
+
+				btBvhTriangleMeshShape* gimpact = new btBvhTriangleMeshShape(m_tiva.get(),true);
+				 m_concave_shape.reset(gimpact);
+				m_concave_shape->setLocalScaling(btVector3(1.0f,1.0f,1.0f));
+				set_shape(gimpact);
+		}
+
+       
 
         //std::cout << "construtor: " << m_center << std::endl;
 
@@ -131,7 +165,7 @@ protected:
     void update()
     {
         //apply the scaling
-        btVector3 const& scale = m_gi_shape->getLocalScaling();
+        btVector3 const& scale = m_concave_shape->getLocalScaling();
 
         std::vector<vec3f> vertices(m_vertices.size());
         for(unsigned int i = 0; i < vertices.size(); ++i) {
@@ -153,10 +187,11 @@ protected:
     }
 
 private:
-    shared_ptr<btGImpactMeshShape>          m_gi_shape;
+    shared_ptr<btConcaveShape>				m_concave_shape;
     std::vector<vec3f>                      m_vertices;
     std::vector<vec3f>                      m_normals;
     std::vector<unsigned int>               m_indices; 
+	bool									m_dynamicMesh;
     shared_ptr<btTriangleIndexVertexArray>  m_tiva;
 
     float m_volume;
