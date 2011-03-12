@@ -171,7 +171,7 @@ global proc dynamicaUI_createWindow()
 	//init
 	dynamicaUI_init();
 
-	window -e -wh 530 480 dynamicaUI_window;
+	window -e -wh 500 480 dynamicaUI_window;
 }
 
 //needs to be fleshed out...
@@ -819,23 +819,19 @@ global proc string dynamicaUI_createMainTab()
 			rowLayout -nc 5;
 			{
 				string $createActiveSphereRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Sphere"
-				-width 100 -image1 "dynamicaCreateActiveSphereRB.xpm" -c ("dynamicaUI_createActiveSphereRB")
+				-width 80 -image1 "dynamicaCreateActiveSphereRB.xpm" -c ("dynamicaUI_createActiveSphereRB")
 				-ann "Create an active sphere rigid body"`;
 
 				string $createActiveBoxRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Box"
-				-width 100 -image1 "dynamicaCreateActiveBoxRB.xpm" -c ("dynamicaUI_createActiveBoxRB")
+				-width 80 -image1 "dynamicaCreateActiveBoxRB.xpm" -c ("dynamicaUI_createActiveBoxRB")
 				-ann "Create an active box rigid body"`;
 
-				string $createActivePlaneRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
-				-width 100 -image1 "dynamicaCreateActivePlaneRB.xpm" -c ("dynamicaUI_createActivePlaneRB")
-				-ann "Create an active plane rigid body"`;
-
 				string $createActiveHullRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Hull"
-				-width 100 -image1 "dynamicaCreateActiveHullRB.xpm" -c ("dynamicaUI_createActiveHullRB")
+				-width 80 -image1 "dynamicaCreateActiveHullRB.xpm" -c ("dynamicaUI_createActiveHullRB")
 				-ann "Create an active hull rigid body"`;
 
 				string $createActiveMeshRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Mesh"
-				-width 100 -image1 "dynamicaCreateActiveMeshRB.xpm" -c ("dynamicaUI_createActiveMeshRB")
+				-width 80 -image1 "dynamicaCreateActiveMeshRB.xpm" -c ("dynamicaUI_createActiveMeshRB")
 				-ann "Create an active mesh rigid body"`;
 				
 				setParent ..;
@@ -845,27 +841,31 @@ global proc string dynamicaUI_createMainTab()
 
 		frameLayout -collapsable true -label "Passive Rigid Bodies" -borderStyle "in";
 		{
-			rowLayout -nc 5;
+			rowLayout -nc 6;
 			{
 				string $createPassiveSphereRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Sphere"
-				-width 100 -image1 "dynamicaCreatePassiveSphereRB.xpm" -c ("dynamicaUI_createPassiveSphereRB")
+				-width 80 -image1 "dynamicaCreatePassiveSphereRB.xpm" -c ("dynamicaUI_createPassiveSphereRB")
 				-ann "Create an passive sphere rigid body"`;
 
 				string $createPassiveBoxRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Box"
-				-width 100 -image1 "dynamicaCreatePassiveBoxRB.xpm" -c ("dynamicaUI_createPassiveBoxRB")
+				-width 80 -image1 "dynamicaCreatePassiveBoxRB.xpm" -c ("dynamicaUI_createPassiveBoxRB")
 				-ann "Create an passive box rigid body"`;
 
-				string $createPassivePlaneRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
-				-width 100 -image1 "dynamicaCreatePassivePlaneRB.xpm" -c ("dynamicaUI_createPassivePlaneRB")
-				-ann "Create an passive plane rigid body"`;
-
 				string $createPassiveHullRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Hull"
-				-width 100 -image1 "dynamicaCreatePassiveHullRB.xpm" -c ("dynamicaUI_createPassiveHullRB")
+				-width 80 -image1 "dynamicaCreatePassiveHullRB.xpm" -c ("dynamicaUI_createPassiveHullRB")
 				-ann "Create an passive hull rigid body"`;
 
 				string $createPassiveMeshRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Mesh"
-				-width 100 -image1 "dynamicaCreatePassiveMeshRB.xpm" -c ("dynamicaUI_createPassiveMeshRB")
+				-width 80 -image1 "dynamicaCreatePassiveMeshRB.xpm" -c ("dynamicaUI_createPassiveMeshRB")
 				-ann "Create an passive mesh rigid body"`;
+
+				string $createPassiveMeshRBBtn = `iconTextButton -style "iconAndTextVertical" -label "BvhMesh"
+				-width 80 -image1 "dynamicaCreatePassiveMeshRB.xpm" -c ("dynamicaUI_createPassiveMeshRB")
+				-ann "Create an passive mesh rigid body"`;
+
+				string $createPassivePlaneRBBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
+				-width 80 -image1 "dynamicaCreatePassivePlaneRB.xpm" -c ("dynamicaUI_createPassivePlaneRB")
+				-ann "Create an passive plane rigid body"`;
 
 				setParent ..;
 			}
@@ -878,23 +878,19 @@ global proc string dynamicaUI_createMainTab()
 			rowLayout -nc 5;
 			{
 				string $createActiveSphereRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Sphere"
-				-width 100 -image1 "dynamicaCreateActiveSphereRBArray.xpm" -c ("dynamicaUI_createActiveSphereRBArray")
+				-width 80 -image1 "dynamicaCreateActiveSphereRBArray.xpm" -c ("dynamicaUI_createActiveSphereRBArray")
 				-ann "Create an active sphere rigid body array"`;
 
 				string $createActiveBoxRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Box"
-				-width 100 -image1 "dynamicaCreateActiveBoxRBArray.xpm" -c ("dynamicaUI_createActiveBoxRBArray")
+				-width 80 -image1 "dynamicaCreateActiveBoxRBArray.xpm" -c ("dynamicaUI_createActiveBoxRBArray")
 				-ann "Create an active box rigid body array"`;
 
-				string $createActivePlaneRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
-				-width 100 -image1 "dynamicaCreateActivePlaneRBArray.xpm" -c ("dynamicaUI_createActivePlaneRBArray")
-				-ann "Create an active plane rigid body array"`;
-
 				string $createActiveHullRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Hull"
-				-width 100 -image1 "dynamicaCreateActiveHullRBArray.xpm" -c ("dynamicaUI_createActiveHullRBArray")
+				-width 80 -image1 "dynamicaCreateActiveHullRBArray.xpm" -c ("dynamicaUI_createActiveHullRBArray")
 				-ann "Create an active hull rigid body array"`;
 
 				string $createActiveMeshRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Mesh"
-				-width 100 -image1 "dynamicaCreateActiveMeshRBArray.xpm" -c ("dynamicaUI_createActiveMeshRBArray")
+				-width 80 -image1 "dynamicaCreateActiveMeshRBArray.xpm" -c ("dynamicaUI_createActiveMeshRBArray")
 				-ann "Create an active mesh rigid body array"`;
 				
 				setParent ..;
@@ -904,27 +900,31 @@ global proc string dynamicaUI_createMainTab()
 
 		frameLayout -collapsable true -label "Passive Rigid Body Arrays" -borderStyle "in";
 		{
-			rowLayout -nc 5;
+			rowLayout -nc 6;
 			{
 				string $createPassiveSphereRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Sphere"
-				-width 100 -image1 "dynamicaCreatePassiveSphereRBArray.xpm" -c ("dynamicaUI_createPassiveSphereRBArray")
+				-width 80 -image1 "dynamicaCreatePassiveSphereRBArray.xpm" -c ("dynamicaUI_createPassiveSphereRBArray")
 				-ann "Create an passive sphere rigid body array"`;
 
 				string $createPassiveBoxRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Box"
-				-width 100 -image1 "dynamicaCreatePassiveBoxRBArray.xpm" -c ("dynamicaUI_createPassiveBoxRBArray")
+				-width 80 -image1 "dynamicaCreatePassiveBoxRBArray.xpm" -c ("dynamicaUI_createPassiveBoxRBArray")
 				-ann "Create an passive box rigid body array"`;
 
-				string $createPassivePlaneRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
-				-width 100 -image1 "dynamicaCreatePassivePlaneRBArray.xpm" -c ("dynamicaUI_createPassivePlaneRBArray")
-				-ann "Create an passive plane rigid body array"`;
-
 				string $createPassiveHullRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Hull"
-				-width 100 -image1 "dynamicaCreatePassiveHullRBArray.xpm" -c ("dynamicaUI_createPassiveHullRBArray")
+				-width 80 -image1 "dynamicaCreatePassiveHullRBArray.xpm" -c ("dynamicaUI_createPassiveHullRBArray")
 				-ann "Create an passive hull rigid body array"`;
 
 				string $createPassiveMeshRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Mesh"
-				-width 100 -image1 "dynamicaCreatePassiveMeshRBArray.xpm" -c ("dynamicaUI_createPassiveMeshRBArray")
+				-width 80 -image1 "dynamicaCreatePassiveMeshRBArray.xpm" -c ("dynamicaUI_createPassiveMeshRBArray")
 				-ann "Create an passive mesh rigid body array"`;
+
+				string $createPassiveMeshRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "BvhMesh"
+				-width 80 -image1 "dynamicaCreatePassiveMeshRBArray.xpm" -c ("dynamicaUI_createPassiveMeshRBArray")
+				-ann "Create an passive mesh rigid body array"`;
+
+				string $createPassivePlaneRBArrayBtn = `iconTextButton -style "iconAndTextVertical" -label "Plane"
+				-width 80 -image1 "dynamicaCreatePassivePlaneRBArray.xpm" -c ("dynamicaUI_createPassivePlaneRBArray")
+				-ann "Create an passive plane rigid body array"`;
 
 				setParent ..;
 			}
@@ -936,19 +936,22 @@ global proc string dynamicaUI_createMainTab()
 			rowLayout -nc 5;
 			{
 				string $createNailConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "Nail"
-				-width 100 -image1 "dynamicaCreateNailConstraint.xpm" -c ("dynamicaUI_createNailConstraint")
+				-width 80 -image1 "dynamicaCreateNailConstraint.xpm" -c ("dynamicaUI_createNailConstraint")
 				-ann "Create a nail constraint"`;
 				string $createHingeConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "Hinge"
-				-width 100 -image1 "dynamicaCreateHingeConstraint.xpm" -c ("dynamicaUI_createHingeConstraint")
+				-width 80 -image1 "dynamicaCreateHingeConstraint.xpm" -c ("dynamicaUI_createHingeConstraint")
 				-ann "Create a hinge constraint"`;
 				string $createSliderConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "Slider"
-				-width 100 -image1 "dynamicaCreateSliderConstraint.xpm" -c ("dynamicaUI_createSliderConstraint")
+				-width 80  -image1 "dynamicaCreateSliderConstraint.xpm" -c ("dynamicaUI_createSliderConstraint")
 				-ann "Create a slider constraint"`;
-				/*		string $createConeTwistConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "ConeTwist"
-													-width 100 -image1 "dynamicaCreateConeTwistConstraint.xpm" -c ("dynamicaUI_createConeTwistConstraint")
-													-ann "Create a conetwist constraint"`;
-*/		string $create6DofConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "6Dof"
-				-width 100 -image1 "dynamicaCreate6DofConstraint.xpm" -c ("dynamicaUI_create6DofConstraint")
+/*		
+				string $createConeTwistConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "ConeTwist"
+				-width 80 -image1 "dynamicaCreateConeTwistConstraint.xpm" -c ("dynamicaUI_createConeTwistConstraint")
+				-ann "Create a conetwist constraint"`;
+*/		
+
+			string $create6DofConstraintBtn = `iconTextButton -style "iconAndTextVertical" -label "6Dof"
+				-width 80 -image1 "dynamicaCreate6DofConstraint.xpm" -c ("dynamicaUI_create6DofConstraint")
 				-ann "Create a 6dof constraint"`;
 				
 
