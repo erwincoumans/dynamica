@@ -57,6 +57,8 @@ Modified by Michael Baker <michael@mBakr.com>
 3/7/2011 : fixed issue with freezing transforms with incoming expression connections. other connection types will need to be addressed in the future.
 3/8/2011 : increased height of UI window and enabled sizing to improve compatibility with older versions of Maya
 3/8/2011 : fixed issue with unsupported bakeResults flags in Maya2008. flags: -removeBakedAttributeFromLayer -bakeOnOverrideLayer
+3/11/2011 : fixed issue with malformed save path on OSX
+3/11/2011 : fixed issue with nearest/farthest neighbor sorting in dynamicaUI_constrainRigidBodies()
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -2033,12 +2035,15 @@ global proc dynamicaUI_buildRigidBodies()
 		$s = `ls -sl`;
 		
 		/* MAIN */
-		//start prog window
-		progressWindow -t "Building Rigidbodies..." -pr 0 -ii false;
-		refresh;
 		
+		refresh;
+		progressWindow -t "Building Rigidbodies..." -pr 0 -ii true;
+		$progress = 0;
+
 		for ($i = 0;$i<size($selected); $i++) 
 		{
+			if (`progressWindow -q -ic`) break;
+			
 			float $x;
 			float $y;
 			float $z;
@@ -2152,17 +2157,19 @@ global proc dynamicaUI_buildRigidBodies()
 			$intProg = (int)$progress;
 			progressWindow -e -pr $intProg;
 		}
-
 		progressWindow -ep;
 		
 		select -clear;
 		currentTime $dynamicaUI_startFrame;
 		
-		progressWindow -t "Repositioning..." -pr 0 -ii false;
-		
-		/* restore original object positions */
+		//restore original object positions
+		progressWindow -t "Repositioning..." -pr 0 -ii true;
+		$progress = 0;
+
 		for ($i = 0;$i<size($RigidBodies); $i++) 
 		{
+			if (`progressWindow -q -ic`) break;
+			
 			$currentNode = $RigidBodies[$i];
 			showHidden $currentNode;
 			select -r $currentNode;
@@ -2174,8 +2181,8 @@ global proc dynamicaUI_buildRigidBodies()
 			$intProg = (int)$progress;
 			progressWindow -e -pr $intProg;
 		}
-		
 		progressWindow -ep;
+		
 		print("Dynamica Build: " + size($RigidBodies) + " Rigid Bodies created.\n");
 	}
 	
@@ -2254,6 +2261,7 @@ global proc dynamicaUI_constrainRigidBodies()
 		
 		/* check for display layers, create if necessary */
 		$layers = `ls -type "displayLayer"`;
+		
 		for ($layer in $layers) 
 		{
 			if ($layer == $dConstraintsLayer) 
@@ -2289,43 +2297,32 @@ global proc dynamicaUI_constrainRigidBodies()
 				{
 					$nearest = sortObjectsByDistance($sel, $s, 0, 1, 1); //get farthest objects
 				}
+			}
+
+			for ($i=0;$i<size($nearest)-1;$i++)
+			{
+				select -r $nearest[$i] $nearest[$i+1];
 				
-				clear($neighbors);
-				$j = 0;
-				for ($n in $nearest)
+				switch ($dynamicaUI_constrainType)
 				{
-					if ($n != $s && $j < $dynamicaUI_numNeighbors)
-					{
-						$neighbors[size($neighbors)] = $n;
-						$j++;
-					}
+					case 0:
+						dynamicaUI_createNailConstraint;
+						break;
+					case 1:
+						dynamicaUI_createHingeConstraint;
+						break;
+					case 2:
+						dynamicaUI_createSliderConstraint;
+						break;
+					case 3:
+						dynamicaUI_create6DofConstraint;
+						break;
 				}
 				
-				for ($n in $neighbors)
-				{
-					select -r $s $n;
-					
-					switch ($dynamicaUI_constrainType)
-					{
-						case 0:
-							dynamicaUI_createNailConstraint;
-							break;
-						case 1:
-							dynamicaUI_createHingeConstraint;
-							break;
-						case 2:
-							dynamicaUI_createSliderConstraint;
-							break;
-						case 3:
-							dynamicaUI_create6DofConstraint;
-							break;
-					}
-					
-					/* add to group and layer */
-					refresh;
-					parent `ls -sl` $constraintGroup;
-					editDisplayLayerMembers -nr $dConstraintsLayer `ls -sl`;
-				}
+				/* add to group and layer */
+				refresh;
+				parent `ls -sl` $constraintGroup;
+				editDisplayLayerMembers -nr $dConstraintsLayer `ls -sl`;
 			}
 		}
 		else if ($dynamicaUI_constrainSearchMethod == 2) //random
@@ -3080,14 +3077,14 @@ global proc dynamicaUI_bakeRigidBodies()
 				
 				if ($overwriteBakeScene == "Yes") 
 				{						
-					file -rename $newFileName;
+					file -rename ($currentFileName + "_BAKED");
 					file -f -save -options "v=0;p=17";
 					$go = 1;
 				}
 			}
 			else
 			{
-				file -rename $newFileName;
+				file -rename ($currentFileName + "_BAKED");
 				file -f -save -options "v=0;p=17";
 				$go = 1;
 			}
@@ -3138,6 +3135,11 @@ global proc dynamicaUI_bakeRigidBodies()
 			}
 		}
 		
+		$sel = `ls -sl`;
+	}
+	
+	if (size($sel))
+	{
 		/* bake! */
 		cycleCheck -e off;
 		bakeResults 
@@ -3159,10 +3161,13 @@ global proc dynamicaUI_bakeRigidBodies()
 		/* delete dRigidBodies, RigidBodies, dConstraints, expressions, and empty groups*/
 		if ($dynamicaUI_deleteEmptyNodes) 
 		{
-			progressWindow -t "Deleting Dynamica Nodes..." -pr 0 -ii false;
-			
+			progressWindow -t "Deleting Dynamica Nodes..." -pr 0 -ii true;
+			$progress = 0;
+
 			for ($s in $sel) 
 			{	
+				if (`progressWindow -q -ic`) break;
+				
 				for ($shape in `listRelatives -s $s`)
 				{
 					$nodeType = `nodeType $shape`;
@@ -3184,7 +3189,6 @@ global proc dynamicaUI_bakeRigidBodies()
 				$intProg = (int)$progress;
 				progressWindow -e -pr $intProg;
 			}
-			
 			progressWindow -ep;
 			
 			$constraints = `ls -type "dNailConstraint"`;
@@ -3232,12 +3236,14 @@ global proc dynamicaUI_bakeRigidBodies()
 		/* delete static channels */
 		if ($dynamicaUI_deleteStaticChannels) 
 		{
-			progressWindow -t "Deleting Empty Nodes..." -pr 0 -ii false;
+			progressWindow -t "Deleting Empty Nodes..." -pr 0 -ii true;
 			$progress = 0;
 			
 			//delete -staticChannels -uac 0 -hi none -cp 0 -s 0; //brute force - kills all static channels in scene
 			for ($c in $children)
 			{
+				if (`progressWindow -q -ic`) break;
+				
 				if (size($preKeyed)) 
 				{
 					for ($p in $preKeyed)
@@ -3262,16 +3268,19 @@ global proc dynamicaUI_bakeRigidBodies()
 				$intProg = (int)$progress;
 				progressWindow -e -pr $intProg;
 			}
+			progressWindow -ep;
 		}
 		
-		progressWindow -ep;
+		
 		
 		/* transfer keys, add to bake group and bake layer, delete */
-		progressWindow -t "Transferring Keys..." -pr 0 -ii false;
+		progressWindow -t "Transferring Keys..." -pr 0 -ii true;
 		$progress = 0;
-			
+		
 		for ($s in $sel)
 		{
+			if (`progressWindow -q -ic`) break;	
+			
 			//curve simplify
 			if ($dynamicaUI_optimizeChannels)
 			{
@@ -3298,17 +3307,17 @@ global proc dynamicaUI_bakeRigidBodies()
 			$intProg = (int)$progress;
 			progressWindow -e -pr $intProg;
 		}
-		
 		progressWindow -ep;
 		
 		/* delete empty nodes */
 		if ($dynamicaUI_deleteEmptyNodes)
 		{
-			progressWindow -t "Deleting Empty Nodes..." -pr 0 -ii false;
+			progressWindow -t "Deleting Empty Nodes..." -pr 0 -ii true;
 			$progress = 0;
-		
+
 			for ($i=0;$i<10;$i++) //trace depth, 10 should clear most nested hierarchies
 			{
+				if (`progressWindow -q -ic`) break;
 				for ($n in `ls -o -tr`)
 				{
 					string $shapes[] = `listRelatives $n`;
@@ -3322,10 +3331,9 @@ global proc dynamicaUI_bakeRigidBodies()
 				$intProg = (int)$progress;
 				progressWindow -e -pr $intProg;
 			}
+			progressWindow -ep;
 		}
-		
-		progressWindow -ep;
-		
+
 		/* delete history */
 		if ($dynamicaUI_deleteBakeHistory) 
 		{
