@@ -59,6 +59,7 @@ Modified by Michael Baker <michael@mBakr.com>
 3/8/2011 : fixed issue with unsupported bakeResults flags in Maya2008. flags: -removeBakedAttributeFromLayer -bakeOnOverrideLayer
 3/11/2011 : fixed issue with malformed save path on OSX
 3/11/2011 : fixed issue with nearest/farthest neighbor sorting in dynamicaUI_constrainRigidBodies()
+3/18/2011 : fixed minor issue with window width not quite accommodating all tabs
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -173,7 +174,7 @@ global proc dynamicaUI_createWindow()
 	//init
 	dynamicaUI_init();
 
-	window -e -wh 500 480 dynamicaUI_window;
+	window -e -wh 510 480 dynamicaUI_window;
 }
 
 //needs to be fleshed out...
