@@ -81,6 +81,7 @@ virtual MBoundingBox boundingBox() const
     static  MObject     ia_enabled;
     static  MObject     ia_splitImpulse;
     static  MObject     ia_substeps;
+	static  MObject		ia_fixedPhysicsRate;
     static  MObject     oa_rigidBodies;
 
     //Solver Settings

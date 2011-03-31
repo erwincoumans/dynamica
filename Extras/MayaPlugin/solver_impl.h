@@ -91,7 +91,7 @@ public:
 
     virtual void import_collada_file(const char* filename) = 0;
 
-    virtual void step_simulation(float dt) = 0;
+    virtual void step_simulation(float dt, float fixedPhysicsFrameRate) = 0;
 
 	virtual void debug_draw(int dbgMode) {}
 

@@ -160,9 +160,9 @@ public:
         m_dynamicsWorld->getSolverInfo().m_splitImpulse = enabled;
     }
 
-    virtual void step_simulation(float dt) 
+    virtual void step_simulation(float dt, float fixedPhysicsFrameRate) 
     {
-        m_dynamicsWorld->stepSimulation(dt, 1000, 1.0f / 120.0f);
+        m_dynamicsWorld->stepSimulation(dt, 10000, fixedPhysicsFrameRate);
     }
 
 	virtual void debug_draw(int dbgMode);

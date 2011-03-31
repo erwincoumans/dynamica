@@ -70,6 +70,7 @@ MObject dSolverNode::ia_time;
 MObject dSolverNode::ia_startTime;
 MObject dSolverNode::ia_gravity;
 MObject dSolverNode::ia_enabled;
+MObject dSolverNode::ia_fixedPhysicsRate;
 MObject dSolverNode::ia_splitImpulse;
 MObject dSolverNode::ia_substeps;
 MObject dSolverNode::oa_rigidBodies;
@@ -389,6 +390,15 @@ MStatus dSolverNode::initialize()
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_substeps);
     MCHECKSTATUS(status, "adding ia_substeps attribute")
+
+	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 200, &status);
+    MCHECKSTATUS(status, "creating physicsrate attribute")
+    fnNumericAttr.setKeyable(true);
+	fnNumericAttr.setMin(60);
+	fnNumericAttr.setMax(999999);
+
+    status = addAttribute(ia_fixedPhysicsRate);
+    MCHECKSTATUS(status, "adding physicsrate attribute")
 
     ia_enabled = fnNumericAttr.create("enabled", "enbl", MFnNumericData::kBoolean, true, &status);
     MCHECKSTATUS(status, "creating enabled attribute")
@@ -1051,6 +1061,7 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
     MTime time = data.inputValue(ia_time).asTime();
     MTime startTime = data.inputValue(ia_startTime).asTime();
     int subSteps = data.inputValue(ia_substeps).asInt();
+	int fixedPhysicsFrameHertz = data.inputValue(ia_fixedPhysicsRate).asInt();
     MObject thisObject = thisMObject();
     MPlug plgRigidBodies(thisObject, oa_rigidBodies); 
     MPlugArray rbConnections;
@@ -1101,7 +1112,7 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
                 applyFields(rbConnections, dt / subSteps);
     
                 //step the simulation
-                solver_t::step_simulation(dt / subSteps);
+                solver_t::step_simulation(dt / subSteps, 1.f/(float)fixedPhysicsFrameHertz);
             }
     
             m_prevTime = time;

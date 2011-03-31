@@ -745,6 +745,8 @@ global proc string dynamicaUI_createSolverTab()
 	global string $dynamicaUI_STenabled;
 	global string $dynamicaUI_STsplitImpulse;
 	global string $dynamicaUI_STsubsteps;
+	global string $dynamicaUI_STphysicsrate;
+	
 
 	string $mainForm = `columnLayout -adj 1`;
 	{
@@ -774,6 +776,18 @@ global proc string dynamicaUI_createSolverTab()
 			}
 			setParent ..;
 		}
+		string $physicsrateFrame = `frameLayout -collapsable false -label "Physics framerate (Hertz)" -borderStyle "etchedIn"`;
+		{
+			rowLayout -nc 1 -cat 1 "both" 0 -cw1 50;
+			{
+				int $physicsrate= `getAttr dSolver1.physicsrate`; 
+				$dynamicaUI_STphysicsrate = `intField -value $physicsrate -changeCommand dynamicaUI_STphysicsrateChanged`;
+
+				setParent ..;
+			}
+			setParent ..;
+		}
+		
 		string $substepsFrame = `frameLayout -collapsable false -label "Substeps" -borderStyle "etchedIn"`;
 		{
 			rowLayout -nc 1 -cat 1 "both" 0 -cw1 50;
@@ -1013,6 +1027,17 @@ global proc dynamicaUI_STsplitImpulseChanged()
 	int $enabled = `checkBox -query -value $dynamicaUI_STsplitImpulse`;
 	setAttr dSolver1.splitImpulse $enabled;
 }
+
+
+global proc dynamicaUI_STphysicsrateChanged()
+{
+	//create dSolver node if necessary
+	dSolver;
+	global string $dynamicaUI_STphysicsrate;
+	int $physicsrate = `intField -query -value $dynamicaUI_STphysicsrate`;
+	setAttr dSolver1.physicsrate $physicsrate;
+}
+
 
 global proc dynamicaUI_STsubstepsChanged()
 {

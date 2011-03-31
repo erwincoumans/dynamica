@@ -32,7 +32,9 @@ global proc AEdSolverTemplate( string $nodeName )
     editorTemplate -addControl gravity;
 
     editorTemplate -addControl substeps;
-
+    
+    editorTemplate -addControl physicsrate;
+    
     editorTemplate -addControl enabled;
 
     editorTemplate -addControl splitImpulse;

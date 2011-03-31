@@ -97,7 +97,7 @@ public:
     static void set_split_impulse(bool enabled); 
 
     //
-    static void step_simulation(float dt);
+    static void step_simulation(float dt,  float fixedPhysicsFrameRate);
 
 	static void debug_draw(int dbgMode);
 
