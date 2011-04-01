@@ -60,6 +60,9 @@ Modified by Michael Baker <michael@mBakr.com>
 3/11/2011 : fixed issue with malformed save path on OSX
 3/11/2011 : fixed issue with nearest/farthest neighbor sorting in dynamicaUI_constrainRigidBodies()
 3/18/2011 : fixed minor issue with window width not quite accommodating all tabs
+3/30/2011 : fixed issue with misplaced contraints during re-creation on start frame (if constraint breaking is used)
+3/31/2011 : fixed issue with radial activatation not respecting search radius
+3/31/2011 : fixed issue with nearest/farthest neighbor constraint generation failing to iterate properly
 
 known bugs:
 1. selecting existing dRigidBodies and running Build crashes Maya
@@ -1811,7 +1814,14 @@ proc string[] sortObjectsByAttr(string $_objects[], string $_attr, int $_invert)
 	return $return;
 }
 
-proc string[] sortObjectsByDistance(string $_objects[], string $_refOb, float $_maxDist, int $_returnObjects, int $_invert) 
+proc string[] sortObjectsByDistance(string $_objects[], string $_refOb, float $_maxDist, int $_returnObjects, int $_invert)
+/* args
+array objects to sort
+node reference object
+float maximum distance
+int return objects or string distances
+int invert sort
+*/
 {
 	string $return[];
 	string $objects[];
@@ -1836,7 +1846,7 @@ proc string[] sortObjectsByDistance(string $_objects[], string $_refOb, float $_
 		{
 			$distances[size($distances)] = $dist;
 		}
-		else
+		else if ($_maxDist == 0)
 		{
 			$distances[size($distances)] = $dist;
 		}
@@ -2228,7 +2238,7 @@ global proc dynamicaUI_constrainRigidBodies()
 	global int $dynamicaUI_constrainType; //0 = Nail, 1 = Hinge, 2 = Slider, 3 = 6Dof
 	global int $dynamicaUI_constrainSearchMethod; //0 = nearest neighbor, 1 = farthest neighbor, 2 = random, 3 = axis
 	global int $dynamicaUI_constrainAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z
-	global int $dynamicaUI_numNeighbors = 2;
+	global int $dynamicaUI_numNeighbors;
 	global int $dynamicaUI_constrainBidirectional;
 		
 	string $sel[];
@@ -2324,31 +2334,42 @@ global proc dynamicaUI_constrainRigidBodies()
 					$nearest = sortObjectsByDistance($sel, $s, 0, 1, 1); //get farthest objects
 				}
 			}
-
-			for ($i=0;$i<size($nearest)-1;$i++)
+			
+			for ($i=0;$i<size($nearest);$i++)
 			{
-				select -r $nearest[$i] $nearest[$i+1];
-				
-				switch ($dynamicaUI_constrainType)
+				for ($j=0;$j<$dynamicaUI_numNeighbors;$j++)
 				{
-					case 0:
-						dynamicaUI_createNailConstraint;
-						break;
-					case 1:
-						dynamicaUI_createHingeConstraint;
-						break;
-					case 2:
-						dynamicaUI_createSliderConstraint;
-						break;
-					case 3:
-						dynamicaUI_create6DofConstraint;
-						break;
+					//catch neighbors near end of array - this does not respect bounding neighbors, but simply reverses direction near the end of the array
+					if ($i < (size($nearest) - $dynamicaUI_numNeighbors - 1))
+					{
+						select -r $nearest[$i] $nearest[$i+$j+1];
+					}
+					else
+					{
+						select -r $nearest[$i] $nearest[$i-$j-1];
+					}
+					
+					switch ($dynamicaUI_constrainType)
+					{
+						case 0:
+							dynamicaUI_createNailConstraint;
+							break;
+						case 1:
+							dynamicaUI_createHingeConstraint;
+							break;
+						case 2:
+							dynamicaUI_createSliderConstraint;
+							break;
+						case 3:
+							dynamicaUI_create6DofConstraint;
+							break;
+					}
+					
+					/* add to group and layer */
+					parent `ls -sl` $constraintGroup;
+					editDisplayLayerMembers -nr $dConstraintsLayer `ls -sl`;
 				}
-				
-				/* add to group and layer */
 				refresh;
-				parent `ls -sl` $constraintGroup;
-				editDisplayLayerMembers -nr $dConstraintsLayer `ls -sl`;
 			}
 		}
 		else if ($dynamicaUI_constrainSearchMethod == 2) //random
@@ -2759,8 +2780,8 @@ global proc dynamicaUI_activateRigidBodies()
 					$expr += "if (frame == $dynamicaUI_startFrame) {\n";
 					$expr += "\tif (!`objExists $constraintName`) {\n";
 					$expr += "\t\tselect -r " + $RBA[0] + " " + $RBB[0] + ";\n";
-					$expr += "\t\t" + $createConstraint + ";\n";
 					$expr += "\t\trefresh;\n";
+					$expr += "\t\t" + $createConstraint + ";\n";
 					$expr += "\t\tmove -a $x $y $z;\n";
 					$expr += "\t\tparent `ls -sl` $constraintGroup;\n";
 					$expr += "\t\teditDisplayLayerMembers -nr DynamicaConstraints `ls -sl`;\n";
@@ -3296,8 +3317,6 @@ global proc dynamicaUI_bakeRigidBodies()
 			}
 			progressWindow -ep;
 		}
-		
-		
 		
 		/* transfer keys, add to bake group and bake layer, delete */
 		progressWindow -t "Transferring Keys..." -pr 0 -ii true;
