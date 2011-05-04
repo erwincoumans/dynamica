@@ -1,0 +1,614 @@
+/*
+zlib/libpng License. http://opensource.org/licenses/zlib-license
+
+Copyright (c) 2011 Michael Baker, mBakr.com
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+claim that you wrote the original software. If you use this software
+in a product, an acknowledgment in the product documentation would be
+appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be
+misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source
+distribution.
+
+written by Michael Baker <michael@mBakr.com>
+*/
+
+global proc int mbIsKeyed(string $node)
+{
+	//args: nodeName
+	$connections = `listConnections -s 1 -d 0 $node`;
+	for ($c in $connections) if (`isAnimCurve $c`) return 1;
+	return 0;
+}
+
+global proc int mbIsTransform(string $node)
+{
+	//args: nodeName
+	if (`objectType $node` == "transform") return 1;
+	return 0;
+}
+
+global proc int mbIsMesh(string $node)
+{
+	//args: nodeName
+	$shape =`listRelatives -s $node`;
+	if (size($shape) && `nodeType $shape[0]` == "mesh") return 1;
+	return 0;
+}
+
+global proc int mbIsType(string $node, string $type)
+{
+	//args: nodeName, nodeType
+	$types = {"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
+	$shape = `listRelatives $node`;
+	if (size($shape)) 
+	{
+		if (`objectType $shape[0]` == $type) return 1;
+		if (`objectType $node` == $type) return 1;
+	}
+	return 0;
+}
+
+global proc string mbGetShape(string $node)
+{
+	$shape = `listRelatives $node`;
+	return $shape[0];
+}
+
+global proc string mbGetType(string $node)
+{
+	return `objectType $node`;
+}
+
+global proc float mbScaleFloat(float $valueToScale, float $originalRangeMin, float $originalRangeMax, float $newRangeMin, float $newRangeMax)
+{
+	//args: valueToScale, originalRangeMin, originalRangeMax, newRangeMin, newRangeMax
+	float $return;
+	float $startValue = $valueToScale - $originalRangeMin;
+	float $startRange = $originalRangeMax - $originalRangeMin;
+	
+	if ($startRange == 0) { return $newRangeMin; }
+	else { return (($startValue/$startRange) * ($newRangeMax - $newRangeMin) + $newRangeMin); }
+}
+
+global proc int mbScaleInt(float $valueToScale, float $originalRangeMin, float $originalRangeMax, float $newRangeMin, float $newRangeMax)
+{
+	//args: valueToScale, originalRangeMin, originalRangeMax, newRangeMin, newRangeMax
+	float $return;
+	float $startValue = $valueToScale - $originalRangeMin;
+	float $startRange = $originalRangeMax - $originalRangeMin;
+	
+	if ($startRange == 0) { return (int)$newRangeMin; }
+	else { return (int)(($startValue/$startRange) * ($newRangeMax - $newRangeMin) + $newRangeMin); }
+}
+
+global proc mbUnFreezeTranslation(string $node)
+{
+	//args: nodeName
+	if (mbIsTransform($node))
+	{
+		makeIdentity -apply true -t 1 -r 0 -s 0 -n 0 $node; //preFreeze
+		
+		vector $positionVector;
+		float $currentTranslation[];
+		
+		makeIdentity -apply true -t 1 -r 0 -s 0 -n 0 $node;
+		xform -cp $node;
+		
+		// snap to origin, compute offset
+		move -rpr 0 0 0 $node;
+		$currentTranslation = `xform -q -ws -t $node`;
+		$positionVector = <<$currentTranslation[0], $currentTranslation[1], $currentTranslation[2]>>;
+		$positionVector *= -1; 
+		
+		// refreeze and restore original translation
+		makeIdentity -apply true -t 1 -r 0 -s 0 -n 0 $node;
+		//delete -ch;
+		eval("xform -r -t " + $positionVector + " " + $node);
+		clear($currentTranslation);
+	}
+	else
+	{
+		warning("node " + $node + " has no valid transform.\n");
+	}	
+}
+
+global proc mbFreezeScale(string $node)
+{
+	//args: nodeName, preFreeze
+	if (mbIsTransform($node))
+	{
+		makeIdentity -apply true -t 0 -s 1 -r 0 -n 0 $node;
+	}
+	else
+	{
+		warning("node " + $node + " has no valid transform.\n");
+	}
+}
+
+global proc mbTransferKeys(string $fromNode, string $toNode, int $optimize)
+{
+	if ($optimize)
+	{
+		filterCurve -f simplify -tto 0 -tol 0.0001
+		{ 
+			$fromNode + ".translateX",
+			$fromNode + ".translateY",
+			$fromNode + ".translateZ", 
+			$fromNode+ ".rotateX",
+			$fromNode + ".rotateY",
+			$fromNode + ".rotateZ"
+		};
+	}
+	
+	keyTangent -itt linear -ott linear $fromNode; //set key tangents to linear
+	cutKey -time ":" -hierarchy none -cp 0 -s 0 $fromNode;
+	pasteKey -o replaceCompletely $toNode;
+	setAttr ($fromNode + ".visibility") 1; //force $fromNode visibility
+}
+
+global proc string[] mbGetConnectedTransforms(string $node)
+{
+	return `listConnections -t "transform" $node`;
+}
+
+global proc float mbMeshVolume(string $node) 
+{
+	//args: nodeName
+	float $volume = 0.0;
+	string $triangles[];
+	string $tmp[];
+	
+	if (mbIsMesh($node))
+	{
+		$tmp = `duplicate $node`;
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 $tmp[0]; //freeze
+		polyTriangulate $tmp[0];
+		
+		$triangles = `ls -flatten ($tmp[0] + ".f[*]")`;
+		for ($t in $triangles) $volume += mbPrisVol($t) ;
+		delete $tmp;
+		clear($tmp);
+		clear($triangles);
+		return abs($volume); //exit
+	}
+	else
+	{
+		error("Object: " + $node + " is not a Polymesh.");
+	}
+
+	return -1;
+}
+
+global proc float mbPrisVol(string $triangle) {
+	vector $faceNormal;
+    string $verts[] = `polyListComponentConversion -tv $triangle`;
+    $verts = `ls -flatten $verts`;
+	string $normalInfo[];
+	string $normal[];
+	float $area;
+	float $volume;
+
+    if (`size $verts` != 3)
+	{ 
+		error("mbPrisVol: not a triangle"); 
+	}
+	else
+	{
+		vector $v1 = `pointPosition -w $verts[0]`; 
+		vector $v2 = `pointPosition -w $verts[1]`; 
+		vector $v3 = `pointPosition -w $verts[2]`; 
+		
+		$normalInfo = `polyInfo -fn $triangle`;
+		tokenize($normalInfo[0], ":", $normal);
+		tokenize($normal[1], " ", $normal);
+		
+		$faceNormal = unit(<<(float)$normal[0], (float)$normal[1], (float)$normal[2]>>);
+		
+		float $a = (($v1.x)*(($v3.y)-($v2.y)));
+		float $b = (($v2.x)*(($v1.y)-($v3.y)));
+		float $c = (($v3.x)*(($v2.y)-($v1.y)));
+		$area = abs(($a+$b+$c) * 0.5);
+		
+		$volume = ((($v1.z)+($v2.z)+($v3.z))/3.0) * $area ;
+		if (($faceNormal.z) < 0) $volume = -$volume;
+	}
+    return $volume;
+}
+
+global proc mbCreateLayer(string $name, int $reference)
+{
+	int $createLayer = 1;
+	$layers = `ls -type "displayLayer"`;
+	for ($layer in $layers) if ($layer == $name) $createLayer = 0;
+	if ($createLayer) createDisplayLayer -e -n $name; 
+	if ($reference) setAttr ($name + ".displayType") 2; //set layer mode to Reference
+}
+
+global proc mbAddToLayer(string $node, string $layer)
+{
+	$layers = `ls -type "displayLayer"`;
+	for ($l in $layers) if ($l != $layer) mbCreateLayer($layer, 0);
+	editDisplayLayerMembers -nr $layer $node;
+}
+
+global proc string mbGetAnimCurve(string $node, string $attributeName)
+{
+	string $curves[] = `keyframe -q -n $node`;
+	string $return = "";
+	for ($c in $curves)
+	{
+		$channelName = stringToStringArray($c, "_");
+		if ($channelName[size($channelName)-1] == $attributeName) $return = $c;
+	}
+	return $return;
+}
+
+global proc float mbLerpScalar(float $start, float $end, float $param)
+{
+	return $start + ($end - $start) * $param;
+}
+
+global proc float mbDistanceBetween(vector $pointA, vector $pointB) 
+{
+	float $distance = sqrt( pow(($pointA.x - $pointB.x), 2) + pow(($pointA.y - $pointB.y), 2) + pow(($pointA.z - $pointB.z), 2) );
+	return $distance;
+}
+
+global proc float mbDistanceBetweenNodes(string $nodeA, string $nodeB) 
+{
+	return mbDistanceBetween(`xform -q -ws -t $nodeA`, `xform -q -ws -t $nodeB`);
+}
+
+global proc float[] mbReverseFloatArray(float $array[]) 
+{
+	float $tmp[];
+	for ($i=0;$i<size($array);$i++) 
+	{
+		$tmp[$i] = $array[size($array) - 1 - $i];
+	}
+	return $tmp;
+}
+
+global proc float[] mbNormalizeArray(float $array[], int $sort) 
+{
+	float $tmp[];
+	$tmp = mbScaleArray($array, 0, 1, 0);
+	if ($sort) $tmp = `sort $tmp`;
+	return $tmp;
+}
+
+global proc float[] mbScaleArray(float $array[], float $min, float $max, int $floor) 
+{
+	float $tmp[];
+	float $oMin = $array[0];
+	float $oMax = $array[0];
+	
+	for ($a in $array)
+	{
+		if ($a < $oMin) $oMin = $a;
+		if ($a > $oMax) $oMax = $a;
+	}
+	
+	for ($a in $array)
+	{
+		if ($floor) $tmp[size($tmp)] = (int)mbScaleFloat($a, $oMin, $oMax, $min, $max);
+		else $tmp[size($tmp)] = mbScaleFloat($a, $oMin, $oMax, $min, $max);
+	}
+	
+	return $tmp;
+}
+
+global proc string[] mbSortObjectsByAttr(string $_objects[], string $_attr, int $_invert) 
+{
+	string $return[];
+	string $objects[];
+	string $inverted[];
+	float $attrs[];	
+	int $i;
+	int $j;
+	int $k;
+
+	//init
+	clear($return);
+	clear($objects);
+	clear($inverted);
+	
+	//collect attributes
+	for ($o in $_objects) 
+	{
+		$attrs[size($attrs)] = `getAttr ($o + "." + $_attr)`;
+	}
+
+	//sort them
+	$attrs = `sort $attrs`;
+	
+	//fill new array with objects according to their sorted attributes
+	for ($i=0;$i<size($_objects);$i++) 
+	{
+		for ($j=0;$j<size($attrs);$j++) 
+		{
+			if (`getAttr ($_objects[$i] + "." + $_attr)`== $attrs[$j])  //match found
+			{
+				if (size($objects[$j])) //index occupied
+				{
+					for ($k=1;$k<100;$k++) //check next 100 indexes for occupants, break when unoccupied index is found
+					{
+						if (size($objects[$j + $k]) == 0)
+						{
+							$objects[$j + $k] = $_objects[$i];
+							break;
+						}
+					}
+					break;
+				}
+				else //index not occupied
+				{
+					$objects[$j] = $_objects[$i];
+					break;
+				}
+			}
+		}
+	}
+	
+	$return = $objects;
+
+	if ($_invert) 
+	{
+		for ($i=0;$i<size($objects);$i++) 
+		{
+			$inverted[$i] = $objects[size($objects) - 1 - $i];
+		}
+
+		$return = $inverted;
+	}
+
+	return $return;
+}
+
+global proc string[] mbSortObjectsByDistance(string $_objects[], string $_refOb, float $_maxDist, int $_returnObjects, int $_invert)
+/* args
+array objects to sort
+node reference object
+float maximum distance
+int return objects or string distances
+int invert sort
+*/
+{
+	string $return[];
+	string $objects[];
+	string $inverted[];
+	float $distances[];
+	string $stringDistances[]; //used to match return type
+	string $stringDistancesInverted[];
+	vector $refTrans;
+	vector $oTrans;
+	float $dist;
+	int $i;
+
+	$refTrans = `xform -q -ws -t $_refOb`;
+	
+	//collect attributes
+	for ($o in $_objects) 
+	{
+		$oTrans = `xform -q -ws -t $o`;
+		$dist = mbDistanceBetween($oTrans, $refTrans);
+		
+		if (0 < $_maxDist && $dist < $_maxDist)
+		{
+			$distances[size($distances)] = $dist;
+		}
+		else if ($_maxDist == 0)
+		{
+			$distances[size($distances)] = $dist;
+		}
+	}
+	
+	//sort them
+	$distances = `sort $distances`;
+	if ($_invert) 
+	{
+		$distances = mbReverseFloatArray($distances);
+	}
+
+	//fill new array with objects according to their sorted attributes
+	for ($o in $_objects) 
+	{
+		for ($i=0;$i<size($distances);$i++) 
+		{
+			$oTrans = `xform -q -ws -t $o`;
+			$dist = mbDistanceBetween($oTrans, $refTrans);
+			
+			if ($dist == $distances[$i]) 
+			{
+				$objects[$i] = $o;
+				break;
+			}
+		}
+	}
+	
+	if ($_returnObjects) 
+	{
+		$return = $objects;
+	} else {
+		for ($d in $distances)
+		{
+			$stringDistances[size($stringDistances)] = (string)$d;
+		}
+		$return = $stringDistances;
+	}
+	
+	return $return;
+}
+
+global proc mbPolyCutter() 
+{
+	global int $surfaceType; //0 = linear, 1 = cubic
+	global int $centerPivots;
+	global int $smoothness;
+	
+	string $nurbs[];
+	string $polys[];
+	string $newPolys[];
+	string $currentCutter[];
+	string $nodeA[];
+	string $nodeB[];
+	string $nodeC[];
+	string $boolResult[];
+	string $shape[];
+	string $group;
+	int $centerPivot = 1;
+	int $tesselationMethod = 1; //0 = control points, 1 = General
+	int $uSpanParams = 16;
+	int $polyCount;
+	int $nurbsCount;
+	int $go;
+
+	clear($nurbs);
+	clear($polys);
+	clear($newPolys);
+	clear($currentCutter);
+	clear($nodeA);
+	clear($nodeB);
+	clear($nodeC);
+	clear($boolResult);
+	clear($shape);
+
+	for ($s in `ls -sl`) 
+	{
+		$shape =`listRelatives -s $s`;
+		if (`nodeType $shape[0]` == "nurbsSurface") 
+		{
+			$nurbs[size($nurbs)] = $s;
+			$nurbsCount += 1;
+		}
+
+		if (`nodeType $shape[0]` == "mesh") 
+		{
+			$polys[size($polys)] = $s;
+			$polyCount += 1;
+		}
+	}
+
+	if (!$polyCount)
+	{
+		error("Dynamica PolyCutter: No Meshes selected\n");
+	}
+	
+	if (!$nurbsCount)
+	{
+		error("Dynamica PolyCutter: No NURBS Surfaces selected\n");
+	}
+	
+	if ($polyCount && $nurbsCount)
+	{
+		$go = 1;
+	}
+	
+	if ($go)
+	{
+		$group = `group -em -n dShards`;
+	
+		for ($n in $nurbs)
+		{
+			if ($surfaceType == 0) 
+			{
+				$currentCutter = `nurbsToPoly -mnd 1 -ch 0 -f 2 -pt 1 -pc 200 -chr 0.1 -ft 0.01 -mel 0.001 -d 0.1 -ut 1 -un 1 -vt 1 -vn 1 -uch 0 -ucr 0 -cht 0.2 -es 0 -ntr 0 -mrt 0 -uss 1 $n`;
+
+			}
+			else if ($surfaceType == 1)
+			{
+				$currentCutter = `nurbsToPoly -mnd 1 -ch 0 -f 2 -pt 1 -pc 200 -chr 0.1 -ft 0.01 -mel 0.001 -d 0.1 -ut 3 -un $smoothness -vt 1 -vn 1 -uch 0 -ucr 0 -cht 0.2 -es 0 -ntr 0 -mrt 0 -uss 1 $n`;
+			}
+			
+			delete -ch $currentCutter;
+
+			for ($p in $polys)
+			{
+				$nodeA = `duplicate $currentCutter[0]`;
+				$nodeB = `duplicate $currentCutter[0]`;
+				$nodeC = `duplicate $p`;
+			
+				delete -ch $nodeA[0];
+				delete -ch $nodeB[0];
+				delete -ch $nodeC[0];
+				
+				catchQuiet($boolResult = `polyBoolOp -n pShard1 -op 3 $nodeA[0] $p`);
+				if ($centerPivots) xform -cp;
+				delete -ch;
+				$newPolys[size($newPolys)] = $boolResult[0];
+				//parent $boolResult[0] $group;
+				
+				refresh;
+
+				catchQuiet($boolResult = `polyBoolOp -n pShard1 -op 2 $nodeC[0] $nodeB[0]`);
+				if ($centerPivots) xform -cp;
+				delete -ch;
+				$newPolys[size($newPolys)] = $boolResult[0];
+				//parent $boolResult[0] $group;
+				
+				refresh;
+
+				clear($nodeA);
+				clear($nodeB);
+				clear($nodeC);
+			}
+
+			delete $currentCutter[0];
+			clear($currentCutter);
+			clear($polys);
+			$polys = $newPolys;
+			clear($newPolys);
+		}
+		
+		/* cleanup */
+		clear($nurbs);
+		clear($polys);
+		clear($newPolys);
+		clear($currentCutter);
+		clear($nodeA);
+		clear($nodeB);
+		clear($nodeC);
+		clear($boolResult);
+		clear($shape);
+	}
+}
+
+global proc float[] mbRandomizeFloatArray(float $array[])
+{
+	int $tmp[];
+	float $randArray[];
+	int $arraySize = `size($array)`;
+	int $index = 0;
+	int $i;
+	int $j;
+	
+	for ($i=0;$i<$arraySize;$i++) $tmp[$i] = 0;
+
+	for ($i=0;$i<100000;$i++) //iterate!
+	{
+		$j = `rand $arraySize`;
+		if($tmp[$j] == 0) //hit
+		{
+			$tmp[$j] = 1; //marked as hit
+			$randArray[$index] = $array[$j];
+			$index++;
+		}
+		
+		if($index > $arraySize) break;
+	}
+
+	return $randArray;
+}
