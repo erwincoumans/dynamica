@@ -72,6 +72,22 @@ global proc string mbGetType(string $node)
 	return `objectType $node`;
 }
 
+global proc mbHideAndLockTransform(string $node)
+{
+	if (mbIsTransform($node))
+	{
+		setAttr -lock true -keyable false -channelBox false ($node + ".tx");
+		setAttr -lock true -keyable false -channelBox false ($node + ".ty");
+		setAttr -lock true -keyable false -channelBox false ($node + ".tz");
+		setAttr -lock true -keyable false -channelBox false ($node + ".rx");
+		setAttr -lock true -keyable false -channelBox false ($node + ".ry");
+		setAttr -lock true -keyable false -channelBox false ($node + ".rz");
+		setAttr -lock true -keyable false -channelBox false ($node + ".sx");
+		setAttr -lock true -keyable false -channelBox false ($node + ".sy");
+		setAttr -lock true -keyable false -channelBox false ($node + ".sz");
+	}
+}
+
 global proc float mbScaleFloat(float $valueToScale, float $originalRangeMin, float $originalRangeMax, float $newRangeMin, float $newRangeMax)
 {
 	//args: valueToScale, originalRangeMin, originalRangeMax, newRangeMin, newRangeMax
@@ -161,7 +177,9 @@ global proc mbTransferKeys(string $fromNode, string $toNode, int $optimize)
 
 global proc string[] mbGetConnectedTransforms(string $node)
 {
-	return `listConnections -t "transform" $node`;
+	string $connections[];
+	$connections = `listConnections -t "transform" $node`;
+	return $connections;
 }
 
 global proc float mbMeshVolume(string $node) 
