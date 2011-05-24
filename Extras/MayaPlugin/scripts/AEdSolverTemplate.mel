@@ -27,7 +27,7 @@ global proc AEdSolverTemplate( string $nodeName )
 	
     editorTemplate -beginScrollLayout;
 	
-    editorTemplate -addControl ssSolverType;
+    //editorTemplate -addControl ssSolverType;
 
     editorTemplate -addControl gravity;
 

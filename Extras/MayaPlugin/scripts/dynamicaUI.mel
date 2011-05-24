@@ -58,7 +58,7 @@ Bake tab:
 
 Future release:
 
-- integrate compound object breaking stuff
+- integrate compound object breaking
 - create secondary UI for advanced features like volume/mass calculation, rope creation, shatter tools, Polycutter, etc.
 - integrate log panel into dynamicaUI - to provide better feedback to user
 
@@ -66,16 +66,18 @@ Future release:
 
 //dynamicaUI.mel
 
-//int
+//TODO: constraint group and layer, check who's added to bake group
+
+//init
 global proc dynamicaUI_initialize()
 {
 	//this proc is called from the plugin
-	print("loading Dynamica plugin...\n");
+	print("Loading Dynamica plugin...\n");
 	dynamicaUI_createShelf();
-	print("Dynamica plugin loaded.\n");
+	print("Loading Dynamica plugin...complete.\n");
 }
     
-global proc dynamicaUI_init()
+global proc dynamicaUI_initWindow()
 {	
 	source "mbUtils";
 	
@@ -106,13 +108,12 @@ global proc dynamicaUI_createShelf()
 		global string $gShelfTopLevel;
 		$btnParent = `shelfLayout -p $gShelfTopLevel $shelf`;
 	}
-
-	// Make (or remake) the tool button.
-	shelfButton -i1 "dynamicaMainWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $btnParent;
+	
+	shelfButton -i1 "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $btnParent;
 	
 	shelfButton -i1 "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create active sphere rigid bodies" -p $btnParent;
-	shelfButton -i1 "dynamicaCreateActiveCube.xpm" 
+	shelfButton -i1 "dynamicaCreateActiveBox.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create active box rigid bodies" -p $btnParent;
 	shelfButton -i1 "dynamicaCreateActiveHull.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $btnParent;
@@ -121,7 +122,7 @@ global proc dynamicaUI_createShelf()
 		
 	shelfButton -i1 "dynamicaCreatePassiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid bodies" -p $btnParent;
-	shelfButton -i1 "dynamicaCreatePassiveCube.xpm" 
+	shelfButton -i1 "dynamicaCreatePassiveBox.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create passive box rigid bodies" -p $btnParent;
 	shelfButton -i1 "dynamicaCreatePassiveHull.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies" -p $btnParent;
@@ -131,29 +132,7 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $btnParent;
 	shelfButton -i1 "dynamicaCreatePassivePlane.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create passive plane rigid bodies" -p $btnParent;
-		
-	// shelfButton -i1 "dynamicaCreateActiveSphereArray.xpm"
-		// -c "dynamicaUI_createRigidBodyArray(true, 5)" -ann "Create an active sphere rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreateActiveCubeArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(true, 4)" -ann "Create an active box rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreateActiveHullArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(true, 0)" -ann "Create an active hull rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreateActiveMeshArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(true, 1)" -ann "Create an active mesh rigid body array" -p $btnParent;
-		
-	// shelfButton -i1 "dynamicaCreatePassiveSphereArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 5)" -ann "Create an passive sphere rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreatePassiveCubeArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 4)" -ann "Create an passive box rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreatePassiveHullArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 0)" -ann "Create an passive hull rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreatePassiveMeshArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive mesh rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreatePassiveBvhMeshArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive mesh rigid body array" -p $btnParent;
-	// shelfButton -i1 "dynamicaCreatePassivePlaneArray.xpm" 
-		// -c "dynamicaUI_createRigidBodyArray(false, 6)" -ann "Create an passive plane rigid body array" -p $btnParent;
-		
+
 	shelfButton -i1 "dynamicaCreateNailConstraint.xpm" 
 		-c "dynamicaUI_createConstraint(0)" -ann "Create a nail constraint" -p $btnParent;
 	shelfButton -i1 "dynamicaCreateHingeConstraint.xpm" 
@@ -181,21 +160,25 @@ global proc dynamicaUI_createShelf()
 	shelfButton -i1 "dynamicaActivateRadialIn.xpm" 
 		-c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $btnParent;
 		
-	shelfButton -i1 "dynamicaDeactivate.xpm" 
-		-c "dynamicaUI_deactivateRigidBodies()" -ann "Remove activation from selected rigid bodies" -p $btnParent;
+	shelfButton -i1 "dynamicaUnactivate.xpm" 
+		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies" -p $btnParent;
+	shelfButton -i1 "dynamicaMakePassive.xpm" 
+		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $btnParent;
 		
 	shelfButton -i1 "dynamicaBakeSelected.xpm" 
 		-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $btnParent;
 	shelfButton -i1 "dynamicaBakeAll.xpm" 
 		-c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $btnParent;
+		
+	shelfButton -i1 "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $btnParent;
 }
 
 //UI
 global proc dynamicaUI_createWindow()
 {
-	print "Opening Main Dynamica Window...\n";
 	global string $dynamicaUI_window;
 	global string $dynamicaUI_tabs;
+	global string $dynamicaUI_helpLine;
 
 	if ( `window -ex $dynamicaUI_window` )
 	{
@@ -203,18 +186,17 @@ global proc dynamicaUI_createWindow()
 		return;
 	}
 
-	//create dSolver node if necessary
-	dSolver;
+	dSolver; //create dSolver node if necessary
 
 	$dynamicaUI_window = `window -s 1 -t "Dynamica - powered by Bullet" -in "Dynamica"`;
 	string $mainForm = `formLayout`;
 	$dynamicaUI_tabs = `tabLayout -imw 5 -imh 5 -scr 0`;
-
+	
 	formLayout -e 
 		-af $dynamicaUI_tabs "top" 0 -af $dynamicaUI_tabs "left" 0 
 		-af $dynamicaUI_tabs "bottom" 0 -af $dynamicaUI_tabs "right" 0 
 	$mainForm;
-
+	
 	string $mainLayt = dynamicaUI_createMainTab();
 	string $activateLayt = dynamicaUI_createActivateTab();
 	string $bakeLayt = dynamicaUI_createBakeTab();
@@ -226,23 +208,40 @@ global proc dynamicaUI_createWindow()
 		-tl $bakeLayt "Bake"
 		-tl $solverLayt "Options" 
 	$dynamicaUI_tabs;
-
-	dynamicaUI_init();
+	
+	setParent ..;
+	string $frame = `frameLayout -lv 0`;
+	$dynamicaUI_helpLine = `textField -ed 0 -bgc 0.8 0.9 0.8 -tx "Dynamica main window loaded"`;
+	
+	formLayout -edit
+		-attachNone $frame  "top"
+		-attachForm $frame  "left"   0
+		-attachForm $frame  "bottom" 0
+		-attachForm $frame  "right"  0
+	$mainForm;
+		
+	dynamicaUI_initWindow();
 
 	showWindow $dynamicaUI_window;
 	window -e -wh 500 480 $dynamicaUI_window;
 }
 
+global proc dynamicaUI_tools()
+{
+	source "dynamicaUITools";
+	dynamicaUI_addTools();
+}
+
 global proc string dynamicaUI_createMainTab()
 {
-	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
+	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane, 7 = Bvh
 	string $mainForm = `columnLayout -adj 1`;
 		dynamicaUI_createFrame("Active Rigid Bodies", 0, 0);
 			rowLayout -nc 5;
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i1 "dynamicaCreateActiveSphere.xpm" 
 					-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body";
 
-				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreateActiveCube.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreateActiveBox.xpm" 
 					-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create an active box rigid body";
 
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i1 "dynamicaCreateActiveHull.xpm" 
@@ -258,7 +257,7 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i1 "dynamicaCreatePassiveSphere.xpm" 
 					-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create an passive sphere rigid body";
 
-				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreatePassiveCube.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreatePassiveBox.xpm" 
 					-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create an passive box rigid body";
 
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i1 "dynamicaCreatePassiveHull.xpm" 
@@ -280,7 +279,7 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i1 "dynamicaCreateActiveSphereArray.xpm"
 					-c "dynamicaUI_createRigidBodyArray(true, 5)" -ann "Create an active sphere rigid body array";
 
-				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreateActiveCubeArray.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreateActiveBoxArray.xpm" 
 					-c "dynamicaUI_createRigidBodyArray(true, 4)" -ann "Create an active box rigid body array";
 
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i1 "dynamicaCreateActiveHullArray.xpm" 
@@ -296,7 +295,7 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i1 "dynamicaCreatePassiveSphereArray.xpm" 
 					-c "dynamicaUI_createRigidBodyArray(false, 5)" -ann "Create an passive sphere rigid body array";
 
-				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreatePassiveCubeArray.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i1 "dynamicaCreatePassiveBoxArray.xpm" 
 					-c "dynamicaUI_createRigidBodyArray(false, 4)" -ann "Create an passive box rigid body array";
 
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i1 "dynamicaCreatePassiveHullArray.xpm" 
@@ -385,9 +384,11 @@ global proc string dynamicaUI_createActivateTab()
 		setParent ..;
 		
 		dynamicaUI_createFrame("Remove Activation", 0, 0);
-			rowLayout -nc 1;
-				iconTextButton -st "iconAndTextVertical" -l "Deactivate" -w 75 -i1 "dynamicaDeactivate.xpm" 
-					-c "dynamicaUI_deactivateRigidBodies()" -ann "Remove activation from selected rigid bodies";
+			rowLayout -nc 2;
+				iconTextButton -st "iconAndTextVertical" -l "Unactivate" -w 75 -i1 "dynamicaUnactivate.xpm" 
+					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies";
+				iconTextButton -st "iconAndTextVertical" -l "Make Passive" -w 75 -i1 "dynamicaMakePassive.xpm" 
+					-c "dynamicaUI_deactivateRigidBodies(1)" -ann "Make selected rigid bodies passive";
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -413,6 +414,8 @@ global proc string dynamicaUI_createBakeTab()
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $start -cc "$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`" bakeStart;
 				floatField -pre 3 -w 50 -v $end -cc "$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
+				$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`;
+				$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`;
 			setParent ..;
 		setParent ..;
 		
@@ -452,7 +455,8 @@ global proc string dynamicaUI_createOptionsTab()
 	global string $dynamicaUI_STsplitImpulse;
 	global string $dynamicaUI_STsubsteps;
 	global string $dynamicaUI_STphysicsrate;
-	global string $dynamicaUI_STcollisionMargin; //why are these strings?
+	global string $dynamicaUI_STcollisionMargin;
+	global float $dynamicaUI_collisionMargin;
 	
 	string $mainForm = `columnLayout -adj 1`;
 		dynamicaUI_createFrame("Gravity", 0, 0);
@@ -483,10 +487,11 @@ global proc string dynamicaUI_createOptionsTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Collision Margin", 0, 0);
+		dynamicaUI_createFrame("Collision Margin (creation only)", 0, 0);
 			rowLayout -nc 1;
-				float $collisionMargin = 0.04; //`getAttr dSolver1.collisionMargin`; 
-				$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $collisionMargin`;
+				$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
+				$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $dynamicaUI_collisionMargin
+					-cc "$dynamicaUI_collisionMargin = `floatField -q -v $dynamicaUI_STcollisionMargin`"`;
 				connectControl $dynamicaUI_STcollisionMargin dSolver1.collisionMargin;
 			setParent ..;
 		setParent ..;
@@ -534,15 +539,36 @@ global proc string dynamicaUI_createHelpTab()
 
 global proc string dynamicaUI_createFrame(string $label, int $collapsable, int $collapsed) 
 {
-	return `frameLayout -cll $collapsable -cl $collapsed -mh 3 -mw 6 -w 486 -bv 0 -l $label`;
+	return `frameLayout -cll $collapsable -cl $collapsed -mh 3 -mw 6 -w 486 -bs "etchedIn" -l $label`;
 }
 
-//utility procs
+global proc dynamicaUI_print(string $out, int $mode)
+{
+	//modes: 0 = print, 1 = warning, 2 = error
+	global string $dynamicaUI_helpLine;
+	switch ($mode)
+	{
+		case 0:
+			textField -e -bgc 0.8 0.9 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+			print("Dynamica: " + $out + "\n");
+			break;
+		case 1:
+			textField -e -bgc 1.0 1.0 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+			warning("Dynamica Warning: " + $out + "\n");
+			break;
+		case 2:
+			textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+			error("Dynamica Error: " + $out + "\n");
+			break;
+	}
+}
 
+//procs
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 {
 	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
 	global float $dynamicaUI_startFrame;
+	global float $dynamicaUI_collisionMargin;
 	float $mass = 1; 
 	string $meshLayer = "DynamicaInputMeshes";
 	string $rbLayer = "DynamicaRigidBodies";
@@ -551,21 +577,21 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	string $newBodies[];
 	string $rbGroup;
 	string $meshGroup;
+	string $margin;
 	int $bodyCount = 0;
 	int $makeCollisionShape = 1;
-
+	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //multiplier compensates for 
+	
 	if ($activebody == false) $mass = 0;
 	
-	//create dSolver node if necessary
-	dSolver;
+	dSolver; //create dSolver node if necessary
 	
 	//pick the selected object's transform only if we are creating a hull or a mesh
 	if ($collisionShapeType == 0 || $collisionShapeType == 1) 
 	{
 		if (size($selection))
 		{
-			print("// Dynamica: Creating rigid bodies...\n");
-		
+			dynamicaUI_print("Creating Dynamica Rigid Bodies...", 0);
 			//create groups and layers if necessary
 			$rbGroup = `group -em -n dRigidBodies`;
 			$meshGroup = `group -em -n dMeshes`;
@@ -590,6 +616,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						{
 							mbFreezeScale($obSelection[$i]);
 							mbUnFreezeTranslation($obSelection[$i]);
+							if ($activebody) $margin = mbDeflate($obSelection[$i], $collisionMargin); //if active, deflate
 						}
 						
 						string $rigidBodyNode = `dRigidBody`;
@@ -605,7 +632,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						
 						if (mbIsKeyed($obSelection[$i]))
 						{
-							warning("Dynamica: Object " + $obSelection[$i] + "'s transform is keyed, creating kinematic collider...");
+							warning($obSelection[$i] + "'s transform is keyed, creating kinematic collider...");
 							$mass = 0;
 							mbTransferKeys($obSelection[$i], $rigidBodyTransforms[0], 1);
 						}
@@ -629,29 +656,32 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						$newBodies[$i] = $rigidBodyTransforms[0];
 						
 						//add to groups and layers
-						mbAddToLayer($shapeTransforms[0], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
-						mbAddToLayer($rigidBodyNode, $rbLayer);
-						parent $shapeTransforms[0] $meshGroup;
-						parent $rigidBodyNode $rbGroup;
+						mbAddToLayer($obSelection[$i], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
+						mbAddToLayer($rigidBodyTransforms[0], $rbLayer);
+						parent $obSelection[$i] $meshGroup;
+						parent $rigidBodyTransforms[0] $rbGroup;
 						$bodyCount++;
+						
+						refresh;
+						if ($activebody) mbUnflate($margin); //if active, restore shape
 					}
 					else
 					{
-						warning("Dynamica: " + $obSelection[$i] + " is not a Polymesh, rigid body not created!");
+						dynamicaUI_print($obSelection[$i] + " is not a Polymesh, rigid body not created!", 1);
 					}
 				}
 				else
 				{
-					warning("Dynamica: Object " + $shapeTransforms[0] + " is already connected to a rigid body");
+					dynamicaUI_print($shapeTransforms[0] + " is already a rigid body", 1);
 					//$newBodies[$i] = $shapeTransforms[0];
 				}
 				$makeCollisionShape = 1;
 			}
-			print ("// Dynamica: " + $bodyCount + " rigid bodies created.\n");
+			if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies.", 0);
 		}
 		else
 		{
-			warning("Dynamica: Unable to create rigid body(s) of hull or mesh type, select Polymesh objects first...");
+			dynamicaUI_print("Unable to create rigid body(s), select Polymesh objects first...", 1);
 		}
 	} 
 	else //create primitive
@@ -665,25 +695,24 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 		setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
 		$newBodies[0] = $rigidBodyTransforms[0];
 		
-		print ("// Dynamica: Rigid body primitive created.\n");
+		dynamicaUI_print("Created rigid body primitive: " + $rigidBodyNode, 0);
 	}
 
 	currentTime $dynamicaUI_startFrame; //force refresh
 	select -r $newBodies;
 }
 
-global proc dynamicaUI_createConstraint(int $constraintType)
+global proc string dynamicaUI_createConstraint(int $constraintType)
 {
 	//0 = Nail, 1 = Hinge, 2 = Slider, 3 = 6Dof
-	
 	string $selection[] = `ls -sl`;
 	string $constraintTransforms[];
 	$selection = `listRelatives -s $selection`;
 	string $constraintNode;
 	string $newConstraintTransf;
 	
-	//create dSolver node if necessary
-	dSolver;
+	dSolver; //create dSolver node if necessary
+	
 	// check selection in scene : one or two rigidBodies should be selected
 	int $selSize = size($selection);
 	int $selOK = (($selSize == 1) || ($selSize == 2));
@@ -691,22 +720,18 @@ global proc dynamicaUI_createConstraint(int $constraintType)
 	if ($selSize > 2) //more than 2 objects selected
 	{
 		dynamicaUI_constrainMultiple($constraintType);
-		return;
+		return "";
 	}
 	
-	for ($s in $selection) 
-	{	 
-		if(`nodeType $s` != "dRigidBody") 
-		{
-			$selOK = 0;
-		}
-	}
+	for ($s in $selection) if(`nodeType $s` != "dRigidBody") $selOK = 0;
+	
 	if(!$selOK)
 	{
-		error("Dynamica: Select one or two bodies to create a constraint");
-		return;
+		dynamicaUI_print("Select one or more rigid bodies to create a constraint.", 2);
+		return "";
 	}
-	//create nail constraint node
+	
+	//create constraint node
 	switch ($constraintType)
 	{
 		case 0:
@@ -725,6 +750,7 @@ global proc dynamicaUI_createConstraint(int $constraintType)
 	
 	$constraintTransforms = `listRelatives -parent $constraintNode`;
 	$newConstraintTransf = $constraintTransforms[0];
+	
 	//connect to bodies
 	if($selSize == 1)
 	{
@@ -758,18 +784,49 @@ global proc dynamicaUI_createConstraint(int $constraintType)
 		setAttr ($newConstraintTransf + ".translate") -type float3 $pivW[0] $pivW[1] $pivW[2];
 	}
 	select -r $newConstraintTransf;
+	return $newConstraintTransf;
 }
 
 global proc dynamicaUI_constrainMultiple(int $constraintType)
 {
 	string $sel[] = `ls -sl`;
+	string $selTmp[] = $sel;
+	string $overlapping[];
 	string $nearest[];
+	string $newConstraint;
+	string $constraintLayer = "DynamicaConstraints";
+	string $constraintGroup;
+	int $constraintCount = 0;
 
 	//filter selection
 	for ($s in $sel) if (!mbIsType($s, "dRigidBody")) select -d $s;
 	
-	//update selection, collect nearest
+	$overlapping = mbGetOverlappingTransforms($sel);
+	if (size($overlapping))
+	{
+		dynamicaUI_print("Spatial duplicates found and ignored.", 1);
+		print("Dynamica: overlapping transforms ----------------- :\n");
+		print($overlapping);
+		select -d $overlapping;
+	}
+
 	$sel = `ls -sl`;
+	if (size($sel) < 2)
+	{
+		select -r $selTmp;
+		dynamicaUI_print("No constrainable rigid bodies in selection", 2);
+		return;
+	}
+	else
+	{
+		dynamicaUI_print("Creating Dynamica Constraints...", 0);
+		//create groups and layers if necessary
+		$constraintGroup = `group -em -n dConstraints`;
+		mbHideAndLockTransform($constraintGroup);
+		mbCreateLayer($constraintLayer, 0);
+	}
+	
+	//collect and sort nearest RBs
 	for ($s in $sel) $nearest = mbSortObjectsByDistance($sel, $s, 0, 1, 0);
 	
 	for ($i=0;$i<size($nearest)-1;$i++)
@@ -779,23 +836,28 @@ global proc dynamicaUI_constrainMultiple(int $constraintType)
 		switch ($constraintType)
 		{
 			case 0:
-				dynamicaUI_createConstraint(0);
+				$newConstraint = dynamicaUI_createConstraint(0);
 				break;
 			case 1:
-				dynamicaUI_createConstraint(1);
+				$newConstraint = dynamicaUI_createConstraint(1);
 				break;
 			case 2:
-				dynamicaUI_createConstraint(2);
+				$newConstraint = dynamicaUI_createConstraint(2);
 				break;
 			case 3:
-				dynamicaUI_createConstraint(3);
+				$newConstraint = dynamicaUI_createConstraint(3);
 				break;
 		}
+		$constraintCount++;
+		mbAddToLayer($newConstraint, $constraintLayer);
+		parent $newConstraint $constraintGroup;
 		refresh;
 	}
 	
+	dynamicaUI_print("Created " + $constraintCount + " constraints.", 0);
 	clear($nearest);
 	clear($sel);
+	
 }
 
 global proc dynamicaUI_createRigidBodyArray(int $activebody, int $collisionShapeType)
@@ -936,26 +998,6 @@ global proc int bulletExportOptions( string $parent, string $action, string $set
 	return 1;
 }
 
-global proc dynamicaUI_get3dTextureNodes() 
-{
-	
-	global string $dynamicaUI_3dTextureList;
-	
-	textScrollList -e -ra $dynamicaUI_3dTextureList;
-	$dynamicaUI_3dTextureNodes = `ls -type texture3d`;
-	int $i;
-	if (size($dynamicaUI_3dTextureNodes)) 
-	{
-		for ($i=0;$i<size($dynamicaUI_3dTextureNodes);$i++) {
-			textScrollList -e -append $dynamicaUI_3dTextureNodes[$i] $dynamicaUI_3dTextureList;
-		}
-	}
-	else 
-	{
-		textScrollList -e -append "No 3D Textures Found in Scene..." $dynamicaUI_3dTextureList;
-	}
-}
-
 global proc dynamicaUI_activateAxis(int $axis)
 {
 	global int $dynamicaUI_activateAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z
@@ -997,11 +1039,11 @@ global proc dynamicaUI_activateRigidBodies()
 	if (!size($sel)) 
 	{
 		select -r $selTmp; //restore original selection
-		error("Dynamica: No rigid bodies found in selection.");
+		dynamicaUI_print("No rigid bodies found in selection.", 2);
 		return;
 	}
 	
-	print("Dynamica: Activating " + size($sel) + " rigid bodies...\n");
+	dynamicaUI_print("Activating " + size($sel) + " rigid bodies...", 0);
 	if ($dynamicaUI_activateInputMethod == 0) 
 	{
 		// filter axis
@@ -1040,16 +1082,16 @@ global proc dynamicaUI_activateRigidBodies()
 		}
 	}
 
+	dynamicaUI_print(size($sel) + " rigid bodies activated. Frame range: "
+		+ $dynamicaUI_activateStartFrame + " - " + $dynamicaUI_activateEndFrame, 0);
+		
 	//cleanup
 	clear($sel);
 	clear($sorted);
 	clear($attrs);
-	
-	print("Dynamica: " + size($sel) + " rigid bodies activated. Frame range: "
-		+ $dynamicaUI_activateStartFrame + " - " + $dynamicaUI_activateEndFrame + ". Open Script Editor for details ------>\n");
 }
 
-global proc dynamicaUI_deactivateRigidBodies()
+global proc dynamicaUI_deactivateRigidBodies(int $toPassive)
 {
 	string $sel[] = `ls -sl`;
 	string $selTmp[] = `ls -sl`;
@@ -1061,7 +1103,7 @@ global proc dynamicaUI_deactivateRigidBodies()
 	if (!size($sel)) 
 	{
 		select -r $selTmp; //restore original selection
-		error("Dynamica: No rigid bodies objects found in selection.");
+		dynamicaUI_print("No rigid bodies found in selection.", 2);
 		return;
 	}
 	
@@ -1069,9 +1111,10 @@ global proc dynamicaUI_deactivateRigidBodies()
 	{
 		cutKey -at "mass" -cl $s;
 		setAttr ($s + ".mass") 1;
+		if ($toPassive) setAttr ($s + ".mass") 0;
 	}
 	
-	print("Dynamica: " + size($sel) + " rigid bodies deactivated\n");
+	dynamicaUI_print(size($sel) + " rigid bodies deactivated.", 0);
 }
 
 global proc dynamicaUI_bakeRigidBodies()
@@ -1087,6 +1130,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	string $dBakeLayer = "DynamicaBaked";
 	string $bakeGroup;
 	string $sel[] = `ls -sl`;
+	string $toBake[];
 	string $preKeyed[];
 	string $baked[];
 	float $progress;
@@ -1096,7 +1140,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	
 	//select all rigid bodies
 	if ($dynamicaUI_bakeAll) $sel = `ls -tr`;
-	for ($s in $sel) if (mbIsType($s, "dRigidBody")) select -add $s;
+	for ($s in $sel) if (mbIsType($s, "dRigidBody")) mbAddToSelection($s);
 	$sel = `ls -sl`;
 	
 	//remove prekeyed objects from selection
@@ -1106,14 +1150,13 @@ global proc dynamicaUI_bakeRigidBodies()
 		{
 			$preKeyed[size($preKeyed)] = $s;
 			select -d $s;
-			warning("Dynamica: " + $s + " is already keyed, ignored.");
 		}
 	}
 	
 	$sel = `ls -sl`;
 	if (!size($sel)) 
 	{
-		error("Dynamica: No rigid bodies to bake. Open Script Editor for details ------>");
+		error("Dynamica: No rigid bodies to bake.");
 		select -r $sel;
 		return;
 	}
@@ -1141,20 +1184,25 @@ global proc dynamicaUI_bakeRigidBodies()
 		$connectedTransforms = mbGetConnectedTransforms($s);
 		if (size($connectedTransforms))
 		{
-			if (mbIsMesh($connectedTransforms[0])) select -add $connectedTransforms[0];
-			mbAddToLayer($connectedTransforms[0], $dBakeLayer);
-			parent $connectedTransforms[0] $bakeGroup;
+			if (mbIsMesh($connectedTransforms[0])) 
+			{
+				$toBake[size($toBake)] = $connectedTransforms[0];
+				mbAddToLayer($connectedTransforms[0], $dBakeLayer);
+				parent $connectedTransforms[0] $bakeGroup;
+			}
 		}
 		else 
 		{
-			select -add $s;
+			$toBake[size($toBake)] = $s;
 			mbAddToLayer($s, $dBakeLayer);
 			parent $s $bakeGroup;
 		}
 	}
 	
+	select -r $toBake;
+	
 	//bake!
-	print("Dynamica: Starting bake...");
+	print("Dynamica: Starting bake...\n");
 	$baked = `ls -sl`;
 	cycleCheck -e off;
 	bakeResults 
@@ -1195,6 +1243,7 @@ global proc dynamicaUI_bakeRigidBodies()
 			}
 		}
 
+		//if rigid body primitive, don't delete
 		if (mbIsType($s, "dRigidBody"))
 		{
 			$connectedTransforms = mbGetConnectedTransforms($s);
@@ -1278,18 +1327,3 @@ global proc dynamicaUI_syncSolver()
 		print("Dynamica: Updated solver Start Time to: " + (string)$dynamicaUI_startFrame + "\n");
 	}
 }
-
-//volume computation...
-// float $obVolume;
-// float $minVolume = 10000;
-// float $maxVolume = 0;
-// float $massMin = 1;
-// float $massMax = 100;
-// for ($i = 0; $i < size($selection) / 2; $i++) 
-// {
-// $obVolume = mbMeshVolume($obSelection[$i]);
-// if ($obVolume > $maxVolume) $maxVolume = $obVolume;
-// if ($obVolume < $minVolume) $minVolume = $obVolume;
-// }
-//$obVolume = mbMeshVolume($obSelection[$i]);
-//$mass = mbScaleValue($obVolume, $minVolume, $maxVolume, $massMin, $massMax);

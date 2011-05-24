@@ -25,9 +25,23 @@ distribution.
 written by Michael Baker <michael@mBakr.com>
 */
 
+global proc string[] mbListNodeTypes()
+{
+	return `allNodeTypes`;
+}
+
+global proc string[] mbListGlobals()
+{
+	return `env`;
+}
+
+global proc mbRefreshNode(string $node)
+{
+	dgeval $node;
+}
+
 global proc int mbIsKeyed(string $node)
 {
-	//args: nodeName
 	$connections = `listConnections -s 1 -d 0 $node`;
 	for ($c in $connections) if (`isAnimCurve $c`) return 1;
 	return 0;
@@ -35,14 +49,12 @@ global proc int mbIsKeyed(string $node)
 
 global proc int mbIsTransform(string $node)
 {
-	//args: nodeName
 	if (`objectType $node` == "transform") return 1;
 	return 0;
 }
 
 global proc int mbIsMesh(string $node)
 {
-	//args: nodeName
 	$shape =`listRelatives -s $node`;
 	if (size($shape) && `nodeType $shape[0]` == "mesh") return 1;
 	return 0;
@@ -50,7 +62,6 @@ global proc int mbIsMesh(string $node)
 
 global proc int mbIsType(string $node, string $type)
 {
-	//args: nodeName, nodeType
 	$types = {"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
 	$shape = `listRelatives $node`;
 	if (size($shape)) 
@@ -63,13 +74,83 @@ global proc int mbIsType(string $node, string $type)
 
 global proc string mbGetShape(string $node)
 {
-	$shape = `listRelatives $node`;
+	string $shape[] = `listRelatives -pa -f $node`;
 	return $shape[0];
 }
 
 global proc string mbGetType(string $node)
 {
 	return `objectType $node`;
+}
+
+global proc string mbGetParent(string $node)
+{
+	string $parents[] = `listRelatives -p $node`;
+	return $parents[0];
+}
+
+global proc string mbGetParentPath(string $node)
+{
+	string $parents[] = `listRelatives -f -pa -ap $node`;
+	return $parents[0];
+}
+
+global proc string mbGetAbsolutePath(string $node)
+{
+	string $parents[] = `listRelatives -f -pa -ap $node`;
+	return ($parents[0] + "|" + $node);
+}
+
+global proc string[] mbGetConnectedTransforms(string $node)
+{
+	return `listConnections -t "transform" $node`;
+}
+
+global proc string mbGetConnectedByType(string $node, string $type)
+{
+	string $connections[] = `listConnections -t $type $node`;
+	return $connections[0];
+}
+
+global proc string[] mbGet3dTextureNodes() 
+{
+	return `ls -type texture3d`;
+}
+
+global proc mbAddToSelection(string $nodeToAdd)
+{
+	select -add $nodeToAdd;
+}
+
+global proc mbSelectAllByType(string $type)
+{
+	select -cl;
+	string $sel[] = `ls -typ $type`;
+	select -r $sel;
+	clear($sel);
+}
+
+global proc string[] mbGetAllByType(string $type)
+{
+	return `ls -typ $type`;
+}
+
+global proc string mbGetTmpName(string $prefix)
+{
+	string $t = (string)`timerX`;
+	$t = `substitute "[.]" $t ""`;
+	return $prefix + "_" + $t;
+}
+
+global proc string mbRenameNode(string $node, string $newname)
+{
+	return `rename $node $newname`;
+}
+
+global proc string mbRenameNodeUnique(string $node)
+{
+	string $t = (string)`timerX`;
+	return `rename $node ($node + $t)`;
 }
 
 global proc mbHideAndLockTransform(string $node)
@@ -175,11 +256,39 @@ global proc mbTransferKeys(string $fromNode, string $toNode, int $optimize)
 	setAttr ($fromNode + ".visibility") 1; //force $fromNode visibility
 }
 
-global proc string[] mbGetConnectedTransforms(string $node)
+global proc string mbDeflate(string $node, float $margin)
 {
-	string $connections[];
-	$connections = `listConnections -t "transform" $node`;
-	return $connections;
+	string $result[] = `polyMoveVertex -ws 1 -ltz ($margin * -1.) $node`;
+	select -r $node;
+	return $result[0];
+}
+
+global proc string mbInflate(string $node, float $margin)
+{
+	string $result[] = `polyMoveVertex -ws 1 -ltz $margin $node`;
+	select -r $node;
+	return $result[0];
+}
+
+global proc mbUnflate(string $node)
+{
+	string $type = mbGetType($node);
+	if ($type == "polyMoveVertex" || $type == "polyMoveEdge" || $type == "polyMoveFace")
+	{
+		setAttr ($node + ".localTranslateX") 0;
+		setAttr ($node + ".localTranslateY") 0;
+		setAttr ($node + ".localTranslateZ") 0;
+	}
+	if ($type == "polyMoveEdge" || $type == "polyMoveFace")
+	{
+		setAttr ($node + ".localRotateX") 0;
+		setAttr ($node + ".localRotateY") 0;
+		setAttr ($node + ".localRotateZ") 0;
+		setAttr ($node + ".localScaleX") 0;
+		setAttr ($node + ".localScaleY") 0;
+		setAttr ($node + ".localScaleZ") 0;
+	}
+	
 }
 
 global proc float mbMeshVolume(string $node) 
@@ -196,7 +305,7 @@ global proc float mbMeshVolume(string $node)
 		polyTriangulate $tmp[0];
 		
 		$triangles = `ls -flatten ($tmp[0] + ".f[*]")`;
-		for ($t in $triangles) $volume += mbPrisVol($t) ;
+		for ($t in $triangles) $volume += mbTriangleVolume($t) ;
 		delete $tmp;
 		clear($tmp);
 		clear($triangles);
@@ -210,7 +319,7 @@ global proc float mbMeshVolume(string $node)
 	return -1;
 }
 
-global proc float mbPrisVol(string $triangle) {
+global proc float mbTriangleVolume(string $triangle) {
 	vector $faceNormal;
     string $verts[] = `polyListComponentConversion -tv $triangle`;
     $verts = `ls -flatten $verts`;
@@ -221,7 +330,7 @@ global proc float mbPrisVol(string $triangle) {
 
     if (`size $verts` != 3)
 	{ 
-		error("mbPrisVol: not a triangle"); 
+		error("mbTriangleVolume: not a triangle"); 
 	}
 	else
 	{
@@ -290,13 +399,33 @@ global proc float mbDistanceBetweenNodes(string $nodeA, string $nodeB)
 	return mbDistanceBetween(`xform -q -ws -t $nodeA`, `xform -q -ws -t $nodeB`);
 }
 
+global proc string[] mbGetOverlappingTransforms(string $transforms[])
+{
+	string $tmp[];
+	for ($t in $transforms)
+	{
+		$tx = getAttr ($t + ".tx");
+		$ty = getAttr ($t + ".ty");
+		$tz = getAttr ($t + ".tz");
+		for ($t2 in $transforms)
+		{
+			$t2x = getAttr ($t2 + ".tx");
+			$t2y = getAttr ($t2 + ".ty");
+			$t2z = getAttr ($t2 + ".tz");
+			if ($t != $t2 && $tx == $t2x && $ty == $t2y && $tz == $t2z)
+			{
+				$tmp[size($tmp)] = $t;
+				break;
+			}
+		}
+	}
+	return $tmp;
+}
+
 global proc float[] mbReverseFloatArray(float $array[]) 
 {
 	float $tmp[];
-	for ($i=0;$i<size($array);$i++) 
-	{
-		$tmp[$i] = $array[size($array) - 1 - $i];
-	}
+	for ($i=0;$i<size($array);$i++) $tmp[$i] = $array[size($array) - 1 - $i];
 	return $tmp;
 }
 
@@ -460,7 +589,9 @@ int invert sort
 	if ($_returnObjects) 
 	{
 		$return = $objects;
-	} else {
+	} 
+	else 
+	{
 		for ($d in $distances)
 		{
 			$stringDistances[size($stringDistances)] = (string)$d;
