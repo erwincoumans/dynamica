@@ -430,14 +430,12 @@ global proc string dynamicaUI_createBakeTab()
 		
 		dynamicaUI_createFrame("Options", 1, 1);
 			columnLayout;
-				checkBox -l "Delete History (Recommended)" -v $dynamicaUI_deleteBakeHistory 
-					-cc "$dynamicaUI_deleteBakeHistory  = `checkBox -q -v bakeHistory`" bakeHistory;
-				checkBox -l "Delete Static Channels (Recommended)" -v $dynamicaUI_deleteStaticChannels 
-					-cc "$dynamicaUI_deleteStaticChannels  = `checkBox -q -v bakeChannels`" bakeChannels;
-				checkBox -l "Delete Empty Nodes (Recommended)" -v $dynamicaUI_deleteEmptyNodes 
-					-cc "$dynamicaUI_deleteEmptyNodes  = `checkBox -q -v bakeEmpty`" bakeEmpty;
 				checkBox -l "Optimize Channels (Recommended)" -v $dynamicaUI_optimizeChannels
 					-cc "$dynamicaUI_optimizeChannels  = `checkBox -q -v bakeOptimize`" bakeOptimize;
+				checkBox -l "Delete History (Recommended)" -v $dynamicaUI_deleteBakeHistory 
+					-cc "$dynamicaUI_deleteBakeHistory  = `checkBox -q -v bakeHistory`" bakeHistory;
+				checkBox -l "Delete Empty Nodes (Recommended)" -v $dynamicaUI_deleteEmptyNodes 
+					-cc "$dynamicaUI_deleteEmptyNodes  = `checkBox -q -v bakeEmpty`" bakeEmpty;
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -591,7 +589,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	{
 		if (size($selection))
 		{
-			dynamicaUI_print("Creating Dynamica Rigid Bodies...", 0);
+			dynamicaUI_print("Creating Dynamica rigid bodies...", 0);
 			//create groups and layers if necessary
 			$rbGroup = `group -em -n dRigidBodies`;
 			$meshGroup = `group -em -n dMeshes`;
@@ -993,11 +991,6 @@ global proc float[] dynamicaUI_worldToObj(float $pointW[], float $objToWorldMatr
 	return $result;
 }
 
-global proc int bulletExportOptions( string $parent, string $action, string $settings, string $callback ) 
-{
-	return 1;
-}
-
 global proc dynamicaUI_activateAxis(int $axis)
 {
 	global int $dynamicaUI_activateAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z
@@ -1011,9 +1004,6 @@ global proc dynamicaUI_activateRigidBodies()
 	global float $dynamicaUI_activateEndFrame;
 	global int $dynamicaUI_activateInputMethod; //0 = Axis Gradient, 1 = Radial Gradient, 2 = 3D Texture
 	global int $dynamicaUI_activateAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z
-	global string $dynamicaUI_activateTexture;
-	global string $dynamicaUI_3dTextureNodes[];
-	global string $dynamicaUI_3dTextureList;
 
 	string $sel[] = `ls -sl`;
 	string $selTmp[] = `ls -sl`;
@@ -1021,8 +1011,9 @@ global proc dynamicaUI_activateRigidBodies()
 	float $attrs[];
 	string $axis;
 	int $reverseAxis;
-	string $expr;
-	float $texAlpha;
+	int $selChunks;
+	string $refr[];
+	int $incr = 0;
 	int $i;
 
 	/* init */
@@ -1035,6 +1026,7 @@ global proc dynamicaUI_activateRigidBodies()
 	$sel = `ls -sl`;
 	for ($s in $sel) if (mbIsKeyed($s)) select -d $s; //if keyed
 	$sel = `ls -sl`;
+	$selChunks = (int)size($sel)/10;
 	
 	if (!size($sel)) 
 	{
@@ -1069,7 +1061,7 @@ global proc dynamicaUI_activateRigidBodies()
 			for ($o in $sorted) $attrs[size($attrs)] = mbDistanceBetweenNodes($sorted[0], $o);
 		}
 
-		if ($reverseAxis) $attrs = mbReverseFloatArray($attrs);
+		if ($reverseAxis) $sorted = mbReverseStringArray($sorted);
 		$attrs = mbScaleArray($attrs, $dynamicaUI_activateStartFrame, $dynamicaUI_activateEndFrame, 1);
 
 		for ($i=0;$i<size($sorted);$i++) 
@@ -1079,6 +1071,18 @@ global proc dynamicaUI_activateRigidBodies()
 			setKeyframe -at "mass" -t 2 -v 0 $sorted[$i];
 			setKeyframe -at "mass" -t $attrs[$i] -v 1 $sorted[$i];
 			keyTangent -itt "flat" -ott "step" $sorted[$i];
+			
+			//visual feedback in viewport
+			$refr[size($refr)] = $sorted[$i];
+			$incr++;
+			if ($incr == $selChunks)
+			{
+				select -r $refr; 
+				refresh;
+				$incr = 0;
+				clear($refr);
+				select -clear;
+			}
 		}
 	}
 
@@ -1087,6 +1091,7 @@ global proc dynamicaUI_activateRigidBodies()
 		
 	//cleanup
 	clear($sel);
+	clear($selTmp);
 	clear($sorted);
 	clear($attrs);
 }
@@ -1121,7 +1126,6 @@ global proc dynamicaUI_bakeRigidBodies()
 {
 	global int $dynamicaUI_deleteEmptyNodes;
 	global int $dynamicaUI_deleteBakeHistory;
-	global int $dynamicaUI_deleteStaticChannels;
 	global int $dynamicaUI_optimizeChannels;
 	global int $dynamicaUI_bakeAll;
 	global float $dynamicaUI_bakeStartFrame;
@@ -1151,13 +1155,17 @@ global proc dynamicaUI_bakeRigidBodies()
 			$preKeyed[size($preKeyed)] = $s;
 			select -d $s;
 		}
+		if (!mbIsType($s, "dRigidBody"))
+		{
+			select -d $s;
+		}
 	}
 	
 	$sel = `ls -sl`;
 	if (!size($sel)) 
 	{
-		error("Dynamica: No rigid bodies to bake.");
 		select -r $sel;
+		dynamicaUI_print("No rigid bodies to bake.", 2);
 		return;
 	}
 	
@@ -1166,12 +1174,13 @@ global proc dynamicaUI_bakeRigidBodies()
 		-b "Yes" -b "No" -db "Yes" -cb "No" -ds "No"`;
 	if ($confirm == "No") 
 	{
-		warning("Dynamica: Bake cancelled by user.");
 		select -r $sel;
+		dynamicaUI_print("Bake cancelled by user.", 1);
 		return;
 	}
 	
 	//we are go
+	dynamicaUI_print("Baking objects...", 0);
 	mbCreateLayer($dBakeLayer, 0);
 	$bakeGroup = `group -em -n dBaked`;
 	if ($dynamicaUI_deleteBakeHistory) delete -ch;
@@ -1202,18 +1211,18 @@ global proc dynamicaUI_bakeRigidBodies()
 	select -r $toBake;
 	
 	//bake!
-	print("Dynamica: Starting bake...\n");
+	print("Dynamica: Baking simulation...\n");
 	$baked = `ls -sl`;
 	cycleCheck -e off;
 	bakeResults 
-		-simulation true 
+		-simulation 1 
 		-t ((string)$dynamicaUI_bakeStartFrame + ":" + (string)$dynamicaUI_bakeEndFrame) 
 		-sampleBy 1 
-		-disableImplicitControl true 
-		-preserveOutsideKeys true 
-		-sparseAnimCurveBake false 
-		-controlPoints false 
-		-shape false 
+		-disableImplicitControl 1 
+		-preserveOutsideKeys 1 
+		-sparseAnimCurveBake 0
+		-controlPoints 0
+		-shape 0
 		-at "tx" 
 		-at "ty" 
 		-at "tz" 
@@ -1224,7 +1233,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	select -cl;
 	
 	//delete orphans
-	print("Dynamica: Removing orphaned rigid bodies and constraints...\n");
+	dynamicaUI_print("Removing orphaned rigid bodies and constraints...", 0);
 	for ($s in $sel) 
 	{
 		select -add $s;
@@ -1243,19 +1252,32 @@ global proc dynamicaUI_bakeRigidBodies()
 			}
 		}
 
-		//if rigid body primitive, don't delete
+		//filter and process primitives
 		if (mbIsType($s, "dRigidBody"))
 		{
 			$connectedTransforms = mbGetConnectedTransforms($s);
-			if (!size($connectedTransforms)) select -d $s;
+			string $connectedCollisionShape = mbGetConnectedByType(mbGetShape($s), "dCollisionShape");
+			if (!size($connectedTransforms))
+			{
+				select -d $s;
+				setAttr ($s + ".mass") 0;
+			}
 		}
+		
+		dgeval `mbGetShape($s)`;
 	}
-	print("Dynamica: " + size($sel) + " orphans found, deleting...\n");
-	delete;
 	
-	if ($dynamicaUI_deleteStaticChannels) 
+	
+	$sel = `ls -sl`;
+	if (size($sel))
 	{
-		print("Dynamica: Removing static channels...\n");
+		dynamicaUI_print(size($sel) + " orphans found, deleting...", 0);
+		delete;
+	}
+	
+	if ($dynamicaUI_optimizeChannels) 
+	{
+		dynamicaUI_print("Optimizing channels...", 0);
 		//delete -staticChannels -uac 0 -hi none -cp 0 -s 0; //brute force - kills all static channels in scene
 		for ($b in $baked)
 		{
@@ -1278,12 +1300,16 @@ global proc dynamicaUI_bakeRigidBodies()
 			{
 				delete -staticChannels -uac 0 -hi none -cp 0 -s 0 $b;
 			}
+			
+			filterCurve -f simplify -timeTolerance 0 -tol 0.0001 {$b + ".rotateY", $b+ ".rotateX", $b + ".translateZ", $b + ".translateY", $b + ".translateX", $b + ".rotateZ"};
 		}
 	}
 	
+	
+	
 	if ($dynamicaUI_deleteEmptyNodes)
 	{
-		print("Dynamica: Removing empty nodes...\n");
+		dynamicaUI_print("Removing empty nodes...", 0);
 		for ($i=0;$i<10;$i++) //trace depth, 10 should clear most nested hierarchies
 		{
 			for ($n in `ls -o -tr`)
@@ -1296,14 +1322,20 @@ global proc dynamicaUI_bakeRigidBodies()
 
 	if ($dynamicaUI_deleteBakeHistory)
 	{
-		print("Dynamica: Removing history...\n");
+		dynamicaUI_print("Removing history...", 0);
 		delete -all -ch;
 	}
 	
 	clear($preKeyed);
 	undoInfo -state on;
-	print("Dynamica: " + size($sel) + " rigid bodies baked on frames " + $dynamicaUI_bakeStartFrame + " - " + $dynamicaUI_bakeEndFrame + ". Open Script Editor for details ------>\n");
 	clear($sel);
+	select -r $baked;
+	dynamicaUI_print("Baked " + size($baked) + " rigid bodies on frames " + $dynamicaUI_bakeStartFrame + " - " + $dynamicaUI_bakeEndFrame, 0);
+}
+
+global proc int bulletExportOptions( string $parent, string $action, string $settings, string $callback ) 
+{
+	return 1;
 }
 
 //script jobs

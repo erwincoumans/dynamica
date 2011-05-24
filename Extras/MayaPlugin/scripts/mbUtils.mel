@@ -319,7 +319,8 @@ global proc float mbMeshVolume(string $node)
 	return -1;
 }
 
-global proc float mbTriangleVolume(string $triangle) {
+global proc float mbTriangleVolume(string $triangle) 
+{
 	vector $faceNormal;
     string $verts[] = `polyListComponentConversion -tv $triangle`;
     $verts = `ls -flatten $verts`;
@@ -425,6 +426,13 @@ global proc string[] mbGetOverlappingTransforms(string $transforms[])
 global proc float[] mbReverseFloatArray(float $array[]) 
 {
 	float $tmp[];
+	for ($i=0;$i<size($array);$i++) $tmp[$i] = $array[size($array) - 1 - $i];
+	return $tmp;
+}
+
+global proc string[] mbReverseStringArray(string $array[]) 
+{
+	string $tmp[];
 	for ($i=0;$i<size($array);$i++) $tmp[$i] = $array[size($array) - 1 - $i];
 	return $tmp;
 }
