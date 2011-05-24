@@ -23,50 +23,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 
 Modified by Michael Baker <michael@mBakr.com>
-for previous notes, check rev history in Dynamica repo: http://code.google.com/p/dynamica/
-4/26/2011 : fixed issue with solver sync startframe creating multiple scriptJobs when the UI was opened and closed repeatedly
-4/26/2011 : UI code cleanup
-4/26/2011 : fixed issues: rigid body creation not respecting object transform in world space, frozen/unfrozen transforms weirdness, and center of mass problems
-4/26/2011 : renamed Solver tab to Options
-4/26/2011 : removed Solver Type from Options tab
-4/26/2011 : added collision margin field to Options tab
-4/26/2011 : cleaned up Option tab UI
-4/26/2011 : fixed issue: contraint creation between 2 RBs not centered between RBs
-4/27/2011 : added pre-keyed object detection to rigid body creation - pre-keyed objects are converted to kinematic colliders
-4/30/2011 : fixed issue: creating a rigid body with a NURBS object selected crashing Maya
-4/30/2011 : fixed issue: detecting rigid body connections on selected objects would fail if a dRB and incompatible (NURBS, curves, etc.) object were selected
-5/3/2011 : fixed issue: changing solver attributes in the channel box would not update the Dynamica window.
-5/3/2011 : set starting physicsrate to 60, default 200 was causing performance problems
-
-roadmap 5/3/2011
-
-Next release:
-
-Create tab: 
-- Active/Passive RB creation (correct center of mass, respect source mesh transform, handle pre-keyed objects)
-- Constraint creation (center between RBs, handle single/double/multi-selection, expose break threshold)
-
-Options tab:
-- Collision margin control
-
-Activate tab:
-- simplify RB activation controls (conform to new RB/mesh connections)
-- remove constraint breaking (currently unstable)
-
-Bake tab:
-- simplify/modify baking process (conform to new RB/mesh connections, provide better feedback)
-
-Future release:
-
-- integrate compound object breaking
-- create secondary UI for advanced features like volume/mass calculation, rope creation, shatter tools, Polycutter, etc.
-- integrate log panel into dynamicaUI - to provide better feedback to user
-
 */
-
-//dynamicaUI.mel
-
-//TODO: constraint group and layer, check who's added to bake group
 
 //init
 global proc dynamicaUI_initialize()
