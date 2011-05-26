@@ -50,6 +50,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 #include <fstream>
 #include <sstream>
+#include <iterator>
 
 #include "mayaUtils.h"
 #include "dSolverNode.h"
@@ -60,8 +61,13 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "constraint/hingeConstraintNode.h"
 #include "constraint/sliderConstraintNode.h"
 #include "constraint/sixdofConstraintNode.h"
+#include "LinearMath/btGeometryUtil.h"
 #include "pdbIO.h"
 #include "collisionShapeNode.h"
+
+
+
+
 
 MTypeId dSolverNode::typeId(0x100331);
 MString dSolverNode::typeName("dSolver");
@@ -70,6 +76,7 @@ MObject dSolverNode::ia_time;
 MObject dSolverNode::ia_startTime;
 MObject dSolverNode::ia_gravity;
 MObject dSolverNode::ia_enabled;
+MObject dSolverNode::ia_collisionMargin; //mb
 MObject dSolverNode::ia_fixedPhysicsRate;
 MObject dSolverNode::ia_splitImpulse;
 MObject dSolverNode::ia_substeps;
@@ -92,6 +99,8 @@ MObject     dSolverNode::ia_DBG_EnableCCD;
 MObject     dSolverNode::ia_DBG_DrawConstraints;
 MObject     dSolverNode::ia_DBG_DrawConstraintLimits;
 MObject     dSolverNode::ia_DBG_FastWireframe;
+
+float dSolverNode::collisionMarginOffset; //mb
 
 #define ATTR_POSITION "position"
 //#define ATTR_POSITION_TYPE VECTOR_ATTR
@@ -256,10 +265,6 @@ void dSolverNode::updateAllRigidBodies()
    			return;
 		}
 
-		if(fnNode.typeId() == rigidBodyNode::typeId) 
-		{
-
-		}
         if(fnNode.typeId() == rigidBodyNode::typeId) 
 		{
 			MPlug plgCollisionShape(mObj, rigidBodyNode::ia_collisionShape);
@@ -353,13 +358,13 @@ MStatus dSolverNode::initialize()
 //	MCallbackId connCBId = MDGMessage::addConnectionCallback(connCB, NULL, NULL ); 
 
     //
-    ssSolverType = fnEnumAttr.create( "ssSolverType", "ssst", 0, &status );
-    MCHECKSTATUS(status, "creating ssSolverType attribute")
-    fnEnumAttr.addField( "Bullet Physics", 0 );
-    fnEnumAttr.addField( "Ageia PhysX", 1 );
-    fnEnumAttr.addField( "Stanford PhysBAM", 2 );
-    status = addAttribute(ssSolverType);
-    MCHECKSTATUS(status, "adding ssSolverType attribute")
+    //ssSolverType = fnEnumAttr.create( "ssSolverType", "ssst", 0, &status );
+    //MCHECKSTATUS(status, "creating ssSolverType attribute")
+    //fnEnumAttr.addField( "Bullet Physics", 0 );
+    //fnEnumAttr.addField( "Ageia PhysX", 1 );
+    //fnEnumAttr.addField( "Stanford PhysBAM", 2 );
+    //status = addAttribute(ssSolverType);
+    //MCHECKSTATUS(status, "adding ssSolverType attribute")
 
     //
     ia_time = fnUnitAttr.create( "inTime", "it", MFnUnitAttribute::kTime, 0.0, &status );
@@ -391,12 +396,11 @@ MStatus dSolverNode::initialize()
     status = addAttribute(ia_substeps);
     MCHECKSTATUS(status, "adding ia_substeps attribute")
 
-	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 200, &status);
+	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 200, &status); //MB
     MCHECKSTATUS(status, "creating physicsrate attribute")
     fnNumericAttr.setKeyable(true);
 	fnNumericAttr.setMin(60);
 	fnNumericAttr.setMax(999999);
-
     status = addAttribute(ia_fixedPhysicsRate);
     MCHECKSTATUS(status, "adding physicsrate attribute")
 
@@ -404,6 +408,14 @@ MStatus dSolverNode::initialize()
     MCHECKSTATUS(status, "creating enabled attribute")
     status = addAttribute(ia_enabled);
     MCHECKSTATUS(status, "adding ia_enabled attribute")
+
+	//mb
+	ia_collisionMargin = fnNumericAttr.create("collisionMargin", "colm", MFnNumericData::kFloat, 0.04, &status);
+    MCHECKSTATUS(status, "creating collisionMargin attribute")
+	fnNumericAttr.setHidden(true);
+    status = addAttribute(ia_collisionMargin);
+    MCHECKSTATUS(status, "adding ia_collisionMargin attribute")
+	//mb
 
     ia_splitImpulse = fnNumericAttr.create("splitImpulse", "spli", MFnNumericData::kBoolean, false, &status);
     MCHECKSTATUS(status, "creating splitImpulse attribute")
@@ -510,12 +522,15 @@ MStatus dSolverNode::compute(const MPlug& plug, MDataBlock& data)
     } else {
         return MStatus::kUnknownParameter;
     } 
+
     return MStatus::kSuccess;
 }
 
-void initRigidBody(MObject &node)
+void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
 {
-    MFnDagNode fnDagNode(node);
+    //dSolverNode::collisionMarginOffset = data.inputValue(dSolverNode::ia_collisionMargin).asFloat();
+	
+	MFnDagNode fnDagNode(node);
 
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
     rigid_body_t::pointer rb = rbNode->rigid_body();
@@ -565,6 +580,8 @@ void initRigidBody(MObject &node)
         rb->set_linear_velocity(vel);
         rb->set_angular_velocity(spin);
         rb->set_kinematic(false);
+
+		//rbNode->updateShape(plug, data, dSolverNode::collisionMarginOffset); //mb
 
         fnTransform.setRotation(meuler);
         fnTransform.setTranslation(MVector(pos[0], pos[1], pos[2]), MSpace::kTransform);
@@ -683,14 +700,16 @@ void initRigidBodyArray(MObject &node)
 }
 
 //init the rigid bodies to it's first frame configuration
-void dSolverNode::initRigidBodies(MPlugArray &rbConnections)
+void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data)
 {
+	dSolverNode::collisionMarginOffset = data.inputValue(dSolverNode::ia_collisionMargin).asFloat(); //mb
+
     for(size_t i = 0; i < rbConnections.length(); ++i) {
         MObject node = rbConnections[i].node();
         MFnDependencyNode fnNode(node);
 
         if(fnNode.typeId() == rigidBodyNode::typeId) {
-            initRigidBody(node);
+            initRigidBody(plug, node, data);
 			updateConstraint(node);
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
             initRigidBodyArray(node);
@@ -831,7 +850,7 @@ So just set transform as is
     }
 }
 
-void dSolverNode::updateConstraint(MObject& bodyNode)
+void dSolverNode::updateConstraint(MObject& bodyNode) 
 {
     MFnDagNode fnDagNode(bodyNode);
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
@@ -1049,7 +1068,7 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 
 void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 {
-   // std::cout << "dSolverNode::computeRigidBodies" << std::endl;
+	//std::cout << "dSolverNode::computeRigidBodies" << std::endl;
 
     bool enabled = data.inputValue(ia_enabled).asBool();
     if(!enabled) {
@@ -1073,8 +1092,9 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 
     if(time == startTime) {
         //first frame, init the simulation
+		//std::cout << "init sim" << std::endl;
 		isStartTime = true;
-        initRigidBodies(rbConnections);
+        initRigidBodies(plug, rbConnections, data);
         solver_t::set_split_impulse(splitImpulseEnabled);
         m_prevTime = time;
     } else {

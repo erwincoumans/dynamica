@@ -44,6 +44,8 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "solver.h"
 #include "dSolverNode.h"
 
+#define UPDATE_SHAPE 0 //future collision margin adjust
+
 MTypeId     rigidBodyNode::typeId(0x10032f);
 MString     rigidBodyNode::typeName("dRigidBody");
 
@@ -61,7 +63,6 @@ MObject     rigidBodyNode::ia_initialSpin;
 MObject     rigidBodyNode::ca_rigidBody;
 MObject     rigidBodyNode::ca_rigidBodyParam;
 MObject     rigidBodyNode::ca_solver;
-
 
 MStatus rigidBodyNode::initialize()
 {
@@ -357,7 +358,7 @@ MBoundingBox rigidBodyNode::boundingBox() const
 //standard attributes
 void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
 {
-   // std::cout << "rigidBodyNode::computeRigidBody" << std::endl;
+    //std::cout << "rigidBodyNode::computeRigidBody" << std::endl;
 
     MObject thisObject(thisMObject());
     MPlug plgCollisionShape(thisObject, ia_collisionShape);
@@ -373,6 +374,7 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
     }
 
     collision_shape_t::pointer  collision_shape;
+	
     if(plgCollisionShape.isConnected()) {
         MPlugArray connections;
         plgCollisionShape.connectedTo(connections, true, true);
@@ -380,7 +382,7 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
             MFnDependencyNode fnNode(connections[0].node());
             if(fnNode.typeId() == collisionShapeNode::typeId) {
                 collisionShapeNode *pCollisionShapeNode = static_cast<collisionShapeNode*>(fnNode.userNode());
-                collision_shape = pCollisionShapeNode->collisionShape();    
+                collision_shape = pCollisionShapeNode->collisionShape();
             } else {
                 std::cout << "rigidBodyNode connected to a non-collision shape node!" << std::endl;
             }
@@ -501,6 +503,44 @@ void rigidBodyNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& data)
     data.outputValue(ca_rigidBodyParam).set(true);
     data.setClean(plug);
 }
+
+#if UPDATE_SHAPE //future collision margin adjust
+void rigidBodyNode::updateShape(const MPlug& plug, MDataBlock& data, float& collisionMarginOffset)
+{
+	MObject thisObject(thisMObject());
+    MPlug plgCollisionShape(thisObject, ia_collisionShape);
+    MObject update;
+    //force evaluation of the shape
+    plgCollisionShape.getValue(update);
+
+   /* vec3f prevCenter(0, 0, 0);
+    quatf prevRotation(qidentity<float>());
+    if(m_rigid_body) {
+        prevCenter = m_rigid_body->collision_shape()->center();
+        prevRotation = m_rigid_body->collision_shape()->rotation();
+    }*/
+
+    collision_shape_t::pointer  collision_shape;
+	
+    if(plgCollisionShape.isConnected()) {
+        MPlugArray connections;
+        plgCollisionShape.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNode(connections[0].node());
+            if(fnNode.typeId() == collisionShapeNode::typeId) {
+				collisionShapeNode *pCollisionShapeNode = static_cast<collisionShapeNode*>(fnNode.userNode());
+				pCollisionShapeNode->setCollisionMarginOffset(collisionMarginOffset); //mb
+                collision_shape = pCollisionShapeNode->collisionShape();
+            } else {
+                std::cout << "rigidBodyNode connected to a non-collision shape node!" << std::endl;
+            }
+        }
+    }
+
+	data.outputValue(ca_rigidBody).set(true);
+    data.setClean(plug);
+}
+#endif
 
 rigid_body_t::pointer rigidBodyNode::rigid_body()
 {

@@ -28,25 +28,22 @@ Modified by Michael Baker <michael@mBakr.com>
 //init
 global proc dynamicaUI_initialize()
 {
-	//this proc is called from the plugin
-	print("Loading Dynamica plugin...\n");
-	dynamicaUI_createShelf();
-	print("Loading Dynamica plugin...complete.\n");
-}
-    
-global proc dynamicaUI_initWindow()
-{	
 	source "mbUtils";
 	
-	global int $dynamicaUI_syncSolverJob;
+	//this proc is called from the plugin
 	global float $dynamicaUI_startFrame;
+	global int $dynamicaUI_syncSolverJob;
 	
+	print("Loading Dynamica plugin...\n");
+	
+	dynamicaUI_createShelf();
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
 	dynamicaUI_onSceneOpen(); //puppet callback for SceneOpened event
 	playbackOptions -e -playbackSpeed 0 -maxPlaybackSpeed 1; //set playback options
-	setAttr dSolver1.physicsrate 60; //set physicsrate
+	
+	print("Loading Dynamica plugin...complete.\n");
 }
-
+    
 //shelf
 global proc dynamicaUI_createShelf()
 {
@@ -501,20 +498,21 @@ global proc dynamicaUI_print(string $out, int $mode)
 {
 	//modes: 0 = print, 1 = warning, 2 = error
 	global string $dynamicaUI_helpLine;
-	switch ($mode)
+	
+	if ($mode == 0)
 	{
-		case 0:
-			textField -e -bgc 0.8 0.9 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
-			print("Dynamica: " + $out + "\n");
-			break;
-		case 1:
-			textField -e -bgc 1.0 1.0 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
-			warning("Dynamica Warning: " + $out + "\n");
-			break;
-		case 2:
-			textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
-			error("Dynamica Error: " + $out + "\n");
-			break;
+		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 0.8 0.9 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		print("Dynamica: " + $out + "\n");
+	}
+	else if ($mode == 1)
+	{
+		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 1.0 1.0 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		warning("Dynamica Warning: " + $out + "\n");
+	}
+	else if ($mode == 2)
+	{
+		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		error("Dynamica Error: " + $out + "\n");
 	}
 }
 

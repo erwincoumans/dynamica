@@ -79,6 +79,7 @@ virtual MBoundingBox boundingBox() const
     static  MObject     ia_startTime;
     static  MObject     ia_gravity;
     static  MObject     ia_enabled;
+	static  MObject		ia_collisionMargin; //mb
     static  MObject     ia_splitImpulse;
     static  MObject     ia_substeps;
 	static  MObject		ia_fixedPhysicsRate;
@@ -86,6 +87,7 @@ virtual MBoundingBox boundingBox() const
 
     //Solver Settings
     static  MObject     ssSolverType;
+	static float collisionMarginOffset; //mb
 //
 
 	static  MObject     ia_DBG_DrawWireframe;
@@ -109,6 +111,7 @@ public:
     static  MTypeId	typeId;
     static  MString     typeName;
 	static	bool	isStartTime;
+	
 
 	static void updateAllRigidBodies();
 
@@ -125,7 +128,7 @@ protected:
     void dumpRigidBodyArray(MObject &node);
     bool expandFileExpression(std::string const& expr, std::string &base_name, std::string &extension);
 
-    void initRigidBodies(MPlugArray &rbConnections);
+    void initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data);
     void gatherPassiveTransforms(MPlugArray &rbConnections, std::vector<xforms_t> &xforms);
     void updatePassiveRigidBodies(MPlugArray &rbConnections, std::vector<xforms_t> &xforms, float t);
     void updateActiveRigidBodies(MPlugArray &rbConnections);

@@ -65,10 +65,16 @@ public:
     static  MTypeId     typeId;
     static  MString     typeName;
 
+public:
+	void setCollisionMarginOffset(float offset);
+
 protected:
     void computeCollisionShape(const MPlug& plug, MDataBlock& data);
     void computeCollisionShapeParam(const MPlug& plug, MDataBlock& data);
     void computeOutputShape(const MPlug& plug, MDataBlock& data);
+
+protected:
+	float collisionMarginOffset;
 
 private:
     collision_shape_t::pointer m_collision_shape;

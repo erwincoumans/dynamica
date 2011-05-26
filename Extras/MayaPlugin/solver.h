@@ -41,9 +41,9 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "box_shape.h"
 #include "convex_hull_shape.h"
 #include "mesh_shape.h"
-#include "constraint/nail_constraint.h"
 #include "solver_impl.h"
 
+#include "constraint/nail_constraint.h"
 #include "constraint/hinge_constraint.h"
 #include "constraint/slider_constraint.h"
 #include "constraint/sixdof_constraint.h"
@@ -97,6 +97,8 @@ public:
     static void set_split_impulse(bool enabled); 
 
     //
+	static void set_collision_margin(float cm); //mb
+
     static void step_simulation(float dt,  float fixedPhysicsFrameRate);
 
 	static void debug_draw(int dbgMode);

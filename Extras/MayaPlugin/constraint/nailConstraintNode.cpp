@@ -51,6 +51,7 @@ MString     nailConstraintNode::typeName("dNailConstraint");
 MObject     nailConstraintNode::ia_rigidBodyA;
 MObject     nailConstraintNode::ia_rigidBodyB;
 MObject     nailConstraintNode::ia_damping;
+MObject		nailConstraintNode::ia_breakThreshold;
 MObject     nailConstraintNode::ia_pivotInA;
 MObject     nailConstraintNode::ia_pivotInB;
 MObject     nailConstraintNode::ca_constraint;
@@ -79,6 +80,14 @@ MStatus nailConstraintNode::initialize()
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_damping);
     MCHECKSTATUS(status, "adding damping attribute")
+
+	//MB
+	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 1.0, &status);
+    MCHECKSTATUS(status, "creating breakThreshold attribute")
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_breakThreshold);
+    MCHECKSTATUS(status, "adding breakThreshold attribute")
+	//
 
     ia_pivotInA = fnNumericAttr.createPoint("pivotInA", "piva", &status);
     MCHECKSTATUS(status, "creating pivotInA attribute")
@@ -135,6 +144,11 @@ MStatus nailConstraintNode::initialize()
 
     status = attributeAffects(ia_damping, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_damping, ca_constraintParam)")
+
+	//MB
+	status = attributeAffects(ia_breakThreshold, ca_constraintParam);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_breakThreshold, ca_constraintParam)")
+	//
 
     return MS::kSuccess;
 }
@@ -489,6 +503,8 @@ void nailConstraintNode::computeConstraintParam(const MPlug& plug, MDataBlock& d
     MPlug(thisObject, ca_constraint).getValue(update);
     if(m_constraint) {
         m_constraint->set_damping((float) data.inputValue(ia_damping).asDouble());
+		m_constraint->set_breakThreshold((float) data.inputValue(ia_breakThreshold).asDouble());
+		//std:cout << data.inputValue(ia_breakThreshold).asDouble() << std::endl;
     }
 
     data.outputValue(ca_constraintParam).set(true);
@@ -497,7 +513,7 @@ void nailConstraintNode::computeConstraintParam(const MPlug& plug, MDataBlock& d
 
 nail_constraint_t::pointer nailConstraintNode::constraint()
 {
- //   std::cout << "nailConstraintNode::rigid_body" << std::endl;
+    //std::cout << "nailConstraintNode::rigid_body" << std::endl;
 
     MObject thisObject(thisMObject());
     MObject update;

@@ -98,6 +98,7 @@ private:
 
 public:
     static void nodeRemoved(MObject& node, void *clientData);
+	void updateShape(const MPlug& plug, MDataBlock& data, float& collisionMarginOffset); //future collision margin adjust
 
 private:
     rigid_body_t::pointer       m_rigid_body;

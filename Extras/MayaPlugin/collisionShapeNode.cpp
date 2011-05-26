@@ -38,6 +38,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 #include "collisionShapeNode.h"
 #include "mayaUtils.h"
 #include "solver.h"
+#include "LinearMath/btGeometryUtil.h"
+
+#define UPDATE_SHAPE 0 //future collision margin adjust
 
 MTypeId     collisionShapeNode::typeId(0x100332);
 MString     collisionShapeNode::typeName("dCollisionShape");
@@ -138,6 +141,7 @@ MStatus collisionShapeNode::initialize()
 collisionShapeNode::collisionShapeNode()
 {
     // std::cout << "collisionShapeNode::collisionShapeNode" << std::endl;
+	collisionShapeNode::collisionMarginOffset = 0.04;
 }
 
 collisionShapeNode::~collisionShapeNode()
@@ -145,12 +149,15 @@ collisionShapeNode::~collisionShapeNode()
     // std::cout << "collisionShapeNode::~collisionShapeNode" << std::endl;
 }
 
-
 void* collisionShapeNode::creator()
 {
     return new collisionShapeNode();
 }
 
+void collisionShapeNode::setCollisionMarginOffset(float offset)
+{
+	collisionShapeNode::collisionMarginOffset = offset;
+}
 
 bool collisionShapeNode::setInternalValueInContext ( const  MPlug & plug,
                                                    const  MDataHandle & dataHandle,
@@ -161,6 +168,7 @@ bool collisionShapeNode::setInternalValueInContext ( const  MPlug & plug,
 
 MStatus collisionShapeNode::compute( const MPlug& plug, MDataBlock& data )
 {
+	//std::cout << "compute collision shape node" << std::endl;
     if(plug == oa_collisionShape) {
          computeOutputShape(plug, data);
     } else if(plug == ca_collisionShape) {
@@ -184,7 +192,7 @@ collision_shape_t::pointer collisionShapeNode::collisionShape()
 
 void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& data)
 {
-  //  std::cout << "collisionShapeNode::computeCollisionShape" << std::endl;
+	//std::cout << collisionShapeNode::collisionMarginOffset << std::endl;
 
     MObject thisObject(thisMObject());
 
@@ -217,23 +225,58 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
                 std::vector<vec3f> normals(mpoints.length());
                 std::vector<unsigned int> indices(mtrianglevertices.length());
 
+				btAlignedObjectArray<btVector3> btVerts; //mb
+
                 for(size_t i = 0; i < vertices.size(); ++i) {
                     vertices[i] = vec3f(mpoints[i].x, mpoints[i].y, mpoints[i].z);
                     normals[i] = vec3f(mnormals[i].x, mnormals[i].y, mnormals[i].z);
+					
+#if UPDATE_SHAPE //future collision margin adjust
+					btVerts.push_back(btVector3(mpoints[i].x, mpoints[i].y, mpoints[i].z)); //mb
+#endif
                 }
                 for(size_t i = 0; i < indices.size(); ++i) {
                     indices[i] = mtrianglevertices[i];
                 }
-                m_collision_shape = solver_t::create_convex_hull_shape(&(vertices[0]), vertices.size(), &(normals[0]),
-                                                                       &(indices[0]), indices.size());
-            }
+
+#if UPDATE_SHAPE //future collision margin adjust
+				btAlignedObjectArray<btVector3> planeEquations;
+				btGeometryUtil::getPlaneEquationsFromVertices(btVerts, planeEquations);
+
+				btAlignedObjectArray<btVector3> shiftedPlaneEquations;
+				for (int p=0;p<planeEquations.size();p++)
+				{
+						btVector3 plane = planeEquations[p];
+						plane[3] += collisionShapeNode::collisionMarginOffset;
+						shiftedPlaneEquations.push_back(plane);
+				}
+
+				btAlignedObjectArray<btVector3> shiftedVertices;
+				btGeometryUtil::getVerticesFromPlaneEquations(shiftedPlaneEquations, shiftedVertices);
+
+				std::vector<vec3f> shiftedVerticesVec3f(shiftedVertices.size());
+				for(size_t i = 0; i < shiftedVertices.size(); ++i) 
+				{
+					shiftedVerticesVec3f[i] = vec3f(shiftedVertices[i].getX(), shiftedVertices[i].getY(), shiftedVertices[i].getZ());
+					//std::cout << "orig verts: " << vertices[i][0] << " " << vertices[i][1] << " " << vertices[i][2] << std::endl;
+					//std::cout << "shft verts: " << shiftedVertices[i].getX() << " " << shiftedVertices[i].getY() << " " << shiftedVertices[i].getZ() << std::endl;
+					//std::cout << std::endl;
+                }
+				m_collision_shape = solver_t::create_convex_hull_shape(&(shiftedVerticesVec3f[0]), shiftedVerticesVec3f.size(), &(normals[0]), &(indices[0]), indices.size());
+
+#endif
+
+#if UPDATE_SHAPE == 0
+				m_collision_shape = solver_t::create_convex_hull_shape(&(vertices[0]), vertices.size(), &(normals[0]), &(indices[0]), indices.size()); //original
+#endif
+				}
+			}
         }
-        }
+
         break;
     case 1:
-        //mesh
         {
-        //convex hull
+        //mesh
         MPlugArray plgaConnectedTo;
         plgInShape.connectedTo(plgaConnectedTo, true, true);
         if(plgaConnectedTo.length() > 0) {
@@ -264,8 +307,8 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
 				bool dynamicMesh = true;
                 m_collision_shape = solver_t::create_mesh_shape(&(vertices[0]), vertices.size(), &(normals[0]),
                                                                 &(indices[0]), indices.size(),dynamicMesh);
-            }
-        }
+				}
+			}
         }
         break;
     case 2:
@@ -286,7 +329,6 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
         //plane
         m_collision_shape = solver_t::create_plane_shape();
         break;
-
 	case 7:
         //btBvhTriangleMeshShape
         {
@@ -321,8 +363,8 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
 				bool dynamicMesh = false;
                 m_collision_shape = solver_t::create_mesh_shape(&(vertices[0]), vertices.size(), &(normals[0]),
                                                                 &(indices[0]), indices.size(),dynamicMesh);
-            }
-        }
+				}
+			}
         }
         break;
     }
