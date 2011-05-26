@@ -47,84 +47,86 @@ global proc dynamicaUI_initialize()
 //shelf
 global proc dynamicaUI_createShelf()
 {
+	global string $gShelfTopLevel;
 	string $shelf = "Dynamica";
-	string $btnParent;
+	string $dynamicaShelf;
 	
 	if ( `shelfLayout -ex $shelf` )
 	{
-		$btnParent = $shelf;
-		string $existingShelfButtons[] = `shelfLayout -q -ca $shelf`;
-		for ( $btn in $existingShelfButtons ) deleteUI $btn;
+		$dynamicaShelf = $shelf;
+		string $shelfButtons[] = `shelfLayout -q -ca $shelf`;
+		for ( $b in $shelfButtons ) deleteUI $b;
 	} 
 	else 
 	{
 		// Create the shelf under the global shelf parent.
-		global string $gShelfTopLevel;
-		$btnParent = `shelfLayout -p $gShelfTopLevel $shelf`;
+		$dynamicaShelf = `shelfLayout -p $gShelfTopLevel $shelf`;
 	}
 	
-	shelfButton -i1 "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $btnParent;
+	shelfButton -i1 "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
+	shelfButton -i1 "dynamicaHelp.xpm" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" 
+		-ann "View Online Documentation" -p $dynamicaShelf;
 	
 	shelfButton -i1 "dynamicaCreateActiveSphere.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create active sphere rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create active sphere rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreateActiveBox.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create active box rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create active box rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreateActiveHull.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreateActiveMesh.xpm"
-		-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
 		
 	shelfButton -i1 "dynamicaCreatePassiveSphere.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreatePassiveBox.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create passive box rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create passive box rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreatePassiveHull.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreatePassiveMesh.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreatePassiveBvhMesh.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreatePassivePlane.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create passive plane rigid bodies" -p $btnParent;
+		-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create passive plane rigid bodies" -p $dynamicaShelf;
 
 	shelfButton -i1 "dynamicaCreateNailConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(0)" -ann "Create a nail constraint" -p $btnParent;
+		-c "dynamicaUI_createConstraint(0)" -ann "Create a nail constraint" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreateHingeConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(1)" -ann "Create a hinge constraint" -p $btnParent;
+		-c "dynamicaUI_createConstraint(1)" -ann "Create a hinge constraint" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreateSliderConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(2)" -ann "Create a slider constraint" -p $btnParent;
+		-c "dynamicaUI_createConstraint(2)" -ann "Create a slider constraint" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaCreate6dofConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(3)" -ann "Create a 6dof constraint" -p $btnParent;
+		-c "dynamicaUI_createConstraint(3)" -ann "Create a 6dof constraint" -p $dynamicaShelf;
 		
 	shelfButton -i1 "dynamicaActivateX.xpm" 
-		-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivate-X.xpm" 
-		-c "dynamicaUI_activateAxis(1)" -ann "Activate selected rigid bodies along the -X axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(1)" -ann "Activate selected rigid bodies along the -X axis" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivateY.xpm" 
-		-c "dynamicaUI_activateAxis(2)" -ann "Activate selected rigid bodies along the +Y axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(2)" -ann "Activate selected rigid bodies along the +Y axis" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivate-Y.xpm" 
-		-c "dynamicaUI_activateAxis(3)" -ann "Activate selected rigid bodies along the -Y axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(3)" -ann "Activate selected rigid bodies along the -Y axis" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivateZ.xpm" 
-		-c "dynamicaUI_activateAxis(4)" -ann "Activate selected rigid bodies along the +Z axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(4)" -ann "Activate selected rigid bodies along the +Z axis" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivate-Z.xpm" 
-		-c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis" -p $btnParent;
+		-c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis" -p $dynamicaShelf;
 		
 	shelfButton -i1 "dynamicaActivateRadial.xpm" 
-		-c "dynamicaUI_activateAxis(6)" -ann "Activate selected rigid bodies outwards" -p $btnParent;
+		-c "dynamicaUI_activateAxis(6)" -ann "Activate selected rigid bodies outwards" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaActivateRadialIn.xpm" 
-		-c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $btnParent;
+		-c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $dynamicaShelf;
 		
 	shelfButton -i1 "dynamicaUnactivate.xpm" 
-		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies" -p $btnParent;
+		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaMakePassive.xpm" 
-		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $btnParent;
+		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $dynamicaShelf;
 		
 	shelfButton -i1 "dynamicaBakeSelected.xpm" 
-		-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $btnParent;
+		-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
 	shelfButton -i1 "dynamicaBakeAll.xpm" 
-		-c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $btnParent;
+		-c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
 		
-	shelfButton -i1 "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $btnParent;
+	shelfButton -i1 "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 }
 
 //UI
@@ -151,16 +153,18 @@ global proc dynamicaUI_createWindow()
 		-af $dynamicaUI_tabs "bottom" 0 -af $dynamicaUI_tabs "right" 0 
 	$mainForm;
 	
-	string $mainLayt = dynamicaUI_createMainTab();
-	string $activateLayt = dynamicaUI_createActivateTab();
-	string $bakeLayt = dynamicaUI_createBakeTab();
-	string $solverLayt = dynamicaUI_createOptionsTab();
+	string $mainTab = dynamicaUI_createMainTab();
+	string $activateTab = dynamicaUI_createActivateTab();
+	string $bakeTab = dynamicaUI_createBakeTab();
+	string $solverTab = dynamicaUI_createOptionsTab();
+	string $helpTab = dynamicaUI_createHelpTab();
 
 	tabLayout -e 
-		-tl $mainLayt "Create" 
-		-tl $activateLayt "Activate" 
-		-tl $bakeLayt "Bake"
-		-tl $solverLayt "Options" 
+		-tl $mainTab "Create" 
+		-tl $activateTab "Activate" 
+		-tl $bakeTab "Bake"
+		-tl $solverTab "Options"
+		-tl $helpTab "Help"
 	$dynamicaUI_tabs;
 	
 	setParent ..;
@@ -173,8 +177,6 @@ global proc dynamicaUI_createWindow()
 		-attachForm $frame  "bottom" 0
 		-attachForm $frame  "right"  0
 	$mainForm;
-		
-	dynamicaUI_initWindow();
 
 	showWindow $dynamicaUI_window;
 	window -e -wh 500 480 $dynamicaUI_window;
@@ -471,20 +473,13 @@ global proc string dynamicaUI_createOptionsTab()
 global proc string dynamicaUI_createHelpTab()
 {	
 	string $mainForm = `columnLayout -adj 1`;
-	// {
-		// frameLayout -h 375 -label "Documentation" -li 5 -mh 10 -mw 10 -borderStyle "etchedIn";
-			// columnLayout;
-				// button -label "View the online wiki" -c "system(\"load http://bulletphysics.org\")";
-				
-				// separator -style "none" -h 5;
-				// text -label "http://bulletphysics.org";
-				// separator -style "none" -h 5;
-				// text -label "HTML documentation in doc folder under Dynamica install\nex. C:\\Program Files\\DynamicaBullet2.77\\doc\\";
-				
-				// setParent ..;
-			// setParent ..;
-		// setParent ..;
-	// }
+		dynamicaUI_createFrame("Documentation & Resources", 0, 0);
+			rowLayout -nc 1;
+				iconTextButton -st "iconAndTextVertical" -l "Online Help" -w 75 -i1 "dynamicaHelp.xpm" 
+					-c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" -ann "View Online Documentation";
+			setParent ..;
+		setParent ..;
+	setParent ..;
 
 	return $mainForm;
 }
