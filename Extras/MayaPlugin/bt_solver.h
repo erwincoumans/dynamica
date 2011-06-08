@@ -138,10 +138,10 @@ public:
         m_dynamicsWorld->removeRigidBody(bt_body->body());
     }
 
-    virtual void add_constraint(constraint_impl_t* c)
+    virtual void add_constraint(constraint_impl_t* c, bool disableCollide)
     {
         bt_constraint_t* btc = dynamic_cast<bt_constraint_t*>(c);
-        m_dynamicsWorld->addConstraint(btc->constraint(), true);
+        m_dynamicsWorld->addConstraint(btc->constraint(), disableCollide); //MB
     }
 
     virtual void remove_constraint(constraint_impl_t* c)

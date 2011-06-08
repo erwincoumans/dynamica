@@ -50,9 +50,13 @@ public:
         btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
         p2pc->setBreakingImpulseThreshold(d);
     }
+
+	virtual void set_enabled(bool e) {
+		btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
+		p2pc->setEnabled(e);
+	}
 	//
 
-    //
     virtual void set_pivotA(vec3f const &p) {
         btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
         btVector3 bt_pivot(p[0], p[1], p[2]);

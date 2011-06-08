@@ -304,7 +304,8 @@ global proc string dynamicaUI_createActivateTab()
 	global string $dynamicaUI_3dTextureList;
 	
 	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Frame Range", 0, 0);
+
+		dynamicaUI_createFrame("Frame Range - set the start and end frames for activation", 0, 0);
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $dynamicaUI_activateStartFrame 
 					-cc "$dynamicaUI_activateStartFrame = `floatField -q -v activateStart`" activateStart;
@@ -313,7 +314,7 @@ global proc string dynamicaUI_createActivateTab()
 			setParent ..;
 		setParent ..;
 
-		dynamicaUI_createFrame("Axis Activation", 0, 0);
+		dynamicaUI_createFrame("Axis Activation - activate rigid bodies along the X, Y or Z axis", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "+X Axis" -w 75 -i1 "dynamicaActivateX.xpm" 
 					-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis";
@@ -330,7 +331,7 @@ global proc string dynamicaUI_createActivateTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Radial Activation", 0, 0);
+		dynamicaUI_createFrame("Radial Activation - activate rigid bodies in a radial pattern", 0, 0);
 			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Outward" -w 75 -i1 "dynamicaActivateRadial.xpm" 
 					-c "dynamicaUI_activateAxis(6)" -ann "Radially activate selected rigid bodies outwards";
@@ -339,10 +340,10 @@ global proc string dynamicaUI_createActivateTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Remove Activation", 0, 0);
+		dynamicaUI_createFrame("Remove Activation - remove activation control or convert rigid bodies to passive", 0, 0);
 			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Unactivate" -w 75 -i1 "dynamicaUnactivate.xpm" 
-					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies";
+					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies (active on the start frame)";
 				iconTextButton -st "iconAndTextVertical" -l "Make Passive" -w 75 -i1 "dynamicaMakePassive.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(1)" -ann "Make selected rigid bodies passive";
 			setParent ..;
@@ -450,6 +451,14 @@ global proc string dynamicaUI_createOptionsTab()
 			setParent ..;
 		setParent ..;
 		
+		dynamicaUI_createFrame("Disable Collisions Between Constrained Bodies (creation only)", 0, 0);
+			rowLayout -nc 1;
+				int $enabled = `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
+				$dynamicaUI_disableCollisionsBetweenLinkedBodies = `checkBox -l "Enabled" -v $enabled`;
+				connectControl $dynamicaUI_disableCollisionsBetweenLinkedBodies dSolver1.disableCollisionsBetweenLinkedBodies;
+			setParent ..;
+		setParent ..;
+		
 		dynamicaUI_createFrame("Solver State", 0, 0);
 			rowLayout -nc 1;
 				int $enabled = `getAttr dSolver1.enabled`;
@@ -496,17 +505,17 @@ global proc dynamicaUI_print(string $out, int $mode)
 	
 	if ($mode == 0)
 	{
-		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 0.8 0.9 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		if(`textField -ex $dynamicaUI_helpLine`) textField -e -bgc 0.8 0.9 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
 		print("Dynamica: " + $out + "\n");
 	}
 	else if ($mode == 1)
 	{
-		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 1.0 1.0 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		if(`textField -ex $dynamicaUI_helpLine`) textField -e -bgc 1.0 1.0 0.8 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
 		warning("Dynamica Warning: " + $out + "\n");
 	}
 	else if ($mode == 2)
 	{
-		if(`objExists $dynamicaUI_helpLine`) textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
+		if(`textField -ex $dynamicaUI_helpLine`) textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
 		error("Dynamica Error: " + $out + "\n");
 	}
 }
@@ -528,7 +537,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	string $margin;
 	int $bodyCount = 0;
 	int $makeCollisionShape = 1;
-	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //multiplier compensates for 
+	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //compensate 
 	
 	if ($activebody == false) $mass = 0;
 	
@@ -547,7 +556,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 			mbHideAndLockTransform($meshGroup);
 			mbCreateLayer($meshLayer, 1);
 			mbCreateLayer($rbLayer, 0);
-			setAttr ($rbLayer + ".shading") 0; //disable shading
+			//setAttr ($rbLayer + ".shading") 0; //disable shading
 		
 			for ($i = 0; $i < size($selection) / 2; $i++) 
 			{
@@ -696,6 +705,7 @@ global proc string dynamicaUI_createConstraint(int $constraintType)
 			break;
 	}
 	
+	setAttr ($constraintNode + ".disableCollide") `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
 	$constraintTransforms = `listRelatives -parent $constraintNode`;
 	$newConstraintTransf = $constraintTransforms[0];
 	

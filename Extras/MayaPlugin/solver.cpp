@@ -160,12 +160,12 @@ void solver_t::remove_all_rigid_bodies()
     m_rigid_bodies.clear();
 }
 
-void solver_t::add_constraint(constraint_t::pointer& c)
+void solver_t::add_constraint(constraint_t::pointer& c, bool disableCollide)
 {
     if(c) {
         if(m_constraints.find(c) == m_constraints.end()) {
             m_constraints.insert(c);
-            m_impl->add_constraint(c->impl());
+            m_impl->add_constraint(c->impl(), disableCollide);
         }
     }
 }

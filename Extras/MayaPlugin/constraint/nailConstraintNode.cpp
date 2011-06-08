@@ -52,6 +52,7 @@ MObject     nailConstraintNode::ia_rigidBodyA;
 MObject     nailConstraintNode::ia_rigidBodyB;
 MObject     nailConstraintNode::ia_damping;
 MObject		nailConstraintNode::ia_breakThreshold;
+MObject		nailConstraintNode::ia_disableCollide;
 MObject     nailConstraintNode::ia_pivotInA;
 MObject     nailConstraintNode::ia_pivotInB;
 MObject     nailConstraintNode::ca_constraint;
@@ -82,11 +83,19 @@ MStatus nailConstraintNode::initialize()
     MCHECKSTATUS(status, "adding damping attribute")
 
 	//MB
-	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 1.0, &status);
+	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 10.0, &status);
     MCHECKSTATUS(status, "creating breakThreshold attribute")
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_breakThreshold);
     MCHECKSTATUS(status, "adding breakThreshold attribute")
+
+	ia_disableCollide = fnNumericAttr.create("disableCollide", "dsblColl", MFnNumericData::kBoolean, true, &status);
+    MCHECKSTATUS(status, "creating disableCollide attribute")
+	fnNumericAttr.setHidden(true);
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_disableCollide);
+    MCHECKSTATUS(status, "adding disableCollide attribute")
+
 	//
 
     ia_pivotInA = fnNumericAttr.createPoint("pivotInA", "piva", &status);
@@ -148,6 +157,9 @@ MStatus nailConstraintNode::initialize()
 	//MB
 	status = attributeAffects(ia_breakThreshold, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_breakThreshold, ca_constraintParam)")
+
+	status = attributeAffects(ia_disableCollide, ca_constraint);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_disableCollide, ca_constraint)")
 	//
 
     return MS::kSuccess;
@@ -323,6 +335,7 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
     MPlug plgRigidBodyA(thisObject, ia_rigidBodyA);
     MPlug plgRigidBodyB(thisObject, ia_rigidBodyB);
     MObject update;
+	
     //force evaluation of the rigidBody
     plgRigidBodyA.getValue(update);
     plgRigidBodyB.getValue(update);
@@ -335,8 +348,8 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
             MFnDependencyNode fnNode(connections[0].node());
             if(fnNode.typeId() == rigidBodyNode::typeId) {
                 rigidBodyNode *pRigidBodyNodeA = static_cast<rigidBodyNode*>(fnNode.userNode());
-                rigid_bodyA = pRigidBodyNodeA->rigid_body();    
-            } else {
+                rigid_bodyA = pRigidBodyNodeA->rigid_body();
+			} else {
                 std::cout << "nailConstraintNode connected to a non-rigidbody node A!" << std::endl;
             }
         }
@@ -372,7 +385,7 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 		}
         m_constraint = solver_t::create_nail_constraint(rigid_bodyA, rigid_bodyB, pivInA, pivInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
 	}
     else if(rigid_bodyA) 
 	{
@@ -386,12 +399,11 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 		}
         m_constraint = solver_t::create_nail_constraint(rigid_bodyA, pivInA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
     }
 	data.outputValue(ca_constraint).set(true);
     data.setClean(plug);
 }
-
 
 void nailConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 {

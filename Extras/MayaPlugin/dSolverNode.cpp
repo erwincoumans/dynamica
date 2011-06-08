@@ -77,6 +77,7 @@ MObject dSolverNode::ia_startTime;
 MObject dSolverNode::ia_gravity;
 MObject dSolverNode::ia_enabled;
 MObject dSolverNode::ia_collisionMargin; //mb
+MObject dSolverNode::ia_disableCollisionsBetweenLinkedBodies;
 MObject dSolverNode::ia_fixedPhysicsRate;
 MObject dSolverNode::ia_splitImpulse;
 MObject dSolverNode::ia_substeps;
@@ -393,10 +394,12 @@ MStatus dSolverNode::initialize()
     ia_substeps = fnNumericAttr.create("substeps", "sbs", MFnNumericData::kInt, 1, &status);
     MCHECKSTATUS(status, "creating substeps attribute")
     fnNumericAttr.setKeyable(true);
+	fnNumericAttr.setMin(0);
+	fnNumericAttr.setMax(100);
     status = addAttribute(ia_substeps);
     MCHECKSTATUS(status, "adding ia_substeps attribute")
 
-	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 200, &status); //MB
+	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 60, &status); //MB
     MCHECKSTATUS(status, "creating physicsrate attribute")
     fnNumericAttr.setKeyable(true);
 	fnNumericAttr.setMin(60);
@@ -404,18 +407,24 @@ MStatus dSolverNode::initialize()
     status = addAttribute(ia_fixedPhysicsRate);
     MCHECKSTATUS(status, "adding physicsrate attribute")
 
+	ia_disableCollisionsBetweenLinkedBodies = fnNumericAttr.create("disableCollisionsBetweenLinkedBodies", "dCol", MFnNumericData::kBoolean, true, &status);
+    MCHECKSTATUS(status, "creating disableCollisionsBetweenLinkedBodies attribute")
+    status = addAttribute(ia_disableCollisionsBetweenLinkedBodies);
+    MCHECKSTATUS(status, "adding disableCollisionsBetweenLinkedBodies attribute")
+
     ia_enabled = fnNumericAttr.create("enabled", "enbl", MFnNumericData::kBoolean, true, &status);
     MCHECKSTATUS(status, "creating enabled attribute")
     status = addAttribute(ia_enabled);
     MCHECKSTATUS(status, "adding ia_enabled attribute")
 
-	//mb
 	ia_collisionMargin = fnNumericAttr.create("collisionMargin", "colm", MFnNumericData::kFloat, 0.04, &status);
     MCHECKSTATUS(status, "creating collisionMargin attribute")
-	fnNumericAttr.setHidden(true);
+	//fnNumericAttr.setHidden(true);
+	fnNumericAttr.setMin(0);
+	fnNumericAttr.setMax(10);
     status = addAttribute(ia_collisionMargin);
     MCHECKSTATUS(status, "adding ia_collisionMargin attribute")
-	//mb
+
 
     ia_splitImpulse = fnNumericAttr.create("splitImpulse", "spli", MFnNumericData::kBoolean, false, &status);
     MCHECKSTATUS(status, "creating splitImpulse attribute")
@@ -596,6 +605,84 @@ void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
     }
 }
 
+void initConstraint(MObject& bodyNode) 
+{
+    MFnDagNode fnDagNode(bodyNode);
+    rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+	MPlug plgMessages(bodyNode, rbNode->message);
+	MPlugArray rbMsgConnections;
+	plgMessages.connectedTo(rbMsgConnections, false, true);
+	for(size_t j = 0; j < rbMsgConnections.length(); j++) 
+	{
+		MObject msgNode = rbMsgConnections[j].node();
+		MFnDagNode msgDagNode(msgNode);
+		if(msgDagNode.typeId() == nailConstraintNode::typeId) 
+		{
+			nailConstraintNode* nailNode = static_cast<nailConstraintNode*>(msgDagNode.userNode());
+			if(msgDagNode.parentCount() == 0) 
+			{
+				std::cout << "No transform for nail constraint found!" << std::endl;
+				continue;
+			}
+			MFnTransform msgTransform(msgDagNode.parent(0));
+			nail_constraint_t::pointer nail = nailNode->constraint();
+			vec3f constrPos;
+			nail->get_world(constrPos);
+			nail->set_enabled(true); //re-enables constraint if broken dynamically
+			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
+			msgTransform.setRotation(MEulerRotation(0., 0., 0.));
+		}
+		if(msgDagNode.typeId() == hingeConstraintNode::typeId) 
+		{
+			hingeConstraintNode* hingeNode = static_cast<hingeConstraintNode*>(msgDagNode.userNode());
+			if(msgDagNode.parentCount() == 0) 
+			{
+				std::cout << "No transform for hinge constraint found!" << std::endl;
+				continue;
+			}
+			MFnTransform msgTransform(msgDagNode.parent(0));
+			hinge_constraint_t::pointer hinge = hingeNode->constraint();
+			vec3f constrPos;
+			quatf constrRot;
+			hinge->get_world(constrPos, constrRot);
+			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
+            msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
+		}
+		if(msgDagNode.typeId() == sliderConstraintNode::typeId) 
+		{
+			sliderConstraintNode* sliderNode = static_cast<sliderConstraintNode*>(msgDagNode.userNode());
+			if(msgDagNode.parentCount() == 0) 
+			{
+				std::cout << "No transform for slider constraint found!" << std::endl;
+				continue;
+			}
+			MFnTransform msgTransform(msgDagNode.parent(0));
+			slider_constraint_t::pointer slider = sliderNode->constraint();
+			vec3f constrPos;
+			quatf constrRot;
+			slider->get_world(constrPos, constrRot);
+			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
+            msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
+		}
+		if(msgDagNode.typeId() == sixdofConstraintNode::typeId) 
+		{
+			sixdofConstraintNode* sixdofNode = static_cast<sixdofConstraintNode*>(msgDagNode.userNode());
+			if(msgDagNode.parentCount() == 0) 
+			{
+				std::cout << "No transform for sixdof constraint found!" << std::endl;
+				continue;
+			}
+			MFnTransform msgTransform(msgDagNode.parent(0));
+			sixdof_constraint_t::pointer sixdof = sixdofNode->constraint();
+			vec3f constrPos;
+			quatf constrRot;
+			sixdof->get_world(constrPos, constrRot);
+			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
+            msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
+		}
+	}
+}
+
 void initRigidBodyArray(MObject &node)
 {
     MFnDagNode fnDagNode(node);
@@ -710,7 +797,7 @@ void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, 
 
         if(fnNode.typeId() == rigidBodyNode::typeId) {
             initRigidBody(plug, node, data);
-			updateConstraint(node);
+			initConstraint(node);
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
             initRigidBodyArray(node);
         }
@@ -793,7 +880,6 @@ void dSolverNode::gatherPassiveTransforms(MPlugArray &rbConnections, std::vector
         }
     }
 }
-
 
 //update the passive rigid bodies by interpolation of the previous and current frame
 void dSolverNode::updatePassiveRigidBodies(MPlugArray &rbConnections, std::vector<xforms_t> &xforms, float t)

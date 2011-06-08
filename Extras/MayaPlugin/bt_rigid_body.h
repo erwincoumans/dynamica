@@ -182,7 +182,7 @@ public:
 
     btRigidBody* body() { return m_body.get(); }
 
-	virtual void add_constraint(bt_constraint_t* constraint)
+	virtual void add_constraint(bt_constraint_t* constraint, bool disableCollide = false)
 	{
 		m_constraintRef.push_back(constraint);
 	}

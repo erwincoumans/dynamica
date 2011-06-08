@@ -73,7 +73,7 @@ public:
 
     virtual void remove_rigid_body(rigid_body_impl_t* rb) = 0;
 
-    virtual void add_constraint(constraint_impl_t* rb) = 0;
+    virtual void add_constraint(constraint_impl_t* rb, bool disableCollide) = 0;
 
     virtual void remove_constraint(constraint_impl_t* rb) = 0;
 

@@ -446,7 +446,7 @@ void sixdofConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
 		quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
         m_constraint = solver_t::create_sixdof_constraint(rigid_bodyA, pivInA, rotA, rigid_bodyB, pivInB, rotB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, false); //mb
 	}
     else if(rigid_bodyA != NULL) 
 	{
@@ -464,7 +464,7 @@ void sixdofConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
 		quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
         m_constraint = solver_t::create_sixdof_constraint(rigid_bodyA, pivInA, rotA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, false); //mb
     }
 
     data.outputValue(ca_constraint).set(true);

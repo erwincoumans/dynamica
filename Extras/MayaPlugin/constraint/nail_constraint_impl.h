@@ -47,6 +47,7 @@ public:
     //
     virtual void set_damping(float d) = 0;
 	virtual void set_breakThreshold(float d) = 0;
+	virtual void set_enabled(bool e) = 0;
     virtual float damping() const = 0;
 	virtual void register_name(solver_impl_t* solver, const char* objectName) const = 0;
 

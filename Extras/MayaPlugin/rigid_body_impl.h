@@ -39,7 +39,7 @@ public:
     virtual void set_kinematic(bool kinematic) = 0;
 
     //
-    virtual void set_mass(float mass) = 0;               
+    virtual void set_mass(float mass) = 0;  
     virtual void set_inertia(vec3f const& I) = 0;      
     virtual void set_restitution(float r) = 0;          
     virtual void set_friction(float f) = 0;              
@@ -64,7 +64,7 @@ public:
     virtual void apply_torque(vec3f const& t) = 0;
 
 	virtual void update_constraint() = 0;
-	virtual void add_constraint(bt_constraint_t* constraint) = 0;
+	virtual void add_constraint(bt_constraint_t* constraint, bool disableCollide = false) = 0;
 	virtual void remove_constraint(bt_constraint_t* constraint) = 0;
 
 public:

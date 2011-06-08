@@ -282,7 +282,7 @@ MStatus rigidBodyNode::compute(const MPlug& plug, MDataBlock& data)
     } else if(plug == ca_rigidBodyParam) {
         computeRigidBodyParam(plug, data);
     } else if(plug == ca_solver) {
-	data.inputValue(ia_solver).asBool();
+		data.inputValue(ia_solver).asBool();
     } else if(plug.isElement()) {
         if(plug.array() == worldMatrix && plug.logicalIndex() == 0) {
             computeWorldMatrix(plug, data);
@@ -300,7 +300,7 @@ void rigidBodyNode::draw( M3dView & view, const MDagPath &path,
                              M3dView::DisplayStatus status )
 {
   //  std::cout << "rigidBodyNode::draw" << std::endl;
-
+	MObject thisObject(thisMObject());
     update();
 
     view.beginGL();
@@ -314,11 +314,19 @@ void rigidBodyNode::draw( M3dView & view, const MDagPath &path,
         glPushMatrix();
         glScalef(1/scale[0], 1/scale[1], 1/scale[2]); 
     
-        if(style == M3dView::kFlatShaded ||
-           style == M3dView::kGouraudShaded) {
+        if(style == M3dView::kFlatShaded || style == M3dView::kGouraudShaded) {
             glEnable(GL_LIGHTING);
-            float material[] = { 0.4f, 0.7f, 1.0f, 1.0f  };
-            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, material);
+			MPlug plug(thisObject, rigidBodyNode::ia_mass);
+			float mass;
+			plug.getValue(mass);
+			if (mass) {
+				float material[] = { 0.2f, 1.0f, 0.2f, 1.0f };
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, material);
+			} else {
+				float material[] = { 1.0f, 0.3f, 0.1f, 1.0f };
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, material);
+			}
+            //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, material);
             m_rigid_body->collision_shape()->gl_draw(collision_shape_t::kDSSolid);
         } 
     

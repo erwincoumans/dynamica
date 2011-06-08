@@ -78,8 +78,9 @@ virtual MBoundingBox boundingBox() const
     static  MObject     ia_time;
     static  MObject     ia_startTime;
     static  MObject     ia_gravity;
-    static  MObject     ia_enabled;
 	static  MObject		ia_collisionMargin; //mb
+	static  MObject     ia_disableCollisionsBetweenLinkedBodies; //mb
+    static  MObject     ia_enabled;
     static  MObject     ia_splitImpulse;
     static  MObject     ia_substeps;
 	static  MObject		ia_fixedPhysicsRate;

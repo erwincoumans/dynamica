@@ -75,7 +75,7 @@ public:
     void apply_torque(vec3f const& t)                                   { m_impl->apply_torque(t);    }
 
 	void update_constraint()											{ m_impl->update_constraint(); }
-	void add_constraint(bt_constraint_t* constraint)					{ m_impl->add_constraint(constraint); }
+	void add_constraint(bt_constraint_t* constraint, bool disableCollide)	{ m_impl->add_constraint(constraint, disableCollide); }
 	void remove_constraint(bt_constraint_t* constraint)					{ m_impl->remove_constraint(constraint); }
 
 public:

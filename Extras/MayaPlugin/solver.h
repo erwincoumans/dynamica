@@ -86,7 +86,7 @@ public:
     static void remove_all_rigid_bodies();
 
     //add/remove from world
-    static void add_constraint(constraint_t::pointer& c);
+    static void add_constraint(constraint_t::pointer& c, bool disableCollide = false);
     static void remove_constraint(constraint_t::pointer& c);
     static void remove_all_constraints();
 

@@ -96,9 +96,14 @@ public:
     }
 
 	//MB
-	 void set_breakThreshold(float d) {
+	void set_breakThreshold(float d) {
         nail_constraint_impl_t* nail_impl = dynamic_cast<nail_constraint_impl_t*>(impl());
         nail_impl->set_breakThreshold(d);
+    }
+
+	void set_enabled(bool e) {
+        nail_constraint_impl_t* nail_impl = dynamic_cast<nail_constraint_impl_t*>(impl());
+        nail_impl->set_enabled(e);
     }
 
 	virtual void register_name(solver_impl_t* solver, const char* objectName)
