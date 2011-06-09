@@ -36,9 +36,25 @@ class bt_hinge_constraint_t: public bt_constraint_t, public hinge_constraint_imp
 public:
 
     virtual void set_damping(float d) {
-//        btHingeConstraint* p2pc = static_cast<btHingeConstraint*>(m_constraint.get());
-//        p2pc->m_setting.m_damping = d;
+        //btHingeConstraint* p2pc = static_cast<btHingeConstraint*>(m_constraint.get());
+        //p2pc->m_setting.m_damping = d;
     }
+
+	virtual float damping() const {
+        //btHingeConstraint const* hc = static_cast<btHingeConstraint const*>(m_constraint.get());
+        //return hc->m_setting.m_damping;
+		return 0;
+    }
+
+	virtual void set_breakThreshold(float d) {
+        btHingeConstraint* p2pc = static_cast<btHingeConstraint*>(m_constraint.get());
+        p2pc->setBreakingImpulseThreshold(d);
+    }
+
+	virtual void set_enabled(bool e) {
+		btHingeConstraint* p2pc = static_cast<btHingeConstraint*>(m_constraint.get());
+		p2pc->setEnabled(e);
+	}
 
 	virtual void set_limit(float lower, float upper, float softness, float bias_factor, float relaxation_factor) {
         btHingeConstraint* hinge = static_cast<btHingeConstraint*>(m_constraint.get());
@@ -49,12 +65,6 @@ public:
         btHingeConstraint* hinge = static_cast<btHingeConstraint*>(m_constraint.get());
         btVector3 axis(p[0], p[1], p[2]);
 		hinge->setAxis(axis);
-    }
-
-    virtual float damping() const {
-//        btHingeConstraint const* hc = static_cast<btHingeConstraint const*>(m_constraint.get());
-//        return hc->m_setting.m_damping;
-		return 0;
     }
 
     //

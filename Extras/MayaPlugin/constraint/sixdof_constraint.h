@@ -56,6 +56,16 @@ public:
         return sixdof_impl->damping();  
     }
 
+	void set_breakThreshold(float d) {
+        sixdof_constraint_impl_t* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t*>(impl());
+        sixdof_impl->set_breakThreshold(d);
+    }
+
+	void set_enabled(bool e) {
+        sixdof_constraint_impl_t* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t*>(impl());
+        sixdof_impl->set_enabled(e);
+    }
+
 	void set_LinLimit(vec3f& lower, vec3f& upper) {
         sixdof_constraint_impl_t* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t*>(impl());
         sixdof_impl->set_LinLimit(lower, upper);

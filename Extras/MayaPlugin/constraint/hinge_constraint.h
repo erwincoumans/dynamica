@@ -77,6 +77,16 @@ public:
         hinge_impl->set_damping(d);
     }
 
+	void set_breakThreshold(float d) {
+        hinge_constraint_impl_t* hinge_impl = dynamic_cast<hinge_constraint_impl_t*>(impl());
+        hinge_impl->set_breakThreshold(d);
+    }
+
+	void set_enabled(bool e) {
+        hinge_constraint_impl_t* hinge_impl = dynamic_cast<hinge_constraint_impl_t*>(impl());
+        hinge_impl->set_enabled(e);
+    }
+
 	void set_limit(float lower, float upper, float softness, float bias_factor, float relaxation_factor) {
         hinge_constraint_impl_t* hinge_impl = dynamic_cast<hinge_constraint_impl_t*>(impl());
         hinge_impl->set_limit(lower, upper, softness, bias_factor, relaxation_factor);

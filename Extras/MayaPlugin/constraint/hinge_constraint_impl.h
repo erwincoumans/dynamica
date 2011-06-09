@@ -47,6 +47,8 @@ public:
     //
     virtual void set_damping(float d) = 0;
     virtual float damping() const = 0;
+	virtual void set_breakThreshold(float d) = 0;
+	virtual void set_enabled(bool e) = 0;
     virtual void set_limit(float lower, float upper, float softness, float bias_factor, float relaxation_factor) = 0;
     virtual void set_axis(vec3f const& p) = 0; 
 

@@ -46,6 +46,8 @@ public:
     //
     virtual void set_damping(float d) = 0;
     virtual float damping() const = 0;
+	virtual void set_breakThreshold(float d) = 0;
+	virtual void set_enabled(bool e) = 0;
     virtual void set_LinLimit(float lower, float upper) = 0;
     virtual void set_AngLimit(float lower, float upper) = 0;
 

@@ -36,9 +36,25 @@ class bt_sixdof_constraint_t: public bt_constraint_t, public sixdof_constraint_i
 public:
 
     virtual void set_damping(float d) {
-//        btGeneric6DofConstraint* p2pc = static_cast<btGeneric6DofConstraint*>(m_constraint.get());
-//        p2pc->m_setting.m_damping = d;
+        //btGeneric6DofConstraint* p2pc = static_cast<btGeneric6DofConstraint*>(m_constraint.get());
+        //p2pc->m_setting.m_damping = d;
     }
+
+	virtual float damping() const {
+        //btGeneric6DofConstraint const* hc = static_cast<btGeneric6DofConstraint const*>(m_constraint.get());
+        //return hc->m_setting.m_damping;
+		return 0;
+    }
+
+	virtual void set_breakThreshold(float d) {
+        btGeneric6DofConstraint* p2pc = static_cast<btGeneric6DofConstraint*>(m_constraint.get());
+        p2pc->setBreakingImpulseThreshold(d);
+    }
+
+	virtual void set_enabled(bool e) {
+		btGeneric6DofConstraint* p2pc = static_cast<btGeneric6DofConstraint*>(m_constraint.get());
+		p2pc->setEnabled(e);
+	}
 
     virtual void set_LinLimit(vec3f& lower, vec3f& upper) {
 		btGeneric6DofConstraint* sixdof = static_cast<btGeneric6DofConstraint*>(m_constraint.get());
@@ -54,12 +70,6 @@ public:
 		btVector3 btupp(upper[0], upper[1], upper[2]);
 		sixdof->setAngularLowerLimit(btlow);
 		sixdof->setAngularUpperLimit(btupp);
-    }
-
-	virtual float damping() const {
-//        btGeneric6DofConstraint const* hc = static_cast<btGeneric6DofConstraint const*>(m_constraint.get());
-//        return hc->m_setting.m_damping;
-		return 0;
     }
 
 	virtual void get_frameA(vec3f& p, quatf& r) const

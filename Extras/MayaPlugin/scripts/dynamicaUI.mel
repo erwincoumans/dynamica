@@ -171,7 +171,7 @@ global proc dynamicaUI_createWindow()
 	string $frame = `frameLayout -lv 0`;
 	$dynamicaUI_helpLine = `textField -ed 0 -bgc 0.8 0.9 0.8 -tx "Dynamica main window loaded"`;
 	
-	formLayout -edit
+	formLayout -e
 		-attachNone $frame  "top"
 		-attachForm $frame  "left"   0
 		-attachForm $frame  "bottom" 0
@@ -342,7 +342,7 @@ global proc string dynamicaUI_createActivateTab()
 		
 		dynamicaUI_createFrame("Remove Activation - remove activation control or convert rigid bodies to passive", 0, 0);
 			rowLayout -nc 2;
-				iconTextButton -st "iconAndTextVertical" -l "Unactivate" -w 75 -i1 "dynamicaUnactivate.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Make Active" -w 75 -i1 "dynamicaUnactivate.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Remove activation from selected rigid bodies (active on the start frame)";
 				iconTextButton -st "iconAndTextVertical" -l "Make Passive" -w 75 -i1 "dynamicaMakePassive.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(1)" -ann "Make selected rigid bodies passive";
@@ -369,8 +369,10 @@ global proc string dynamicaUI_createBakeTab()
 	string $mainForm = `columnLayout -adj 1`;
 		dynamicaUI_createFrame("Frame Range", 0, 0);
 			rowLayout -nc 2;
-				floatField -pre 3 -w 50 -v $start -cc "$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`" bakeStart;
-				floatField -pre 3 -w 50 -v $end -cc "$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
+				floatField -pre 3 -w 50 -v $start 
+					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeStart`) bakeEnd;$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`" bakeStart;
+				floatField -pre 3 -w 50 -v $end 
+					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeEnd`) bakeStart;$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
 				$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`;
 				$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`;
 			setParent ..;
@@ -458,14 +460,6 @@ global proc string dynamicaUI_createOptionsTab()
 				connectControl $dynamicaUI_disableCollisionsBetweenLinkedBodies dSolver1.disableCollisionsBetweenLinkedBodies;
 			setParent ..;
 		setParent ..;
-		
-		dynamicaUI_createFrame("Solver State", 0, 0);
-			rowLayout -nc 1;
-				int $enabled = `getAttr dSolver1.enabled`;
-				$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled`;
-				connectControl $dynamicaUI_STenabled dSolver1.enabled;
-			setParent ..;
-		setParent ..;
 			
 		dynamicaUI_createFrame("SplitImpulse", 0, 0);
 			rowLayout -nc 1;
@@ -474,8 +468,16 @@ global proc string dynamicaUI_createOptionsTab()
 				connectControl $dynamicaUI_STsplitImpulse dSolver1.splitImpulse;
 			setParent ..;
 		setParent ..;
+		
+		dynamicaUI_createFrame("Solver State", 0, 0);
+			rowLayout -nc 1;
+				int $enabled = `getAttr dSolver1.enabled`;
+				$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled`;
+				connectControl $dynamicaUI_STenabled dSolver1.enabled;
+			setParent ..;
+		setParent ..;		
 	setParent ..;
-	
+
 	return $mainForm;
 }
 
@@ -483,9 +485,18 @@ global proc string dynamicaUI_createHelpTab()
 {	
 	string $mainForm = `columnLayout -adj 1`;
 		dynamicaUI_createFrame("Documentation & Resources", 0, 0);
-			rowLayout -nc 1;
+			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Online Help" -w 75 -i1 "dynamicaHelp.xpm" 
 					-c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" -ann "View Online Documentation";
+				iconTextButton -st "iconAndTextVertical" -l "bulletphysics.org" -w 90 -i1 "dynamicaBulletWebsite.xpm" 
+					-c "system(\"load http://bulletphysics.org\")" -ann "Visit bulletphysics.org";
+			setParent ..;
+		setParent ..;
+		
+		dynamicaUI_createFrame("Feature Overview", 0, 0);
+			scrollLayout -h 300;
+				string $helpText = dynamicaUI_loadHelp();
+				string $text = `text -al "left" -ww 1 -l $helpText`;
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -496,6 +507,25 @@ global proc string dynamicaUI_createHelpTab()
 global proc string dynamicaUI_createFrame(string $label, int $collapsable, int $collapsed) 
 {
 	return `frameLayout -cll $collapsable -cl $collapsed -mh 3 -mw 6 -w 486 -bs "etchedIn" -l $label`;
+}
+
+global proc string dynamicaUI_loadHelp()
+{
+	string $path = `file -query -location "dynamicaUI.mel"`;
+	$path = strip(`substitute "dynamicaUI.mel" $path ""`);
+	$path = `substitute "scripts" $path "doc"`;
+	$path += "HELP.txt";
+
+	int $fid = `fopen $path "r"`;
+	string $line = `fgetline $fid`;
+	string $fileData = $line;
+	while (size($line) > 0)
+	{
+		$line =`fgetline $fid`;
+		$fileData += $line;
+	}
+	fclose $fid;
+	return $fileData;
 }
 
 global proc dynamicaUI_print(string $out, int $mode)
@@ -519,6 +549,7 @@ global proc dynamicaUI_print(string $out, int $mode)
 		error("Dynamica Error: " + $out + "\n");
 	}
 }
+
 
 //procs
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)

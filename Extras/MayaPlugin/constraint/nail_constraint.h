@@ -95,7 +95,6 @@ public:
         return nail_impl->damping();  
     }
 
-	//MB
 	void set_breakThreshold(float d) {
         nail_constraint_impl_t* nail_impl = dynamic_cast<nail_constraint_impl_t*>(impl());
         nail_impl->set_breakThreshold(d);

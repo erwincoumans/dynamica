@@ -488,11 +488,8 @@ MStatus dSolverNode::initialize()
 	status = addAttribute(ia_DBG_FastWireframe);
     MCHECKSTATUS(status, "adding ia_DBG_FastWireframe attribute")
 
-
-
     status = attributeAffects(ia_time, oa_rigidBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_rigidBodies)")
-
     status = attributeAffects(ia_enabled, oa_rigidBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
 
@@ -645,6 +642,7 @@ void initConstraint(MObject& bodyNode)
 			vec3f constrPos;
 			quatf constrRot;
 			hinge->get_world(constrPos, constrRot);
+			hinge->set_enabled(true); //re-enables constraint if broken dynamically
 			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
             msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
 		}
@@ -661,6 +659,7 @@ void initConstraint(MObject& bodyNode)
 			vec3f constrPos;
 			quatf constrRot;
 			slider->get_world(constrPos, constrRot);
+			slider->set_enabled(true); //re-enables constraint if broken dynamically
 			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
             msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
 		}
@@ -677,6 +676,7 @@ void initConstraint(MObject& bodyNode)
 			vec3f constrPos;
 			quatf constrRot;
 			sixdof->get_world(constrPos, constrRot);
+			sixdof->set_enabled(true); //re-enables constraint if broken dynamically
 			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
             msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
 		}

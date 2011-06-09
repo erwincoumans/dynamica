@@ -36,9 +36,25 @@ class bt_slider_constraint_t: public bt_constraint_t, public slider_constraint_i
 public:
 
     virtual void set_damping(float d) {
-//        btSliderConstraint* p2pc = static_cast<btSliderConstraint*>(m_constraint.get());
-//        p2pc->m_setting.m_damping = d;
+        //btSliderConstraint* p2pc = static_cast<btSliderConstraint*>(m_constraint.get());
+        //p2pc->m_setting.m_damping = d;
     }
+
+	virtual float damping() const {
+        //btSliderConstraint const* hc = static_cast<btSliderConstraint const*>(m_constraint.get());
+        //return hc->m_setting.m_damping;
+		return 0;
+    }
+
+	virtual void set_breakThreshold(float d) {
+        btSliderConstraint* p2pc = static_cast<btSliderConstraint*>(m_constraint.get());
+        p2pc->setBreakingImpulseThreshold(d);
+    }
+
+	virtual void set_enabled(bool e) {
+		btSliderConstraint* p2pc = static_cast<btSliderConstraint*>(m_constraint.get());
+		p2pc->setEnabled(e);
+	}
 
     virtual void set_LinLimit(float lower, float upper) {
 		btSliderConstraint* slider = static_cast<btSliderConstraint*>(m_constraint.get());
@@ -50,12 +66,6 @@ public:
 		btSliderConstraint* slider = static_cast<btSliderConstraint*>(m_constraint.get());
 		slider->setLowerAngLimit(lower);
 		slider->setUpperAngLimit(upper);
-    }
-
-	virtual float damping() const {
-//        btSliderConstraint const* hc = static_cast<btSliderConstraint const*>(m_constraint.get());
-//        return hc->m_setting.m_damping;
-		return 0;
     }
 
 	virtual void get_frameA(vec3f& p, quatf& r) const

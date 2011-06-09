@@ -51,6 +51,8 @@ MString     sliderConstraintNode::typeName("dSliderConstraint");
 MObject     sliderConstraintNode::ia_rigidBodyA;
 MObject     sliderConstraintNode::ia_rigidBodyB;
 MObject     sliderConstraintNode::ia_damping;
+MObject		sliderConstraintNode::ia_breakThreshold;
+MObject		sliderConstraintNode::ia_disableCollide;
 MObject     sliderConstraintNode::ca_constraint;
 MObject     sliderConstraintNode::ca_constraintParam;
 MObject     sliderConstraintNode::ia_lowerLinLimit;
@@ -84,6 +86,19 @@ MStatus sliderConstraintNode::initialize()
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_damping);
     MCHECKSTATUS(status, "adding damping attribute")
+
+	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 100.0, &status);
+    MCHECKSTATUS(status, "creating breakThreshold attribute")
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_breakThreshold);
+    MCHECKSTATUS(status, "adding breakThreshold attribute")
+
+	ia_disableCollide = fnNumericAttr.create("disableCollide", "dsblColl", MFnNumericData::kBoolean, true, &status);
+    MCHECKSTATUS(status, "creating disableCollide attribute")
+	fnNumericAttr.setHidden(true);
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_disableCollide);
+    MCHECKSTATUS(status, "adding disableCollide attribute")
 
     ia_lowerLinLimit = fnNumericAttr.create("lowerLinLimit", "lllt", MFnNumericData::kDouble, 1, &status);
     MCHECKSTATUS(status, "creating lower linear limit attribute")
@@ -167,6 +182,12 @@ MStatus sliderConstraintNode::initialize()
 
 	status = attributeAffects(ia_damping, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_damping, ca_constraintParam)")
+
+	status = attributeAffects(ia_breakThreshold, ca_constraintParam);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_breakThreshold, ca_constraintParam)")
+
+	status = attributeAffects(ia_disableCollide, ca_constraint);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_disableCollide, ca_constraint)")
 
     status = attributeAffects(ia_lowerLinLimit, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_lowerLinLimit, ca_constraintParam)")
@@ -312,8 +333,8 @@ void sliderConstraintNode::draw( M3dView & view, const MDagPath &path,
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(posA[0], posA[1], posA[2]);
 
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(pivB[0], pivB[1], pivB[2]);
+	//glVertex3f(0.0, 0.0, 0.0);
+	//glVertex3f(pivB[0], pivB[1], pivB[2]);
 
 	if(rigid_bodyB)
 	{
@@ -442,7 +463,7 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
 		quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
         m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA, rigid_bodyB, pivInB, rotB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
 	}
     else if(rigid_bodyA != NULL) 
 	{
@@ -460,7 +481,7 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
 		quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
         m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
     }
     data.outputValue(ca_constraint).set(true);
     data.setClean(plug);
@@ -600,6 +621,8 @@ void sliderConstraintNode::computeConstraintParam(const MPlug& plug, MDataBlock&
     MPlug(thisObject, ca_constraint).getValue(update);
     if(m_constraint) {
         m_constraint->set_damping((float) data.inputValue(ia_damping).asDouble());
+		m_constraint->set_breakThreshold((float) data.inputValue(ia_breakThreshold).asDouble());
+
 		float lin_lower = (float) data.inputValue(ia_lowerLinLimit).asDouble();
 		float lin_upper = (float) data.inputValue(ia_upperLinLimit).asDouble();
 		m_constraint->set_LinLimit(lin_lower, lin_upper);

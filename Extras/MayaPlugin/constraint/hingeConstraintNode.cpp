@@ -51,6 +51,8 @@ MString     hingeConstraintNode::typeName("dHingeConstraint");
 MObject     hingeConstraintNode::ia_rigidBodyA;
 MObject     hingeConstraintNode::ia_rigidBodyB;
 MObject     hingeConstraintNode::ia_damping;
+MObject		hingeConstraintNode::ia_breakThreshold;
+MObject		hingeConstraintNode::ia_disableCollide;
 MObject     hingeConstraintNode::ia_lowerLimit;
 MObject     hingeConstraintNode::ia_upperLimit;
 MObject     hingeConstraintNode::ia_limitSoftness;
@@ -91,6 +93,19 @@ MStatus hingeConstraintNode::initialize()
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_damping);
     MCHECKSTATUS(status, "adding damping attribute")
+
+	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 100.0, &status);
+    MCHECKSTATUS(status, "creating breakThreshold attribute")
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_breakThreshold);
+    MCHECKSTATUS(status, "adding breakThreshold attribute")
+
+	ia_disableCollide = fnNumericAttr.create("disableCollide", "dsblColl", MFnNumericData::kBoolean, true, &status);
+    MCHECKSTATUS(status, "creating disableCollide attribute")
+	fnNumericAttr.setHidden(true);
+    fnNumericAttr.setKeyable(true);
+    status = addAttribute(ia_disableCollide);
+    MCHECKSTATUS(status, "adding disableCollide attribute")
 
     ia_lowerLimit = fnNumericAttr.create("lowerLimit", "llmt", MFnNumericData::kDouble, 1.0, &status);
     MCHECKSTATUS(status, "creating lower limit attribute")
@@ -201,6 +216,12 @@ MStatus hingeConstraintNode::initialize()
 
     status = attributeAffects(ia_damping, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_damping, ca_constraintParam)")
+
+	status = attributeAffects(ia_breakThreshold, ca_constraintParam);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_breakThreshold, ca_constraintParam)")
+
+	status = attributeAffects(ia_disableCollide, ca_constraint);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_disableCollide, ca_constraint)")
 
     status = attributeAffects(ia_lowerLimit, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_lowerLimit, ca_constraintParam)")
@@ -351,8 +372,8 @@ void hingeConstraintNode::draw( M3dView & view, const MDagPath &path,
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(posA[0], posA[1], posA[2]);
 
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(pivB[0], pivB[1], pivB[2]);
+	//glVertex3f(0.0, 0.0, 0.0);
+	//glVertex3f(pivB[0], pivB[1], pivB[2]);
 
 	if(rigid_bodyB)
 	{
@@ -488,7 +509,7 @@ void hingeConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 		quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
         m_constraint = solver_t::create_hinge_constraint(rigid_bodyA, pivInA, rotA, rigid_bodyB, pivInB, rotB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
 	}
     else if(rigid_bodyA != NULL) 
 	{
@@ -506,7 +527,7 @@ void hingeConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 		quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
         m_constraint = solver_t::create_hinge_constraint(rigid_bodyA, pivInA, rotA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
     }
 
     data.outputValue(ca_constraint).set(true);
@@ -645,8 +666,9 @@ void hingeConstraintNode::computeConstraintParam(const MPlug& plug, MDataBlock& 
     
     MPlug(thisObject, ca_constraint).getValue(update);
     if(m_constraint) {
-		float damping = (float) data.inputValue(ia_damping).asDouble();
-		m_constraint->set_damping(damping);
+		m_constraint->set_damping((float) data.inputValue(ia_damping).asDouble());
+		m_constraint->set_breakThreshold((float) data.inputValue(ia_breakThreshold).asDouble());
+
 		float lower = (float) data.inputValue(ia_lowerLimit).asDouble();
 		float upper = (float) data.inputValue(ia_upperLimit).asDouble();
 		float limit_softness = (float) data.inputValue(ia_limitSoftness).asDouble();

@@ -57,6 +57,15 @@ public:
         return slider_impl->damping();  
     }
 
+	void set_breakThreshold(float d) {
+        slider_constraint_impl_t* slider_impl = dynamic_cast<slider_constraint_impl_t*>(impl());
+        slider_impl->set_breakThreshold(d);
+    }
+
+	void set_enabled(bool e) {
+        slider_constraint_impl_t* slider_impl = dynamic_cast<slider_constraint_impl_t*>(impl());
+        slider_impl->set_enabled(e);
+    }
 
 	void set_LinLimit(float lower, float upper) {
         slider_constraint_impl_t* slider_impl = dynamic_cast<slider_constraint_impl_t*>(impl());

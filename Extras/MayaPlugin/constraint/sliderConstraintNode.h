@@ -73,6 +73,8 @@ public:
     static  MObject     ia_rigidBodyA;
     static  MObject     ia_rigidBodyB;
     static  MObject     ia_damping;
+	static	MObject		ia_breakThreshold;
+	static	MObject		ia_disableCollide;
 
     static  MObject     ia_lowerLinLimit;
     static  MObject     ia_upperLinLimit;	

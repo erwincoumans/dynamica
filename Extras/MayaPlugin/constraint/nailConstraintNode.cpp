@@ -82,8 +82,7 @@ MStatus nailConstraintNode::initialize()
     status = addAttribute(ia_damping);
     MCHECKSTATUS(status, "adding damping attribute")
 
-	//MB
-	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 10.0, &status);
+	ia_breakThreshold = fnNumericAttr.create("breakThreshold", "brkThrsh", MFnNumericData::kDouble, 100.0, &status);
     MCHECKSTATUS(status, "creating breakThreshold attribute")
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_breakThreshold);
@@ -95,8 +94,6 @@ MStatus nailConstraintNode::initialize()
     fnNumericAttr.setKeyable(true);
     status = addAttribute(ia_disableCollide);
     MCHECKSTATUS(status, "adding disableCollide attribute")
-
-	//
 
     ia_pivotInA = fnNumericAttr.createPoint("pivotInA", "piva", &status);
     MCHECKSTATUS(status, "creating pivotInA attribute")
@@ -154,13 +151,11 @@ MStatus nailConstraintNode::initialize()
     status = attributeAffects(ia_damping, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_damping, ca_constraintParam)")
 
-	//MB
 	status = attributeAffects(ia_breakThreshold, ca_constraintParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_breakThreshold, ca_constraintParam)")
 
 	status = attributeAffects(ia_disableCollide, ca_constraint);
     MCHECKSTATUS(status, "adding attributeAffects(ia_disableCollide, ca_constraint)")
-	//
 
     return MS::kSuccess;
 }

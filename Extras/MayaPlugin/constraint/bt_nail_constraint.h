@@ -45,7 +45,6 @@ public:
         return p2pc->m_setting.m_damping;
     }
 
-	//MB
 	virtual void set_breakThreshold(float d) {
         btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
         p2pc->setBreakingImpulseThreshold(d);
@@ -55,7 +54,6 @@ public:
 		btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
 		p2pc->setEnabled(e);
 	}
-	//
 
     virtual void set_pivotA(vec3f const &p) {
         btPoint2PointConstraint* p2pc = static_cast<btPoint2PointConstraint*>(m_constraint.get());
