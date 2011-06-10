@@ -100,6 +100,8 @@ Store simulation as keyframes and optimize the scene size. This operation is not
 Set the starting and ending frames for baking.
 
 |Bake Operation
+Bake keyframe data for selected or all rigid bodies in the scene.
+
 Bake Selected  - Bake the motion of select rigid bodies as keyframes into the source meshes and delete the rigid bodies.
 Bake All       - Bake the motion of all rigid bodies as keyframes into the source meshes and delete the rigid bodies.
 

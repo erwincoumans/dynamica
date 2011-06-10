@@ -610,6 +610,38 @@ int invert sort
 	return $return;
 }
 
+global proc string[] mbDaisyChainObjects(string $objects[], string $refOb, int $invert)
+{
+	string $chain[] = {$refOb};
+	string $currentObject = $refOb;
+	string $closestObject;
+	float $distance = 99999999.9;
+	float $tmpDistance;
+	int $i;
+	
+	for ($i=0;$i<size($objects)-1;$i++)
+	{
+		for ($o in $objects)
+		{
+			if (!stringArrayContains($o, $chain))
+			{
+				$tmpDistance = mbDistanceBetweenNodes($currentObject, $o);
+				if ($tmpDistance < $distance)
+				{
+					$distance = $tmpDistance;
+					$closestObject = $o;
+				}
+			}
+		}
+		
+		$chain[size($chain)] = $closestObject;
+		$currentObject = $closestObject;
+		$distance = 99999999.9;
+	}
+
+	return $chain;
+}
+
 global proc mbPolyCutter() 
 {
 	global int $surfaceType; //0 = linear, 1 = cubic

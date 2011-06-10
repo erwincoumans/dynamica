@@ -61,7 +61,7 @@ global proc string dynamicaUI_createToolsTab()
 	global string $dynamicaUI_tabs;
 	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane, 7 = Bvh
 	string $mainForm = `columnLayout -adj 1 -p $dynamicaUI_tabs`;
-		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning some of these features are experimental!";
+		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning some of these features are experimental!\n\nFuture tools here...";
 	setParent ..;
 	
 	return $mainForm;
