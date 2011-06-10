@@ -493,8 +493,23 @@ global proc string dynamicaUI_createHelpTab()
 			setParent ..;
 		setParent ..;
 		
+		dynamicaUI_createFrame("Example Scenes", "See Dynamica in action with these demonstration scenes", 0, 0);
+			rowLayout -nc 5;
+				iconTextButton -st "iconAndTextVertical" -l "Demo 1" -w 75 -i "" 
+					-c "" -ann "";
+				iconTextButton -st "iconAndTextVertical" -l "Demo 2" -w 75 -i "" 
+					-c "" -ann "";
+				iconTextButton -st "iconAndTextVertical" -l "Demo 3" -w 75 -i "" 
+					-c "" -ann "";
+				iconTextButton -st "iconAndTextVertical" -l "Demo 4" -w 75 -i "" 
+					-c "" -ann "";
+				iconTextButton -st "iconAndTextVertical" -l "Demo 5" -w 75 -i "" 
+					-c "" -ann "";
+			setParent ..;
+		setParent ..;
+		
 		dynamicaUI_createFrame("Feature Overview", "", 0, 0);
-			scrollLayout -h 300;
+			scrollLayout -h 235;
 				string $helpText = dynamicaUI_loadHelp();
 				string $text = `text -al "left" -ww 1 -l $helpText`;
 			setParent ..;
