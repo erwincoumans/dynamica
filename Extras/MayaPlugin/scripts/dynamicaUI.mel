@@ -575,7 +575,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	string $meshLayer = "DynamicaInputMeshes";
 	string $rbLayer = "DynamicaRigidBodies";
 	string $obSelection[] = `ls -sl`;
-	string $selection[] = `ls -selection -dag -leaf -showType -type "geometry"`;
+	string $selection[];
 	string $newBodies[];
 	string $rbGroup;
 	string $meshGroup;
@@ -583,6 +583,9 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	int $bodyCount = 0;
 	int $makeCollisionShape = 1;
 	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //compensate for descrepancy between Maya vertex shift and Bullet planar shift
+	
+	for ($o in $obSelection) mbDeleteShapeHistory($o); //clean shape history
+	$selection = `ls -selection -dag -leaf -showType -type "geometry"`;
 	
 	if ($activebody == false) $mass = 0;
 	

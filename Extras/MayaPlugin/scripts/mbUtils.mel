@@ -78,6 +78,13 @@ global proc string mbGetShape(string $node)
 	return $shape[0];
 }
 
+global proc mbDeleteShapeHistory(string $node)
+{
+	string $shapes[] = `listRelatives -s -f $node`;
+	int $i;
+	for ($i=1;$i<size($shapes);$i++) delete $shapes[$i];
+}
+
 global proc string mbGetType(string $node)
 {
 	return `objectType $node`;
