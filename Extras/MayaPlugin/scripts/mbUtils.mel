@@ -55,7 +55,7 @@ global proc int mbIsTransform(string $node)
 
 global proc int mbIsMesh(string $node)
 {
-	$shape =`listRelatives -s $node`;
+	$shape =`listRelatives -s -f -pa $node`;
 	if (size($shape) && `nodeType $shape[0]` == "mesh") return 1;
 	return 0;
 }
@@ -63,7 +63,7 @@ global proc int mbIsMesh(string $node)
 global proc int mbIsType(string $node, string $type)
 {
 	$types = {"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
-	$shape = `listRelatives $node`;
+	$shape = `listRelatives -f -pa $node`;
 	if (size($shape)) 
 	{
 		if (`objectType $shape[0]` == $type) return 1;
@@ -74,7 +74,7 @@ global proc int mbIsType(string $node, string $type)
 
 global proc string mbGetShape(string $node)
 {
-	string $shape[] = `listRelatives -pa -f $node`;
+	string $shape[] = `listRelatives -f -pa $node`;
 	return $shape[0];
 }
 
@@ -92,7 +92,7 @@ global proc string mbGetType(string $node)
 
 global proc string mbGetParent(string $node)
 {
-	string $parents[] = `listRelatives -p $node`;
+	string $parents[] = `listRelatives -p -f -pa $node`;
 	return $parents[0];
 }
 
@@ -684,7 +684,7 @@ global proc mbPolyCutter()
 
 	for ($s in `ls -sl`) 
 	{
-		$shape =`listRelatives -s $s`;
+		$shape =`listRelatives -s -f -pa $s`;
 		if (`nodeType $shape[0]` == "nurbsSurface") 
 		{
 			$nurbs[size($nurbs)] = $s;

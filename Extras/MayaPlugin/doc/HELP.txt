@@ -55,7 +55,7 @@ Plane   - creates an array of passive primitive rigid body planes.
 ___________________________________________________________________________
 
 |Constraints
-Constraints inhibit the natural (unconstrained) behavior of an active rigid body. Constraints require a single rigid body or pair of rigid bodies to be selected. Rigid bodies can be influenced by multiple constraints.
+Constraints inhibit the natural (unconstrained) behavior of an active rigid body. Constraints require at least one rigid body to be selected. If a pair of rigid bodies is selected, they are constrained to each other. If three or more rigid bodies are selected, they are constrained to each other in a distance sorted sequence - like a chain. Rigid bodies can be influenced by multiple constraints.
 
 Nail    - pins a rigid body in place or to another rigid body and allows free rotation in any direction.
 Hinge   - constrains a rigid body in place or to another rigid body and allows rotation about a single axis relative to the z-axis of the constraints transform.
