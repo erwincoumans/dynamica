@@ -573,6 +573,7 @@ global proc dynamicaUI_print(string $out, int $mode)
 		if(`textField -ex $dynamicaUI_helpLine`) textField -e -bgc 1.0 0.6 0.6 -tx ("Dynamica: " + $out) $dynamicaUI_helpLine;
 		error("Dynamica Error: " + $out + "\n");
 	}
+	refresh;
 }
 
 //procs
@@ -664,6 +665,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						setAttr ($rigidBodyTransforms[0] + ".rotate") -type double3 $rot[0] $rot[1] $rot[2];
 						setAttr ($rigidBodyNode + ".initialRotation") -type double3 $rot[0] $rot[1] $rot[2];
 
+						//connect original mesh transform to rigid body transform
 						connectAttr ($rigidBodyTransforms[0] + ".translate") ($shapeTransforms[0] + ".translate");
 						connectAttr ($rigidBodyTransforms[0] + ".rotate") ($shapeTransforms[0] + ".rotate");
 						connectAttr ($rigidBodyTransforms[0] + ".scale") ($shapeTransforms[0] + ".scale");
@@ -1214,9 +1216,8 @@ global proc dynamicaUI_bakeRigidBodies()
 	}
 	
 	//we are go
-	dynamicaUI_print("Baking objects...", 0);
+	dynamicaUI_print("Baking " + size($sel) + "rigid bodies...", 0);
 	mbCreateLayer($dBakeLayer, 0);
-	$bakeGroup = `group -em -n dBaked`;
 	if ($dynamicaUI_deleteBakeHistory) delete -ch;
 	undoInfo -state off;
 	select -cl;
@@ -1231,21 +1232,19 @@ global proc dynamicaUI_bakeRigidBodies()
 			{
 				$toBake[size($toBake)] = $connectedTransforms[0];
 				mbAddToLayer($connectedTransforms[0], $dBakeLayer);
-				parent $connectedTransforms[0] $bakeGroup;
 			}
 		}
 		else 
 		{
 			$toBake[size($toBake)] = $s;
 			mbAddToLayer($s, $dBakeLayer);
-			parent $s $bakeGroup;
 		}
 	}
 	
 	select -r $toBake;
 	
 	//bake!
-	print("Dynamica: Baking simulation...\n");
+	dynamicaUI_print("Dynamica: Baking simulation...", 0);
 	$baked = `ls -sl`;
 	cycleCheck -e off;
 	bakeResults 
@@ -1300,8 +1299,7 @@ global proc dynamicaUI_bakeRigidBodies()
 		
 		dgeval `mbGetShape($s)`;
 	}
-	
-	
+
 	$sel = `ls -sl`;
 	if (size($sel))
 	{
@@ -1338,9 +1336,7 @@ global proc dynamicaUI_bakeRigidBodies()
 			filterCurve -f simplify -timeTolerance 0 -tol 0.0001 {$b + ".rotateY", $b+ ".rotateX", $b + ".translateZ", $b + ".translateY", $b + ".translateX", $b + ".rotateZ"};
 		}
 	}
-	
-	
-	
+
 	if ($dynamicaUI_deleteEmptyNodes)
 	{
 		dynamicaUI_print("Removing empty nodes...", 0);
@@ -1364,6 +1360,9 @@ global proc dynamicaUI_bakeRigidBodies()
 	undoInfo -state on;
 	clear($sel);
 	select -r $baked;
+	$bakeGroup = `group -em -n dBaked`;
+	for ($b in $baked) parent $b $bakeGroup; //move to baked group
+	clear($baked);
 	dynamicaUI_print("Baked " + size($baked) + " rigid bodies on frames " + $dynamicaUI_bakeStartFrame + " - " + $dynamicaUI_bakeEndFrame, 0);
 }
 
