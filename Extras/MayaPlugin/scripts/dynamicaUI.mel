@@ -82,8 +82,6 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassiveMesh.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $dynamicaShelf;
-	shelfButton -i "dynamicaCreatePassiveBvhMesh.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive Bvh mesh rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassivePlane.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create passive plane rigid body" -p $dynamicaShelf;
 
@@ -113,7 +111,6 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_activateAxis(6)" -ann "Activate selected rigid bodies outwards" -p $dynamicaShelf;
 	shelfButton -i "dynamicaActivateRadialIn.xpm" 
 		-c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $dynamicaShelf;
-		
 	shelfButton -i "dynamicaActivateChain.xpm" 
 		-c "dynamicaUI_activateAxis(8)" -ann "Chain activate selected rigid bodies" -p $dynamicaShelf;
 		
@@ -121,6 +118,10 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)" -p $dynamicaShelf;
 	shelfButton -i "dynamicaMakePassive.xpm" 
 		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $dynamicaShelf;
+	shelfButton -i "dynamicaSetInitialState.xpm" 
+		-c "dynamicaUI_setInitialState(0)" -ann "Set current state to initial state" -p $dynamicaShelf;
+	shelfButton -i "dynamicaClearInitialState.xpm" 
+		-c "dynamicaUI_setInitialState(1)" -ann "Restore original initial state" -p $dynamicaShelf;
 		
 	shelfButton -i "dynamicaBakeSelected.xpm" 
 		-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
@@ -334,28 +335,27 @@ global proc string dynamicaUI_createActivateTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Radial Activation", "Activate selected rigid bodies in an outward or inward radial pattern, starting with the active object in the selection.", 0, 0);
-			rowLayout -nc 2;
+		dynamicaUI_createFrame("Radial & Sequential Activation", "Activate selected rigid bodies in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
+			rowLayout -nc 3;
 				iconTextButton -st "iconAndTextVertical" -l "Outward" -w 75 -i "dynamicaActivateRadial.xpm" 
 					-c "dynamicaUI_activateAxis(6)" -ann "Radially activate selected rigid bodies outwards";
 				iconTextButton -st "iconAndTextVertical" -l "Inward" -w 75 -i "dynamicaActivateRadialIn.xpm" 
 					-c "dynamicaUI_activateAxis(7)" -ann "Radially activate selected rigid bodies inwards";
-			setParent ..;
-		setParent ..;
-		
-		dynamicaUI_createFrame("Sequential Activation", "Activate selected rigid bodies in a chain-like sequence, starting with the active object in the selection.", 0, 0);
-			rowLayout -nc 1;
 				iconTextButton -st "iconAndTextVertical" -l "Daisy Chain" -w 75 -i "dynamicaActivateChain.xpm" 
 					-c "dynamicaUI_activateAxis(8)" -ann "Chain activate selected rigid bodies";
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Remove Activation", "Restore default active behavior (active on the start frame) or convert to passive (mass of 0).", 0, 0);
-			rowLayout -nc 2;
+		dynamicaUI_createFrame("Remove Activation & Set Initial State", "Restore default active behavior, convert to passive, or set the initial state of selected rigid bodies.", 0, 0);
+			rowLayout -nc 4;
 				iconTextButton -st "iconAndTextVertical" -l "Make Active" -w 75 -i "dynamicaUnactivate.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)";
 				iconTextButton -st "iconAndTextVertical" -l "Make Passive" -w 75 -i "dynamicaMakePassive.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(1)" -ann "Make selected rigid bodies passive";
+				iconTextButton -st "iconAndTextVertical" -l "Set Initial State" -w 85 -i "dynamicaSetInitialState.xpm" 
+					-c "dynamicaUI_setInitialState(0)" -ann "Set current state to initial state";
+				iconTextButton -st "iconAndTextVertical" -l "Clear Initial State" -w 85 -i "dynamicaClearInitialState.xpm" 
+					-c "dynamicaUI_setInitialState(1)" -ann "Restore original initial state";
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -423,67 +423,77 @@ global proc string dynamicaUI_createOptionsTab()
 	global string $dynamicaUI_STsubsteps;
 	global string $dynamicaUI_STphysicsrate;
 	global string $dynamicaUI_STcollisionMargin;
+	global string $dynamicaUI_activateSet;
 	global float $dynamicaUI_collisionMargin;
+	global int $dynamicaUI_createActivateSet = 1;
 	
 	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Gravity", "Direction and magnitude of gravity in the simulation.", 0, 0);
-			rowLayout -nc 3;
+	
+		dynamicaUI_createFrame("Solver Options", "", 0, 0);
+			columnLayout;
+				text -al "left" -fn "boldLabelFont" -l "Gravity" -ann "Direction and magnitude of gravity in the simulation.";
 				float $gravity[] = `getAttr dSolver1.gravity`;
-				$dynamicaUI_STgravityX = `floatField -pre 3 -w 50 -v $gravity[0]`;
-				$dynamicaUI_STgravityY = `floatField -pre 3 -w 50 -v $gravity[1]`;
-				$dynamicaUI_STgravityZ = `floatField -pre 3 -w 50 -v $gravity[2]`;
-				connectControl $dynamicaUI_STgravityX dSolver1.gravityX;
-				connectControl $dynamicaUI_STgravityY dSolver1.gravityY;
-				connectControl $dynamicaUI_STgravityZ dSolver1.gravityZ;
-			setParent ..;
-		setParent ..;
-			
-		dynamicaUI_createFrame("Physics Framerate (Hertz)", "The 'speed' at which the simulation is advanced.", 0, 0);
-			rowLayout -nc 1;
+				rowLayout -nc 3;
+					$dynamicaUI_STgravityX = `floatField -pre 3 -w 50 -v $gravity[0]`;
+					$dynamicaUI_STgravityY = `floatField -pre 3 -w 50 -v $gravity[1]`;
+					$dynamicaUI_STgravityZ = `floatField -pre 3 -w 50 -v $gravity[2]`;
+					connectControl $dynamicaUI_STgravityX dSolver1.gravityX;
+					connectControl $dynamicaUI_STgravityY dSolver1.gravityY;
+					connectControl $dynamicaUI_STgravityZ dSolver1.gravityZ;
+				setParent ..;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Physics Framerate (Hertz)";
 				int $physicsrate= `getAttr dSolver1.physicsrate`; 
 				$dynamicaUI_STphysicsrate = `intField -v $physicsrate -w 50 -ann "Default is 60. Higher values \"speed up\" simulation"`;
 				connectControl $dynamicaUI_STphysicsrate dSolver1.physicsrate;
-			setParent ..;
-		setParent ..;
-
-		dynamicaUI_createFrame("Substeps", "Number of times the simulation is evaluated 'between' each frame step on the timeline.\nThe default value of 1 should work for most simulations.", 0, 0);
-			rowLayout -nc 1;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Substeps";
 				int $substeps = `getAttr dSolver1.substeps`; 
-				$dynamicaUI_STsubsteps = `intField -v $substeps -w 50`;
+				$dynamicaUI_STsubsteps = `intField -v $substeps -w 50 
+					-ann "Number of times the simulation is evaluated 'between' each frame step on the timeline.\nThe default value of 1 should work for most simulations."`;
 				connectControl $dynamicaUI_STsubsteps dSolver1.substeps;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Split Impulse";
+				int $enabled = `getAttr dSolver1.splitImpulse`;
+				$dynamicaUI_STsplitImpulse = `checkBox -l "Enabled" -v $enabled 
+					-ann "Enabling Split Impulse will allow the solver to apply positional corrections when deep collision penetrations occur.\nThese corrections do not affect resulting velocities."`;
+				connectControl $dynamicaUI_STsplitImpulse dSolver1.splitImpulse;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Solver State";
+				int $enabled = `getAttr dSolver1.enabled`;
+				$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled 
+					-ann "Toggles the state of the solver - like an on/off switch."`;
+				connectControl $dynamicaUI_STenabled dSolver1.enabled;
+				separator -h 5;
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Collision Margin (creation only)", "The gap around each collision shape used for collision detection.\nThis value only effects Hull and Mesh rigid bodies during creation. Default is 0.040.", 0, 0);
-			rowLayout -nc 1;
+		dynamicaUI_createFrame("Tool Options", "", 0, 0);
+			columnLayout;
+				text -al "left" -fn "boldLabelFont" -l "Colision Margin (creation only)";
 				$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
-				$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $dynamicaUI_collisionMargin
+				$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $dynamicaUI_collisionMargin 
+					-ann "The gap around each collision shape used for collision detection.\nThis value only effects Hull and Mesh rigid bodies during creation. Default is 0.040." 
 					-cc "$dynamicaUI_collisionMargin = `floatField -q -v $dynamicaUI_STcollisionMargin`"`;
 				connectControl $dynamicaUI_STcollisionMargin dSolver1.collisionMargin;
-			setParent ..;
-		setParent ..;
-		
-		dynamicaUI_createFrame("Disable Collisions Between Constrained Bodies (creation only)", "Controls the collisions of rigid bodies which share a constraint. This only effects constraints during creation.", 0, 0);
-			rowLayout -nc 1;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Disable Collisions Between Constrained Bodies (creation only)";
 				int $enabled = `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
-				$dynamicaUI_disableCollisionsBetweenLinkedBodies = `checkBox -l "Enabled" -v $enabled`;
+				$dynamicaUI_disableCollisionsBetweenLinkedBodies = `checkBox -l "Enabled" -v $enabled 
+					-ann "Controls the collisions of rigid bodies which share a constraint. This only effects constraints during creation."`;
 				connectControl $dynamicaUI_disableCollisionsBetweenLinkedBodies dSolver1.disableCollisionsBetweenLinkedBodies;
-			setParent ..;
-		setParent ..;
-			
-		dynamicaUI_createFrame("SplitImpulse", "Enabling Split Impulse will allow the solver to apply positional corrections when deep collision penetrations occur.\nThese corrections do not affect resulting velocities.", 0, 0);
-			rowLayout -nc 1;
-				int $enabled = `getAttr dSolver1.splitImpulse`;
-				$dynamicaUI_STsplitImpulse = `checkBox -l "Enabled" -v $enabled`;
-				connectControl $dynamicaUI_STsplitImpulse dSolver1.splitImpulse;
-			setParent ..;
-		setParent ..;
-		
-		dynamicaUI_createFrame("Solver State", "Toggles the state of the solver - like an on/off switch.", 0, 0);
-			rowLayout -nc 1;
-				int $enabled = `getAttr dSolver1.enabled`;
-				$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled`;
-				connectControl $dynamicaUI_STenabled dSolver1.enabled;
+				separator -h 5;
+				
+				text -al "left" -fn "boldLabelFont" -l "Create Activation Sets";
+				$dynamicaUI_activateSet = `checkBox -l "Enabled" -v $dynamicaUI_createActivateSet 
+					-ann "Creates quick select sets containing rigid bodies selected for activation." 
+					-cc "$dynamicaUI_createActivateSet = `checkBox -q -v $dynamicaUI_activateSet`"`;
+				separator -h 5;
 			setParent ..;
 		setParent ..;		
 	setParent ..;
@@ -659,12 +669,21 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
 						float $rot[]= `getAttr ($shapeTransforms[0] + ".rotate")`;
 
-						setAttr ($rigidBodyTransforms[0] + ".translate") -type double3 $pos[0] $pos[1] $pos[2];
-						setAttr ($rigidBodyNode + ".initialPosition") -type double3 $pos[0] $pos[1] $pos[2];
-
-						setAttr ($rigidBodyTransforms[0] + ".rotate") -type double3 $rot[0] $rot[1] $rot[2];
-						setAttr ($rigidBodyNode + ".initialRotation") -type double3 $rot[0] $rot[1] $rot[2];
-
+						setAttr ($rigidBodyTransforms[0] + ".translate") -typ double3 $pos[0] $pos[1] $pos[2];
+						setAttr ($rigidBodyNode + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
+						setAttr ($rigidBodyTransforms[0] + ".rotate") -typ double3 $rot[0] $rot[1] $rot[2];
+						setAttr ($rigidBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
+						
+						//store original position and rotation
+						addAttr -ln "originalPosition" -at double3 -k 1 $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionX" -at double -k 1 -dv $pos[0] $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionY" -at double -k 1 -dv $pos[1] $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionZ" -at double -k 1 -dv $pos[2] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotation" -at double3 -k 1 $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationX" -at double -k 1 -dv $rot[0] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationY" -at double -k 1 -dv $rot[1] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationZ" -at double -k 1 -dv $rot[2] $rigidBodyTransforms[0];
+						
 						//connect original mesh transform to rigid body transform
 						connectAttr ($rigidBodyTransforms[0] + ".translate") ($shapeTransforms[0] + ".translate");
 						connectAttr ($rigidBodyTransforms[0] + ".rotate") ($shapeTransforms[0] + ".rotate");
@@ -766,26 +785,26 @@ global proc string dynamicaUI_createConstraint(int $constraintType)
 	}
 	
 	setAttr ($constraintNode + ".disableCollide") `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
-	$constraintTransforms = `listRelatives -parent $constraintNode`;
+	$constraintTransforms = `listRelatives -p $constraintNode`;
 	$newConstraintTransf = $constraintTransforms[0];
 	
 	//connect to bodies
 	if($selSize == 1)
 	{
 		connectAttr ($selection[0] + ".message") ($constraintNode + ".inRigidBodyA");
-		string $rbTransform[] = `listRelatives -parent $selection[0]`;
+		string $rbTransform[] = `listRelatives -p $selection[0]`;
 		float $posA[3] = `getAttr ($rbTransform[0] + ".translate")`;
 		float $iWorldA[16] = `getAttr ($rbTransform[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($posA, $iWorldA);
-		setAttr ($constraintNode + ".pivotInA") -type float3 $pivA[0] $pivA[1] $pivA[2];
-		setAttr ($newConstraintTransf + ".translate") -type float3 $posA[0] $posA[1] $posA[2];
+		setAttr ($constraintNode + ".pivotInA") -typ float3 $pivA[0] $pivA[1] $pivA[2];
+		setAttr ($newConstraintTransf + ".translate") -typ float3 $posA[0] $posA[1] $posA[2];
 	}
 	else
 	{
 		connectAttr ($selection[0] + ".message") ($constraintNode + ".inRigidBodyA");
 		connectAttr ($selection[1] + ".message") ($constraintNode + ".inRigidBodyB");
-		string $rbTransformA[] = `listRelatives -parent $selection[0]`;
-		string $rbTransformB[] = `listRelatives -parent $selection[1]`;
+		string $rbTransformA[] = `listRelatives -p $selection[0]`;
+		string $rbTransformB[] = `listRelatives -p $selection[1]`;
 		float $posA[] = `getAttr ($rbTransformA[0] + ".translate")`;
 		float $posB[] = `getAttr ($rbTransformB[2] + ".translate")`;
 		float $pivW[3];
@@ -797,9 +816,9 @@ global proc string dynamicaUI_createConstraint(int $constraintType)
 		float $iWorldB[16] = `getAttr ($rbTransformB[0] + ".worldMatrix")`;
 		float $pivA[] = dynamicaUI_worldToObj($pivW, $iWorldA);
 		float $pivB[] = dynamicaUI_worldToObj($pivW, $iWorldB);
-		setAttr ($constraintNode + ".pivotInA") -type float3 $pivA[0] $pivA[1] $pivA[2];
-		setAttr ($constraintNode + ".pivotInB") -type float3 $pivB[0] $pivB[1] $pivB[2];
-		setAttr ($newConstraintTransf + ".translate") -type float3 $pivW[0] $pivW[1] $pivW[2];
+		setAttr ($constraintNode + ".pivotInA") -typ float3 $pivA[0] $pivA[1] $pivA[2];
+		setAttr ($constraintNode + ".pivotInB") -typ float3 $pivB[0] $pivB[1] $pivB[2];
+		setAttr ($newConstraintTransf + ".translate") -typ float3 $pivW[0] $pivW[1] $pivW[2];
 	}
 	select -r $newConstraintTransf;
 	return $newConstraintTransf;
@@ -1024,6 +1043,7 @@ global proc dynamicaUI_activateRigidBodies()
 	global float $dynamicaUI_activateStartFrame;
 	global float $dynamicaUI_activateEndFrame;
 	global int $dynamicaUI_activateAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z, 6 = radial out, 7 = radial in, 8 = daisy chain
+	global int $dynamicaUI_createActivateSet;
 
 	string $sel[] = `ls -sl`;
 	string $selTmp[] = `ls -sl`;
@@ -1035,10 +1055,6 @@ global proc dynamicaUI_activateRigidBodies()
 	string $refr[];
 	int $incr = 0;
 	int $i;
-
-	/* init */
-	clear($sorted);
-	clear($attrs);
 
 	//filter selection
 	select -cl;	
@@ -1055,8 +1071,10 @@ global proc dynamicaUI_activateRigidBodies()
 		return;
 	}
 	
+	//we are go!
 	dynamicaUI_print("Activating " + size($sel) + " rigid bodies...", 0);
 	refresh;
+	if ($dynamicaUI_createActivateSet) sets -n "ActivatedRigidBodies";
 
 	switch ($dynamicaUI_activateAxis) 
 	{
@@ -1108,18 +1126,12 @@ global proc dynamicaUI_activateRigidBodies()
 			refresh;
 			$incr = 0;
 			clear($refr);
-			select -clear;
+			select -cl;
 		}
 	}
 
 	dynamicaUI_print(size($sel) + " rigid bodies activated. Frame range: "
 		+ $dynamicaUI_activateStartFrame + " - " + $dynamicaUI_activateEndFrame, 0);
-		
-	//cleanup
-	clear($sel);
-	clear($selTmp);
-	clear($sorted);
-	clear($attrs);
 }
 
 global proc dynamicaUI_deactivateRigidBodies(int $toPassive)
@@ -1155,6 +1167,112 @@ global proc dynamicaUI_deactivateRigidBodies(int $toPassive)
 	else
 	{
 		dynamicaUI_print(size($sel) + " rigid bodies made active (mass > 0).", 0);
+	}
+}
+
+global proc dynamicaUI_setInitialState(int $reset)
+{	
+	global float $dynamicaUI_startFrame;
+	string $sel[] = `ls -sl`;
+	string $selTmp[] = `ls -sl`;
+	string $constraints[];
+	
+	//filter selection
+	select -cl;	
+	for ($s in $sel) if (mbIsType($s, "dRigidBody")) select -add $s; //if dRigidBody
+	$sel = `ls -sl`;
+	for ($s in $sel) if (mbIsKeyed($s)) select -d $s; //if keyed
+	$sel = `ls -sl`;
+	
+	if (!size($sel)) 
+	{
+		select -r $selTmp; //restore original selection
+		dynamicaUI_print("No rigid bodies found in selection.", 2);
+		return;
+	}
+	
+	//we are go!
+	dynamicaUI_print("Setting initial state for " + size($sel) + " rigid bodies...", 0);
+	refresh;
+
+	for ($s in $sel)
+	{
+		if ($reset)
+		{
+			$posX = `getAttr ($s + ".originalPositionX")`;
+			$posY = `getAttr ($s + ".originalPositionY")`;
+			$posZ = `getAttr ($s + ".originalPositionZ")`;
+			$rotX = `getAttr ($s + ".originalRotationX")`;
+			$rotY = `getAttr ($s + ".originalRotationY")`;
+			$rotZ = `getAttr ($s + ".originalRotationZ")`;
+			setAttr ($s + ".initialPosition") -typ double3 $posX $posY $posZ;
+			setAttr ($s + ".initialRotation") -typ double3 $rotX $rotY $rotZ;
+		}
+		else
+		{
+			float $pos[] = `xform -q -ws -t $s`;
+			float $rot[] = `xform -q -ws -ro $s`;
+			setAttr ($s + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
+			setAttr ($s + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
+		}
+		
+		//collect connected constraints
+		string $conn[];
+		$rels = `listRelatives $s`;
+		if (size($rels)) $conn = `listConnections $rels`;
+		for($c in $conn)
+		{
+			$shape = mbGetShape($c);
+			if (size($shape))
+			{					
+				if (`nodeType $shape` == "dNailConstraint" && `objExists $c` == true) $constraints[size($constraints)] = $c;
+				if (`nodeType $shape` == "dHingeConstraint" && `objExists $c` == true) $constraints[size($constraints)] = $c;
+				if (`nodeType $shape` == "dSliderConstraint" && `objExists $c` == true) $constraints[size($constraints)] = $c;
+				if (`nodeType $shape` == "dSixdofConstraint" && `objExists $c` == true) $constraints[size($constraints)] = $c;
+			}
+		}
+	}
+
+	currentTime $dynamicaUI_startFrame;
+	dynamicaUI_updateConstraints($constraints);
+}
+
+global proc dynamicaUI_updateConstraints(string $constraints[])
+{
+	global float $dynamicaUI_startFrame;
+	string $sel[];
+	
+	for ($c in $constraints)
+	{
+		string $type = mbGetType(mbGetShape($c));
+		if ($type == "dNailConstraint") $sel[size($sel)] = $c;
+		if ($type == "dHingeConstraint") $sel[size($sel)] = $c;
+		if ($type == "dSliderConstraint") $sel[size($sel)] = $c;
+		if ($type == "dSixdofConstraint") $sel[size($sel)] = $c;
+	}
+	
+	for ($s in $sel)
+	{
+		$shape = mbGetShape($s);
+		$selection = `listConnections $shape`;
+		
+		if (size($selection) == 1)
+		{
+			float $posA[] = `xform -q -ws -t $selection[0]`;
+			setAttr ($s + ".translate") -typ float3 $posA[0] $posA[1] $posA[2];
+			
+		}
+		if (size($selection) == 2)
+		{
+			float $posA[] = `xform -q -ws -t $selection[0]`;
+			float $posB[] = `xform -q -ws -t $selection[1]`;
+			float $pivW[3];
+			$pivW[0] = mbLerpScalar($posA[0], $posB[0], 0.5);
+			$pivW[1] = mbLerpScalar($posA[1], $posB[1], 0.5);
+			$pivW[2] = mbLerpScalar($posA[2], $posB[2], 0.5);
+			setAttr ($s + ".translate") -typ float3 $pivW[0] $pivW[1] $pivW[2];
+					
+		}
 	}
 }
 
@@ -1356,13 +1474,10 @@ global proc dynamicaUI_bakeRigidBodies()
 		delete -all -ch;
 	}
 	
-	clear($preKeyed);
 	undoInfo -state on;
-	clear($sel);
 	select -r $baked;
 	$bakeGroup = `group -em -n dBaked`;
 	for ($b in $baked) parent $b $bakeGroup; //move to baked group
-	clear($baked);
 	dynamicaUI_print("Baked " + size($baked) + " rigid bodies on frames " + $dynamicaUI_bakeStartFrame + " - " + $dynamicaUI_bakeEndFrame, 0);
 }
 

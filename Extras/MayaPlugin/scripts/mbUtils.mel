@@ -62,7 +62,7 @@ global proc int mbIsMesh(string $node)
 
 global proc int mbIsType(string $node, string $type)
 {
-	$types = {"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
+	$types = `allNodeTypes`; //{"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
 	$shape = `listRelatives -f -pa $node`;
 	if (size($shape)) 
 	{
@@ -134,7 +134,17 @@ global proc mbSelectAllByType(string $type)
 	select -cl;
 	string $sel[] = `ls -typ $type`;
 	select -r $sel;
-	clear($sel);
+}
+
+global proc mbSelectKeyedTransforms()
+{
+	select -cl;
+	for ($s in `ls -tr`) if (mbIsKeyed($s)) select -add $s;
+}
+
+global proc mbSelectPointEmitters()
+{
+	mbSelectAllByType("pointEmitter");
 }
 
 global proc string[] mbGetAllByType(string $type)
@@ -221,7 +231,6 @@ global proc mbUnFreezeTranslation(string $node)
 		makeIdentity -apply true -t 1 -r 0 -s 0 -n 0 $node;
 		//delete -ch;
 		eval("xform -r -t " + $positionVector + " " + $node);
-		clear($currentTranslation);
 	}
 	else
 	{
@@ -314,8 +323,6 @@ global proc float mbMeshVolume(string $node)
 		$triangles = `ls -flatten ($tmp[0] + ".f[*]")`;
 		for ($t in $triangles) $volume += mbTriangleVolume($t) ;
 		delete $tmp;
-		clear($tmp);
-		clear($triangles);
 		return abs($volume); //exit
 	}
 	else
@@ -768,17 +775,6 @@ global proc mbPolyCutter()
 			$polys = $newPolys;
 			clear($newPolys);
 		}
-		
-		/* cleanup */
-		clear($nurbs);
-		clear($polys);
-		clear($newPolys);
-		clear($currentCutter);
-		clear($nodeA);
-		clear($nodeB);
-		clear($nodeC);
-		clear($boolResult);
-		clear($shape);
 	}
 }
 
