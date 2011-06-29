@@ -311,9 +311,9 @@ global proc string dynamicaUI_createActivateTab()
 
 		dynamicaUI_createFrame("Frame Range", "Set the starting and ending frames for activation.", 0, 0);
 			rowLayout -nc 2;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activateStartFrame
+				floatField -pre 3 -w 50 -v $dynamicaUI_activateStartFrame -ann "Activation range start frame"
 					-cc "$dynamicaUI_activateStartFrame = `floatField -q -v activateStart`" activateStart;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activateEndFrame
+				floatField -pre 3 -w 50 -v $dynamicaUI_activateEndFrame -ann "Activation range end frame"
 					-cc "$dynamicaUI_activateEndFrame = `floatField -q -v activateEnd`" activateEnd;
 			setParent ..;
 		setParent ..;
@@ -618,6 +618,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 		if (size($selection))
 		{
 			dynamicaUI_print("Creating Dynamica rigid bodies...", 0);
+			refresh;
 			//create groups and layers if necessary
 			$rbGroup = `group -em -n dRigidBodies`;
 			$meshGroup = `group -em -n dMeshes`;
@@ -675,14 +676,14 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						setAttr ($rigidBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
 						
 						//store original position and rotation
-						addAttr -ln "originalPosition" -at double3 -k 1 $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionX" -at double -k 1 -dv $pos[0] $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionY" -at double -k 1 -dv $pos[1] $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionZ" -at double -k 1 -dv $pos[2] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotation" -at double3 -k 1 $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationX" -at double -k 1 -dv $rot[0] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationY" -at double -k 1 -dv $rot[1] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationZ" -at double -k 1 -dv $rot[2] $rigidBodyTransforms[0];
+						addAttr -ln "originalPosition" -at double3 -k 0 $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $rigidBodyTransforms[0];
+						addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotation" -at double3 -k 0 $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $rigidBodyTransforms[0];
+						addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
 						
 						//connect original mesh transform to rigid body transform
 						connectAttr ($rigidBodyTransforms[0] + ".translate") ($shapeTransforms[0] + ".translate");
@@ -713,7 +714,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 				}
 				$makeCollisionShape = 1;
 			}
-			if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies.", 0);
+			if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies. Find rigid bodies and source meshes in Outliner and Display Layers.", 0);
 		}
 		else
 		{
@@ -1111,10 +1112,12 @@ global proc dynamicaUI_activateRigidBodies()
 
 	for ($i=0;$i<size($sorted);$i++) 
 	{
+		float $mass = `getAttr (mbGetShape($sorted[$i]) + ".mass")`;
+		if ($mass == 0) $mass = 1;
 		cutKey -at "mass" -cl $sorted[$i];
 		setKeyframe -at "mass" -t 1 -v 1 $sorted[$i];
 		setKeyframe -at "mass" -t 2 -v 0 $sorted[$i];
-		setKeyframe -at "mass" -t $attrs[$i] -v 1 $sorted[$i];
+		setKeyframe -at "mass" -t $attrs[$i] -v $mass $sorted[$i];
 		keyTangent -itt "flat" -ott "step" $sorted[$i];
 		
 		//visual feedback in viewport

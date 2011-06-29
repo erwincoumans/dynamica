@@ -274,7 +274,7 @@ global proc mbTransferKeys(string $fromNode, string $toNode, int $optimize)
 
 global proc string mbDeflate(string $node, float $margin)
 {
-	string $result[] = `polyMoveVertex -ws 1 -ltz ($margin * -1.) $node`;
+	string $result[] = `polyMoveVertex -ws 1 -ltz ($margin * -1.0) $node`;
 	select -r $node;
 	return $result[0];
 }
@@ -396,6 +396,13 @@ global proc string mbGetAnimCurve(string $node, string $attributeName)
 		if ($channelName[size($channelName)-1] == $attributeName) $return = $c;
 	}
 	return $return;
+}
+
+global proc float[] mbGetKeyByIndex(string $animCurve, int $index)
+{
+	float $times[] = `keyframe -q -tc $animCurve`;
+	float $values[] = `keyframe -q -vc $animCurve`;
+	return {$times[$index], $values[$index]};
 }
 
 global proc float mbLerpScalar(float $start, float $end, float $param)

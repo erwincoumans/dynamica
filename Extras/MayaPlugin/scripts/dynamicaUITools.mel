@@ -59,14 +59,95 @@ global proc dynamicaUI_addTools()
 global proc string dynamicaUI_createToolsTab()
 {
 	global string $dynamicaUI_tabs;
-	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane, 7 = Bvh
+	global float $dynamicaUITools_massMax = 10;
 	string $mainForm = `columnLayout -adj 1 -p $dynamicaUI_tabs`;
-		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning some of these features are experimental!\n\nFuture tools here...";
+		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning: some of these features are experimental!";
+		
+		dynamicaUI_createFrame("Compute Mass", "Assign computed mass (based on volume) to selected rigid bodies.", 0, 0);
+			rowLayout -nc 2;
+				floatField -pre 3 -w 50 -v $dynamicaUITools_massMax -ann "Maximum mass value"
+					-cc "$dynamicaUITools_massMax = `floatField -q -v massMax`" massMax;
+				button -l "Compute Mass" -c "dynamicaUITools_computeMass()";
+			setParent ..;
+		setParent ..;
+		
 	setParent ..;
 	
 	return $mainForm;
 }
 
+global proc dynamicaUITools_computeMass()
+{
+	global float $dynamicaUITools_massMax;
+	string $sel[] = `ls -sl`;
+	string $meshes[];
+	string $RBs[];
+	string $selTmp[] = `ls -sl`;
+	float $obVolume;
+	float $minVolume = 100000;
+	float $maxVolume = 0;
+	float $massMin = 1;
+	int $i;
+
+	//filter selection
+	select -cl;	
+	for ($s in $sel) if (mbIsType($s, "dRigidBody")) select -add $s; //if dRigidBody
+	$sel = `ls -sl`;
+	
+	for ($s in $sel)
+	{
+		$connectedTransforms = mbGetConnectedTransforms($s);
+		if (size($connectedTransforms))
+		{
+			if (mbIsMesh($connectedTransforms[0]))
+			{
+				$meshes[size($meshes)] = $connectedTransforms[0];
+				$RBs[size($RBs)] = $s;
+			}
+		}
+	}
+	
+	if (!size($meshes)) 
+	{
+		select -r $selTmp; //restore original selection
+		dynamicaUI_print("No connected meshes found in selection.", 2);
+		return;
+	}
+	
+	//we are go!
+	dynamicaUI_print("Computing mass for " + size($sel) + " rigid bodies...", 0);
+	refresh;
+	
+	for ($i=0;$i<size($meshes);$i++)
+	{
+		$obVolume = mbMeshVolume($meshes[$i]);
+		float $minVolume = 1;
+		float $maxVolume = 100;
+		float $massMin = 1;
+		float $massMax = $dynamicaUITools_massMax;
+
+		if ($obVolume > $maxVolume) $maxVolume = $obVolume;
+		//if ($obVolume < $minVolume) $minVolume = $obVolume;
+		float $mass = mbScaleFloat($obVolume, $minVolume, $maxVolume, $massMin, $massMax);
+		
+		if (mbIsKeyed(mbGetShape($RBs[$i])))
+		{
+			string $curve = mbGetAnimCurve(mbGetShape($RBs[$i]), "mass"); //get mass animation curve
+			if ($curve != "")
+			{
+				float $key[] = mbGetKeyByIndex($curve, 2); //get the 3rd key data
+				setKeyframe -at "mass" -t $key[0] -v $mass $RBs[$i]; //assign computed mass to 3rd key
+			}
+		}
+		else
+		{
+			$m = `getAttr (mbGetShape($RBs[$i]) + ".mass")`;
+			if ($m != 0) setAttr ($RBs[$i] + ".mass") $mass;
+		}
+	}
+	
+	dynamicaUI_print("Mass computed for " + size($sel) + " rigid bodies...", 0);
+}
 
 //volume computation...
 // float $obVolume;
