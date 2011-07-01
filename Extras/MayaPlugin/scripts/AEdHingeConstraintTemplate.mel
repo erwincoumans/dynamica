@@ -31,6 +31,7 @@ global proc AEdHingeConstraintTemplate( string $nodeName )
     editorTemplate -beginScrollLayout;
 
     editorTemplate -addControl damping;
+	editorTemplate -addControl breakThreshold;
     editorTemplate -addControl inRigidBodyA;
     editorTemplate -addControl inRigidBodyB;
     
