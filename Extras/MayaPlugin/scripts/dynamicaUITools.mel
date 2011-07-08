@@ -58,6 +58,10 @@ global proc dynamicaUI_addTools()
 		
 		showWindow $dynamicaUI_window;
 	}
+	else
+	{
+		error("Dynamica window not loaded, unable to add Tools");
+	}
 }
 
 global proc string dynamicaUI_createToolsTab()
@@ -67,7 +71,7 @@ global proc string dynamicaUI_createToolsTab()
 	string $mainForm = `columnLayout -adj 1 -p $dynamicaUI_tabs`;
 		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning: some of these features are experimental!";
 		
-		dynamicaUI_createFrame("Compute Mass", "Assign computed mass (based on volume) to selected rigid bodies.", 0, 0);
+		dynamicaUI_createFrame("Compute Mass of selected rigid bodies", "Assign computed mass (based on volume) to selected rigid bodies.", 0, 0);
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $dynamicaUITools_massMax -ann "Maximum mass value"
 					-cc "$dynamicaUITools_massMax = `floatField -q -v massMax`" massMax;
