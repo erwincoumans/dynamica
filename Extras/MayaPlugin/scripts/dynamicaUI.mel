@@ -25,6 +25,9 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 Modified by Michael Baker <michael@mBakr.com>
 */
 
+
+
+
 //init
 global proc dynamicaUI_initialize()
 {
@@ -36,6 +39,18 @@ global proc dynamicaUI_initialize()
 	
 	print("Loading Dynamica plugin...\n");
 	
+		global string $gMainWindow;
+
+	string $dynamicaMainMenu       = "dynamica_MainMenu";
+
+	// main menu
+	setParent $gMainWindow;
+	menu -label "Dynamica" -to true -familyImage "dynamicaWindow.xpm" $dynamicaMainMenu;
+
+	// submenu
+	menuItem -label "Dynamica Window" -to true -command "dynamicaUI_createWindow"  -familyImage "dynamicaWindow.xpm" $dynamicaMainMenu;
+	
+	
 	dynamicaUI_createShelf();
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
 	dynamicaUI_onSceneOpen(); //puppet callback for SceneOpened event
@@ -44,6 +59,8 @@ global proc dynamicaUI_initialize()
 	print("Loading Dynamica plugin...complete.\n");
 }
     
+    
+
 //shelf
 global proc dynamicaUI_createShelf()
 {
