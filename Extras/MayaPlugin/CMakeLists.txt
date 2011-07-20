@@ -17,6 +17,8 @@ FIND_PATH(MAYA_BASE_DIR include/maya/MFn.h PATH
 			/usr/autodesk/maya2009-x64
 			/usr/autodesk/maya2008-x64 
 			/usr/autodesk/maya 
+			"C:/Program Files/Autodesk/Maya2012"
+			"C:/Program Files (x86)/Autodesk/Maya2012"
 			"C:/Program Files/Autodesk/Maya2011"
 			"C:/Program Files (x86)/Autodesk/Maya2011"
 			"C:/Program Files/Autodesk/Maya2010"
@@ -32,6 +34,9 @@ IF (MAYA_BASE_DIR)
 
 	SET(MAYA_INC_DIR ${MAYA_BASE_DIR}/include)
 	SET(MAYA_LIB_DIR ${MAYA_BASE_DIR}/lib)
+
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BULLET_PHYSICS_BINARY_DIR}/lib/Debug/plug-ins)
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BULLET_PHYSICS_BINARY_DIR}/lib/Release/plug-ins)
 
 	
 	LINK_DIRECTORIES(${MAYA_LIB_DIR})

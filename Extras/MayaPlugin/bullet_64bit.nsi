@@ -47,7 +47,7 @@ File "scenes\*.*"
 SetOutPath "$INSTDIR\icons"
 File "icons\*.*"
 SetOutPath "$INSTDIR\plug-ins"
-File "..\..\win64\lib\release\BulletMayaPlugin.mll"
+File "..\..\win64\lib\release\plug-ins\BulletMayaPlugin.mll"
 ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
 ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
 
