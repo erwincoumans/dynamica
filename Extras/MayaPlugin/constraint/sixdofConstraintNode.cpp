@@ -296,12 +296,12 @@ void sixdofConstraintNode::draw( M3dView & view, const MDagPath &path,
 {
     update();
 	vec3f zeroVec(0.f,0.f,0.f);
-	vec3f minusXVec(-1.f,0.f,0.f);
-	vec3f posXVec(1.f,0.f,0.f);
-	vec3f minusYVec (0.f,-1.f,0.f);
-	vec3f posYVec (0.f,1.f,0.f);
-	vec3f minusZVec (0.f,0.f,-1.f);
-	vec3f posZVec (0.f,0.f,1.f);
+	vec3f minusXVec(-0.2f,0.f,0.f);
+	vec3f posXVec(0.2f,0.f,0.f);
+	vec3f minusYVec (0.f,-0.2f,0.f);
+	vec3f posYVec (0.f,0.2f,0.f);
+	vec3f minusZVec (0.f,0.f,-0.2f);
+	vec3f posZVec (0.f,0.f,0.2f);
 	
     view.beginGL();
     glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -347,14 +347,14 @@ void sixdofConstraintNode::draw( M3dView & view, const MDagPath &path,
 	}
 
 
-    glVertex3f(-1.0, 0.0, 0.0);
-    glVertex3f(1.0, 0.0, 0.0);
+    glVertex3f(-0.2, 0.0, 0.0);
+    glVertex3f(0.2, 0.0, 0.0);
 
-    glVertex3f(0.0, -1.0, 0.0);
-    glVertex3f(0.0, 1.0, 0.0);
+    glVertex3f(0.0, -0.2, 0.0);
+    glVertex3f(0.0, 0.2, 0.0);
 
-    glVertex3f(0.0, 0.0, -1.0);
-    glVertex3f(0.0, 0.0, 1.0);
+    glVertex3f(0.0, 0.0, -0.2);
+    glVertex3f(0.0, 0.0, 0.2);
 
 	vec3f posT, posP, posM;
 

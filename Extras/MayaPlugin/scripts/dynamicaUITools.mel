@@ -27,7 +27,7 @@ global proc dynamicaUI_addTools()
 	global string $dynamicaUI_window;
 	global string $dynamicaUI_tabs;
 	global string $dynamicaUI_helpLine;
-	global string $dynamicaUI_toolTabLabel = "Tools";
+	global string $dynamicaUI_toolTabLabel = "Advanced";
 	global string $dynamicaUI_toolTab;
 
 	if ( `window -ex $dynamicaUI_window` )
@@ -41,7 +41,7 @@ global proc dynamicaUI_addTools()
 			if ($t == $dynamicaUI_toolTabLabel)
 			{ 
 				deleteUI $dynamicaUI_toolTab;
-				tabLayout -e -sti 1 $dynamicaUI_tabs;
+				//tabLayout -e -sti 1 $dynamicaUI_tabs;
 				dynamicaUI_print("Tools tab removed from main Dynamica window", 1);
 				$toolsTabExists = 1;
 				break;
@@ -52,7 +52,7 @@ global proc dynamicaUI_addTools()
 		{
 			$dynamicaUI_toolTab = dynamicaUI_createToolsTab();
 			tabLayout -e -tl $dynamicaUI_toolTab $dynamicaUI_toolTabLabel $dynamicaUI_tabs;
-			tabLayout -e -st $dynamicaUI_toolTab $dynamicaUI_tabs;
+			//tabLayout -e -st $dynamicaUI_toolTab $dynamicaUI_tabs;
 			dynamicaUI_print("Tools tab added to main Dynamica window", 1);
 		}
 		
@@ -71,14 +71,14 @@ global proc string dynamicaUI_createToolsTab()
 	string $mainForm = `columnLayout -adj 1 -p $dynamicaUI_tabs`;
 		text -al "left" -bgc 1.0 0.1 0.1 -l "Advanced Dynamica Tools. Warning: some of these features are experimental!";
 		
-		dynamicaUI_createFrame("Compute Mass of selected rigid bodies", "Assign computed mass (based on volume) to selected rigid bodies.", 0, 0);
-			rowLayout -nc 2;
+		dynamicaUI_createFrame("Compute Mass of selected rigid bodies", "Assign computed mass (based on volume) to selected rigid bodies.", 1, 0);
+			rowLayout -nc 3;
+				text -align "left" -l "Maximum Mass: ";
 				floatField -pre 3 -w 50 -v $dynamicaUITools_massMax -ann "Maximum mass value"
 					-cc "$dynamicaUITools_massMax = `floatField -q -v massMax`" massMax;
 				button -l "Compute Mass" -c "dynamicaUITools_computeMass()";
 			setParent ..;
 		setParent ..;
-		
 	setParent ..;
 	
 	return $mainForm;
@@ -157,17 +157,4 @@ global proc dynamicaUITools_computeMass()
 	dynamicaUI_print("Mass computed for " + size($sel) + " rigid bodies...", 0);
 }
 
-//volume computation...
-// float $obVolume;
-// float $minVolume = 10000;
-// float $maxVolume = 0;
-// float $massMin = 1;
-// float $massMax = 100;
-// for ($i = 0; $i < size($selection) / 2; $i++) 
-// {
-// $obVolume = mbMeshVolume($obSelection[$i]);
-// if ($obVolume > $maxVolume) $maxVolume = $obVolume;
-// if ($obVolume < $minVolume) $minVolume = $obVolume;
-// }
-//$obVolume = mbMeshVolume($obSelection[$i]);
-//$mass = mbScaleValue($obVolume, $minVolume, $maxVolume, $massMin, $massMax);
+

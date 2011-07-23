@@ -281,23 +281,23 @@ void nailConstraintNode::draw( M3dView & view, const MDagPath &path,
 		for(int j = 0; j < 3; j++) pivB[j] -= world[j];
 		glVertex3f(pivB[0], pivB[1], pivB[2]);
 		glVertex3f(posB[0], posB[1], posB[2]);
-		glVertex3f(-1.0f+pivB[0],  0.0f+pivB[1],  0.0f+pivB[2]);
-		glVertex3f( 1.0f+pivB[0],  0.0f+pivB[1],  0.0f+pivB[2]);
-		glVertex3f( 0.0f+pivB[0], -1.0f+pivB[1],  0.0f+pivB[2]);
-		glVertex3f( 0.0f+pivB[0],  1.0f+pivB[1],  0.0f+pivB[2]);
-	    glVertex3f( 0.0f+pivB[0],  0.0f+pivB[1], -1.0f+pivB[2]);
-		glVertex3f( 0.0f+pivB[0],  0.0f+pivB[1],  1.0f+pivB[2]);
+		glVertex3f(-0.2f+pivB[0],  0.0f+pivB[1],  0.0f+pivB[2]);
+		glVertex3f( 0.2f+pivB[0],  0.0f+pivB[1],  0.0f+pivB[2]);
+		glVertex3f( 0.0f+pivB[0], -0.2f+pivB[1],  0.0f+pivB[2]);
+		glVertex3f( 0.0f+pivB[0],  0.2f+pivB[1],  0.0f+pivB[2]);
+	    glVertex3f( 0.0f+pivB[0],  0.0f+pivB[1], -0.2f+pivB[2]);
+		glVertex3f( 0.0f+pivB[0],  0.0f+pivB[1],  0.2f+pivB[2]);
 	}
 
 
-    glVertex3f(-1.0, 0.0, 0.0);
-    glVertex3f(1.0, 0.0, 0.0);
+    glVertex3f(-0.2, 0.0, 0.0);
+    glVertex3f(0.2, 0.0, 0.0);
 
-    glVertex3f(0.0, -1.0, 0.0);
-    glVertex3f(0.0, 1.0, 0.0);
+    glVertex3f(0.0, -0.2, 0.0);
+    glVertex3f(0.0, 0.2, 0.0);
 
-    glVertex3f(0.0, 0.0, -1.0);
-    glVertex3f(0.0, 0.0, 1.0);
+    glVertex3f(0.0, 0.0, -0.2);
+    glVertex3f(0.0, 0.0, 0.2);
     glEnd();
 
     glPopAttrib();

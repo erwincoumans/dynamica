@@ -24,33 +24,21 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 Modified by Michael Baker <michael@mBakr.com>
 */
-
-
-
-
 //init
-global proc dynamicaUI_initialize()
-{
-	source "mbUtils";
+global proc dynamicaUI_initialize() //this proc is called from the plugin
+{	
+	print("Loading Dynamica plugin...\n");
 	
-	//this proc is called from the plugin
 	global float $dynamicaUI_startFrame;
 	global int $dynamicaUI_syncSolverJob;
 	
-	print("Loading Dynamica plugin...\n");
-	
-		global string $gMainWindow;
+	source "mbUtils";
 
-	string $dynamicaMainMenu       = "dynamica_MainMenu";
+	//add Dynamica menu to the main window
+	global string $gMainWindow;
+	string $dynamicaMainMenu = `menu -l "Dynamica" -to 1 -p $gMainWindow`;
+	menuItem -l "Dynamica Window" -command "dynamicaUI_createWindow()" -fi "dynamicaWindow.xpm" $dynamicaMainMenu;
 
-	// main menu
-	setParent $gMainWindow;
-	menu -label "Dynamica" -to true -familyImage "dynamicaWindow.xpm" $dynamicaMainMenu;
-
-	// submenu
-	menuItem -label "Dynamica Window" -to true -command "dynamicaUI_createWindow"  -familyImage "dynamicaWindow.xpm" $dynamicaMainMenu;
-	
-	
 	dynamicaUI_createShelf();
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
 	dynamicaUI_onSceneOpen(); //puppet callback for SceneOpened event
@@ -117,43 +105,43 @@ global proc dynamicaUI_createShelf()
 	// shelfButton -i "dynamicaCreateConetwistConstraint.xpm" 
 		// -c "dynamicaUI_createConstraint(3)" -ann "Create a breakable cone twist constraint" -p $dynamicaShelf;
 		
-	shelfButton -i "dynamicaActivateX.xpm" 
-		-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivate-X.xpm" 
-		-c "dynamicaUI_activateAxis(1)" -ann "Activate selected rigid bodies along the -X axis" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivateY.xpm" 
-		-c "dynamicaUI_activateAxis(2)" -ann "Activate selected rigid bodies along the +Y axis" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivate-Y.xpm" 
-		-c "dynamicaUI_activateAxis(3)" -ann "Activate selected rigid bodies along the -Y axis" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivateZ.xpm" 
-		-c "dynamicaUI_activateAxis(4)" -ann "Activate selected rigid bodies along the +Z axis" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivate-Z.xpm" 
-		-c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateX.xpm" 
+		// -c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivate-X.xpm" 
+		// -c "dynamicaUI_activateAxis(1)" -ann "Activate selected rigid bodies along the -X axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateY.xpm" 
+		// -c "dynamicaUI_activateAxis(2)" -ann "Activate selected rigid bodies along the +Y axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivate-Y.xpm" 
+		// -c "dynamicaUI_activateAxis(3)" -ann "Activate selected rigid bodies along the -Y axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateZ.xpm" 
+		// -c "dynamicaUI_activateAxis(4)" -ann "Activate selected rigid bodies along the +Z axis" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivate-Z.xpm" 
+		// -c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis" -p $dynamicaShelf;
 		
-	shelfButton -i "dynamicaActivateRadial.xpm" 
-		-c "dynamicaUI_activateAxis(6)" -ann "Activate selected rigid bodies outwards" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivateRadialIn.xpm" 
-		-c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $dynamicaShelf;
-	shelfButton -i "dynamicaActivateChain.xpm" 
-		-c "dynamicaUI_activateAxis(8)" -ann "Chain activate selected rigid bodies" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateRadial.xpm" 
+		// -c "dynamicaUI_activateAxis(6)" -ann "Activate selected rigid bodies outwards" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateRadialIn.xpm" 
+		// -c "dynamicaUI_activateAxis(7)" -ann "Activate selected rigid bodies inwards" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaActivateChain.xpm" 
+		// -c "dynamicaUI_activateAxis(8)" -ann "Chain activate selected rigid bodies" -p $dynamicaShelf;
 		
-	shelfButton -i "dynamicaUnactivate.xpm" 
-		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)" -p $dynamicaShelf;
-	shelfButton -i "dynamicaMakePassive.xpm" 
-		-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $dynamicaShelf;
-	shelfButton -i "dynamicaSetInitialState.xpm" 
-		-c "dynamicaUI_setInitialState(0)" -ann "Set current state to initial state" -p $dynamicaShelf;
-	shelfButton -i "dynamicaClearInitialState.xpm" 
-		-c "dynamicaUI_setInitialState(1)" -ann "Restore original initial state" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaUnactivate.xpm" 
+		// -c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaMakePassive.xpm" 
+		// -c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies passive" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaSetInitialState.xpm" 
+		// -c "dynamicaUI_setInitialState(0)" -ann "Set current state to initial state" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaClearInitialState.xpm" 
+		// -c "dynamicaUI_setInitialState(1)" -ann "Restore original initial state" -p $dynamicaShelf;
 		
-	shelfButton -i "dynamicaBakeSelected.xpm" 
-		-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
-	shelfButton -i "dynamicaBakeAll.xpm" 
-		-c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaBakeSelected.xpm" 
+		// -c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaBakeAll.xpm" 
+		// -c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
 	
 	shelfButton -i "dynamicaHelp.xpm" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" 
 		-ann "View Online Documentation" -p $dynamicaShelf;
-	shelfButton -i "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
+	// shelfButton -i "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 }
 
 //UI
@@ -181,14 +169,16 @@ global proc dynamicaUI_createWindow()
 	$mainForm;
 	
 	string $mainTab = dynamicaUI_createMainTab();
-	string $activateTab = dynamicaUI_createActivateTab();
+	string $shatterTab = dynamicaUI_createShatterTab();
+	string $controlTab = dynamicaUI_createControlTab();
 	string $bakeTab = dynamicaUI_createBakeTab();
 	string $solverTab = dynamicaUI_createOptionsTab();
 	string $helpTab = dynamicaUI_createHelpTab();
 
 	tabLayout -e 
 		-tl $mainTab "Create" 
-		-tl $activateTab "Activate" 
+		-tl $shatterTab "Shatter"
+		-tl $controlTab "Control" 
 		-tl $bakeTab "Bake"
 		-tl $solverTab "Options"
 		-tl $helpTab "Help"
@@ -255,8 +245,8 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreatePassiveMesh.xpm" 
 					-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies from selection";
 
-				iconTextButton -st "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMesh.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive Bvh mesh rigid bodies from selection";
+				// iconTextButton -st "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMesh.xpm" 
+					// -c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive Bvh mesh rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlane.xpm" 
 					-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create a passive plane rigid body";
@@ -279,27 +269,27 @@ global proc string dynamicaUI_createMainTab()
 			setParent ..;
 		setParent ..;
 
-		dynamicaUI_createFrame("Passive Rigid Body Arrays", "Passive rigid body arrays are collections of like-shaped passive rigid bodies.", 0, 0);
-			rowLayout -nc 6;
-				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreatePassiveSphereArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 5)" -ann "Create an passive sphere rigid body array";
+		// dynamicaUI_createFrame("Passive Rigid Body Arrays", "Passive rigid body arrays are collections of like-shaped passive rigid bodies.", 0, 0);
+			// rowLayout -nc 6;
+				// iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreatePassiveSphereArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 5)" -ann "Create an passive sphere rigid body array";
 
-				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i "dynamicaCreatePassiveBoxArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 4)" -ann "Create an passive box rigid body array";
+				// iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i "dynamicaCreatePassiveBoxArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 4)" -ann "Create an passive box rigid body array";
 
-				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i "dynamicaCreatePassiveHullArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 0)" -ann "Create an passive hull rigid body array";
+				// iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i "dynamicaCreatePassiveHullArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 0)" -ann "Create an passive hull rigid body array";
 
-				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreatePassiveMeshArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive mesh rigid body array from selection";
+				// iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreatePassiveMeshArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive mesh rigid body array from selection";
 
-				iconTextButton -style "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMeshArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive Bvh mesh rigid body array from selection";
+				// iconTextButton -style "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMeshArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 1)" -ann "Create an passive Bvh mesh rigid body array from selection";
 
-				iconTextButton -style "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlaneArray.xpm" 
-					-c "dynamicaUI_createRigidBodyArray(false, 6)" -ann "Create an passive plane rigid body array";
-			setParent ..;
-		setParent ..;
+				// iconTextButton -style "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlaneArray.xpm" 
+					// -c "dynamicaUI_createRigidBodyArray(false, 6)" -ann "Create an passive plane rigid body array";
+			// setParent ..;
+		// setParent ..;
 
 		dynamicaUI_createFrame("Constraints", "Constraints inhibit the natural (unconstrained) behavior of an active rigid body.\nConstraints require at least one rigid body to be selected. Rigid bodies can be influenced by multiple constraints.", 0, 0);
 			rowLayout -nc 5;
@@ -324,30 +314,41 @@ global proc string dynamicaUI_createMainTab()
 	return $mainForm;
 }
 
-global proc string dynamicaUI_createActivateTab() 
+global proc string dynamicaUI_createShatterTab()
 {
-	global float $dynamicaUI_activateStartFrame = 24;
-	global float $dynamicaUI_activateEndFrame = 48;
-	global int $dynamicaUI_setActivationFrame = 0;
-	global int $dynamicaUI_activationFrame = 24;
-	global int $dynamicaUI_activateMethod = 0; //0 = Axis Gradient, 1 = Radial Gradient, 2 = 3D Texture
-	global int $dynamicaUI_activateAxis = 0; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z, 6 = radial out, 7 = radial in, 8 = daisy chain
-	global string $dynamicaUI_activateTexture;
-	global string $dynamicaUI_3dTextureNodes[];
-	global string $dynamicaUI_3dTextureList;
+	global float $dynamicaUI_crackWidth;
 	
 	string $mainForm = `columnLayout -adj 1`;
+		dynamicaUI_createFrame("Voronoi Shatter", "", 0, 0);
+			text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, shards will be created and stored in a new group";
+			rowLayout -nc 1;
+				iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
+					-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
+			setParent ..;
+		setParent ..;
+	setParent ..;
+	
+	return $mainForm;
+}
 
-		dynamicaUI_createFrame("Frame Range", "Set the starting and ending frames for activation.", 0, 0);
+global proc string dynamicaUI_createControlTab() 
+{
+	global float $dynamicaUI_activeStartFrame = 24;
+	global float $dynamicaUI_activeEndFrame = 48;
+	global int $dynamicaUI_activateAxis = 0; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z, 6 = radial out, 7 = radial in, 8 = daisy chain
+
+	string $mainForm = `columnLayout -adj 1`;
+
+		dynamicaUI_createFrame("Set The Frame Range For Rigid Body Control", "Set the starting and ending frames for rigid body control", 0, 0);
 			rowLayout -nc 2;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activateStartFrame -ann "Activation range start frame"
-					-cc "$dynamicaUI_activateStartFrame = `floatField -q -v activateStart`" activateStart;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activateEndFrame -ann "Activation range end frame"
-					-cc "$dynamicaUI_activateEndFrame = `floatField -q -v activateEnd`" activateEnd;
+				floatField -pre 3 -w 50 -v $dynamicaUI_activeStartFrame -ann "Activation range start frame"
+					-cc "$dynamicaUI_activeStartFrame = `floatField -q -v activateStart`" activateStart;
+				floatField -pre 3 -w 50 -v $dynamicaUI_activeEndFrame -ann "Activation range end frame"
+					-cc "$dynamicaUI_activeEndFrame = `floatField -q -v activateEnd`" activateEnd;
 			setParent ..;
 		setParent ..;
 
-		dynamicaUI_createFrame("Axis Activation", "Activate selected rigid bodies along the specified axis.", 0, 0);
+		dynamicaUI_createFrame("Make Rigid Bodies Active Along A World Axis", "Make selected rigid bodies active along a world axis.", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "+X Axis" -w 75 -i "dynamicaActivateX.xpm" 
 					-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis";
@@ -363,8 +364,7 @@ global proc string dynamicaUI_createActivateTab()
 					-c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis";
 			setParent ..;
 		setParent ..;
-		
-		dynamicaUI_createFrame("Radial & Sequential Activation", "Activate selected rigid bodies in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
+		dynamicaUI_createFrame("Make Rigid Bodies Active From A Point", "Make selected rigid bodies active in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
 			rowLayout -nc 3;
 				iconTextButton -st "iconAndTextVertical" -l "Outward" -w 75 -i "dynamicaActivateRadial.xpm" 
 					-c "dynamicaUI_activateAxis(6)" -ann "Radially activate selected rigid bodies outwards";
@@ -375,7 +375,7 @@ global proc string dynamicaUI_createActivateTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Remove Activation & Set Initial State", "Restore default active behavior, convert to passive, or set the initial state of selected rigid bodies.", 0, 0);
+		dynamicaUI_createFrame("Configure Rigid Bodies (frame range ignored)", "Restore default active behavior, convert to passive, or set the initial state of selected rigid bodies.", 0, 0);
 			rowLayout -nc 4;
 				iconTextButton -st "iconAndTextVertical" -l "Make Active" -w 75 -i "dynamicaUnactivate.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)";
@@ -406,7 +406,7 @@ global proc string dynamicaUI_createBakeTab()
 	float $end = `playbackOptions -q -max`;
 
 	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Frame Range", "Set the starting and ending frames for baking.", 0, 0);
+		dynamicaUI_createFrame("Set The Frame Range To Bake", "Set the starting and ending frames for baking.", 0, 0);
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $start
 					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeStart`) bakeEnd;$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`" bakeStart;
@@ -417,7 +417,7 @@ global proc string dynamicaUI_createBakeTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Bake Operation", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
+		dynamicaUI_createFrame("Bake Selected Rigid Bodies Or All Rigid Bodies", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
 			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Bake Selected" -w 75 -i "dynamicaBakeSelected.xpm" 
 					-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies";
@@ -426,9 +426,9 @@ global proc string dynamicaUI_createBakeTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
+		dynamicaUI_createFrame("Bake Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
 			columnLayout;
-				checkBox -l "Optimize Channels (Recommended)" -v $dynamicaUI_optimizeChannels -ann "Remove unneccassary keyframes (significantly reduces data size)" 
+				checkBox -l "Optimize Channels (Recommended)" -v $dynamicaUI_optimizeChannels -ann "Remove unneccassary keyframes (significantly reduces data and file size)" 
 					-cc "$dynamicaUI_optimizeChannels  = `checkBox -q -v bakeOptimize`" bakeOptimize;
 				checkBox -l "Delete History (Recommended)" -v $dynamicaUI_deleteBakeHistory -ann "Delete history on all baked objects" 
 					-cc "$dynamicaUI_deleteBakeHistory  = `checkBox -q -v bakeHistory`" bakeHistory;
@@ -454,77 +454,110 @@ global proc string dynamicaUI_createOptionsTab()
 	global string $dynamicaUI_STcollisionMargin;
 	global string $dynamicaUI_activateSet;
 	global float $dynamicaUI_collisionMargin;
+	global float $dynamicaUI_crackWidth = 0;
 	global int $dynamicaUI_createActivateSet = 1;
 	
 	string $mainForm = `columnLayout -adj 1`;
 	
-		dynamicaUI_createFrame("Solver Options", "", 0, 0);
+		dynamicaUI_createFrame("Solver Options", "", 1, 0);
 			columnLayout;
-				text -al "left" -fn "boldLabelFont" -l "Gravity" -ann "Direction and magnitude of gravity in the simulation.";
-				float $gravity[] = `getAttr dSolver1.gravity`;
-				rowLayout -nc 3;
-					$dynamicaUI_STgravityX = `floatField -pre 3 -w 50 -v $gravity[0]`;
-					$dynamicaUI_STgravityY = `floatField -pre 3 -w 50 -v $gravity[1]`;
-					$dynamicaUI_STgravityZ = `floatField -pre 3 -w 50 -v $gravity[2]`;
-					connectControl $dynamicaUI_STgravityX dSolver1.gravityX;
-					connectControl $dynamicaUI_STgravityY dSolver1.gravityY;
-					connectControl $dynamicaUI_STgravityZ dSolver1.gravityZ;
+				rowLayout -nc 2;
+					columnLayout -w 220;
+						text -al "left" -fn "boldLabelFont" -l "Gravity" -ann "Direction and magnitude of gravity in the simulation.";
+						float $gravity[] = `getAttr dSolver1.gravity`;
+						rowLayout -nc 3;
+							$dynamicaUI_STgravityX = `floatField -pre 3 -w 50 -v $gravity[0]`;
+							$dynamicaUI_STgravityY = `floatField -pre 3 -w 50 -v $gravity[1]`;
+							$dynamicaUI_STgravityZ = `floatField -pre 3 -w 50 -v $gravity[2]`;
+							connectControl $dynamicaUI_STgravityX dSolver1.gravityX;
+							connectControl $dynamicaUI_STgravityY dSolver1.gravityY;
+							connectControl $dynamicaUI_STgravityZ dSolver1.gravityZ;
+						setParent ..;
+					setParent ..;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Physics Framerate (Hertz)";
+						int $physicsrate= `getAttr dSolver1.physicsrate`; 
+						$dynamicaUI_STphysicsrate = `intField -v $physicsrate -w 50 -ann "Default is 60. Higher values \"speed up\" simulation"`;
+						connectControl $dynamicaUI_STphysicsrate dSolver1.physicsrate;
+					setParent ..;
 				setParent ..;
-				separator -h 5;
 				
-				text -al "left" -fn "boldLabelFont" -l "Physics Framerate (Hertz)";
-				int $physicsrate= `getAttr dSolver1.physicsrate`; 
-				$dynamicaUI_STphysicsrate = `intField -v $physicsrate -w 50 -ann "Default is 60. Higher values \"speed up\" simulation"`;
-				connectControl $dynamicaUI_STphysicsrate dSolver1.physicsrate;
-				separator -h 5;
+				rowLayout -nc 2;
+					columnLayout -w 220;
+						text -al "left" -fn "boldLabelFont" -l "Substeps";
+						int $substeps = `getAttr dSolver1.substeps`; 
+						$dynamicaUI_STsubsteps = `intField -v $substeps -w 50 
+							-ann "Number of times the simulation is evaluated 'between' each frame step on the timeline.\nThe default value of 1 should work for most simulations."`;
+						connectControl $dynamicaUI_STsubsteps dSolver1.substeps;
+					setParent ..;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Split Impulse";
+						int $enabled = `getAttr dSolver1.splitImpulse`;
+						$dynamicaUI_STsplitImpulse = `checkBox -l "Enabled" -v $enabled 
+							-ann "Enabling Split Impulse will allow the solver to apply positional corrections when deep collision penetrations occur.\nThese corrections do not affect resulting velocities."`;
+						connectControl $dynamicaUI_STsplitImpulse dSolver1.splitImpulse;
+					setParent ..;
+				setParent ..;
 				
-				text -al "left" -fn "boldLabelFont" -l "Substeps";
-				int $substeps = `getAttr dSolver1.substeps`; 
-				$dynamicaUI_STsubsteps = `intField -v $substeps -w 50 
-					-ann "Number of times the simulation is evaluated 'between' each frame step on the timeline.\nThe default value of 1 should work for most simulations."`;
-				connectControl $dynamicaUI_STsubsteps dSolver1.substeps;
-				separator -h 5;
-				
-				text -al "left" -fn "boldLabelFont" -l "Split Impulse";
-				int $enabled = `getAttr dSolver1.splitImpulse`;
-				$dynamicaUI_STsplitImpulse = `checkBox -l "Enabled" -v $enabled 
-					-ann "Enabling Split Impulse will allow the solver to apply positional corrections when deep collision penetrations occur.\nThese corrections do not affect resulting velocities."`;
-				connectControl $dynamicaUI_STsplitImpulse dSolver1.splitImpulse;
-				separator -h 5;
-				
-				text -al "left" -fn "boldLabelFont" -l "Solver State";
-				int $enabled = `getAttr dSolver1.enabled`;
-				$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled 
-					-ann "Toggles the state of the solver - like an on/off switch."`;
-				connectControl $dynamicaUI_STenabled dSolver1.enabled;
-				separator -h 5;
+				rowLayout -nc 2;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Solver State";
+						int $enabled = `getAttr dSolver1.enabled`;
+						$dynamicaUI_STenabled = `checkBox -l "Enabled" -v $enabled 
+							-ann "Toggles the state of the solver - like an on/off switch."`;
+						connectControl $dynamicaUI_STenabled dSolver1.enabled;
+					setParent ..;
+					columnLayout;
+						//
+					setParent ..;
+				setParent ..;
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Tool Options", "", 0, 0);
+		dynamicaUI_createFrame("Tool Options", "", 1, 0);
 			columnLayout;
-				text -al "left" -fn "boldLabelFont" -l "Colision Margin (creation only)";
-				$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
-				$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $dynamicaUI_collisionMargin 
-					-ann "The gap around each collision shape used for collision detection.\nThis value only effects Hull and Mesh rigid bodies during creation. Default is 0.040." 
-					-cc "$dynamicaUI_collisionMargin = `floatField -q -v $dynamicaUI_STcollisionMargin`"`;
-				connectControl $dynamicaUI_STcollisionMargin dSolver1.collisionMargin;
-				separator -h 5;
+				rowLayout -nc 2;
+					columnLayout -w 220;
+						text -al "left" -fn "boldLabelFont" -l "Shatter Crack Width";
+						floatField -pre 3 -w 50 -min 0 -v $dynamicaUI_crackWidth -cc "$dynamicaUI_crackWidth = `floatField -q -v voroCrack`" voroCrack;
+					setParent ..;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Colision Margin (creation only)";
+						$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
+						$dynamicaUI_STcollisionMargin = `floatField -pre 3 -w 50 -v $dynamicaUI_collisionMargin 
+							-ann "The gap around each collision shape used for collision detection.\nThis value only effects Hull and Mesh rigid bodies during creation. Default is 0.040." 
+							-cc "$dynamicaUI_collisionMargin = `floatField -q -v $dynamicaUI_STcollisionMargin`"`;
+						connectControl $dynamicaUI_STcollisionMargin dSolver1.collisionMargin;
+					setParent ..;
+				setParent ..;
 				
-				text -al "left" -fn "boldLabelFont" -l "Disable Collisions Between Constrained Bodies (creation only)";
-				int $enabled = `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
-				$dynamicaUI_disableCollisionsBetweenLinkedBodies = `checkBox -l "Enabled" -v $enabled 
-					-ann "Controls the collisions of rigid bodies which share a constraint. This only effects constraints during creation."`;
-				connectControl $dynamicaUI_disableCollisionsBetweenLinkedBodies dSolver1.disableCollisionsBetweenLinkedBodies;
-				separator -h 5;
+				rowLayout -nc 1;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Disable Collisions Between Constrained Bodies (creation only)";
+						int $enabled = `getAttr dSolver1.disableCollisionsBetweenLinkedBodies`;
+						$dynamicaUI_disableCollisionsBetweenLinkedBodies = `checkBox -l "Enabled" -v $enabled 
+							-ann "Controls the collisions of rigid bodies which share a constraint. This only effects constraints during creation."`;
+						connectControl $dynamicaUI_disableCollisionsBetweenLinkedBodies dSolver1.disableCollisionsBetweenLinkedBodies;
+					setParent ..;
+				setParent ..;
 				
-				text -al "left" -fn "boldLabelFont" -l "Create Activation Sets";
-				$dynamicaUI_activateSet = `checkBox -l "Enabled" -v $dynamicaUI_createActivateSet 
-					-ann "Creates quick select sets containing rigid bodies selected for activation." 
-					-cc "$dynamicaUI_createActivateSet = `checkBox -q -v $dynamicaUI_activateSet`"`;
-				separator -h 5;
+				rowLayout -nc 2;
+					columnLayout;
+						text -al "left" -fn "boldLabelFont" -l "Create Control Sets";
+						$dynamicaUI_activateSet = `checkBox -l "Enabled" -v $dynamicaUI_createActivateSet 
+							-ann "Creates quick select sets containing rigid bodies modified by activation controls." 
+							-cc "$dynamicaUI_createActivateSet = `checkBox -q -v $dynamicaUI_activateSet`"`;
+					setParent ..;
+					columnLayout;
+						//
+					setParent ..;
+				setParent ..;
+				
+				separator -h 10;
+				button -l "Toggle Advanced Tools Tab" -c "dynamicaUI_tools()";
 			setParent ..;
-		setParent ..;		
+		setParent ..;
+		
 	setParent ..;
 
 	return $mainForm;
@@ -542,27 +575,38 @@ global proc string dynamicaUI_createHelpTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Example Scenes", "See Dynamica in action with these demonstration scenes", 0, 0);
-			rowLayout -nc 5;
-				iconTextButton -st "iconAndTextVertical" -l "Demo 1" -w 75 -i "" 
-					-c "" -ann "";
-				iconTextButton -st "iconAndTextVertical" -l "Demo 2" -w 75 -i "" 
-					-c "" -ann "";
-				iconTextButton -st "iconAndTextVertical" -l "Demo 3" -w 75 -i "" 
-					-c "" -ann "";
-				iconTextButton -st "iconAndTextVertical" -l "Demo 4" -w 75 -i "" 
-					-c "" -ann "";
-				iconTextButton -st "iconAndTextVertical" -l "Demo 5" -w 75 -i "" 
-					-c "" -ann "";
+		// dynamicaUI_createFrame("Example Scenes", "See Dynamica in action with these demonstration scenes", 0, 0);
+			// rowLayout -nc 5;
+				// iconTextButton -st "iconAndTextVertical" -l "Demo 1" -w 75 -i "" 
+					// -c "" -ann "";
+				// iconTextButton -st "iconAndTextVertical" -l "Demo 2" -w 75 -i "" 
+					// -c "" -ann "";
+				// iconTextButton -st "iconAndTextVertical" -l "Demo 3" -w 75 -i "" 
+					// -c "" -ann "";
+				// iconTextButton -st "iconAndTextVertical" -l "Demo 4" -w 75 -i "" 
+					// -c "" -ann "";
+				// iconTextButton -st "iconAndTextVertical" -l "Demo 5" -w 75 -i "" 
+					// -c "" -ann "";
+			// setParent ..;
+		// setParent ..;
+		
+		// dynamicaUI_createFrame("Feature Overview", "", 0, 0);
+			// scrollLayout -h 235;
+				// string $helpText = dynamicaUI_loadHelp();
+				// string $text = `text -al "left" -ww 1 -l $helpText`;
+			// setParent ..;
+		// setParent ..;
+			
+		dynamicaUI_createFrame("Credits", "", 0, 0);
+			text -al "left" -l "Original Plugin: Walt Disney Studios";
+			text -al "left" -l "Original Author: Nicola Candussi";
+			text -al "left" -l "Modified By: Roman Ponomarev";
+			text -al "left" -l "Tools, Features, & Maintenance: Michael Baker";
+			text -al "left" -l "UI Design: Michael Baker & Erwin Coumans";
+			text -al "left" -l "Bullet Physics Framework: Erwin Coumans";
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Feature Overview", "", 0, 0);
-			scrollLayout -h 235;
-				string $helpText = dynamicaUI_loadHelp();
-				string $text = `text -al "left" -ww 1 -l $helpText`;
-			setParent ..;
-		setParent ..;
 	setParent ..;
 
 	return $mainForm;
@@ -616,6 +660,14 @@ global proc dynamicaUI_print(string $out, int $mode)
 }
 
 //procs
+global proc dynamicaUI_voronoiShatter(float $crackWidth)
+{
+	python("import dg_voroPy as v");
+	python("reload(v)");
+	print $crackWidth;
+	python( "v.doVoro(" + $crackWidth +", (" + 0.3 + "," + 0.6 + "," + 0.7 + "))");
+}
+
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 {
 	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
@@ -759,6 +811,20 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 
 		setAttr ($rigidBodyNode + ".mass" ) $mass;
 		setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
+		
+		float $pos[]= `getAttr ($rigidBodyTransforms[0] + ".translate")`;
+		float $rot[]= `getAttr ($rigidBodyTransforms[0] + ".rotate")`;
+						
+		//store original position and rotation
+		addAttr -ln "originalPosition" -at double3 -k 0 $rigidBodyTransforms[0];
+		addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $rigidBodyTransforms[0];
+		addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $rigidBodyTransforms[0];
+		addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $rigidBodyTransforms[0];
+		addAttr -ln "originalRotation" -at double3 -k 0 $rigidBodyTransforms[0];
+		addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $rigidBodyTransforms[0];
+		addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $rigidBodyTransforms[0];
+		addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
+
 		$newBodies[0] = $rigidBodyTransforms[0];
 		
 		dynamicaUI_print("Created rigid body primitive: " + $rigidBodyNode, 0);
@@ -927,7 +993,6 @@ global proc dynamicaUI_constrainMultiple(int $constraintType)
 	clear($sel);
 	
 }
-
 global proc dynamicaUI_createRigidBodyArray(int $activebody, int $collisionShapeType)
 {
 	global float $dynamicaUI_startFrame;
@@ -1070,8 +1135,8 @@ global proc dynamicaUI_activateAxis(int $axis)
 
 global proc dynamicaUI_activateRigidBodies() 
 {
-	global float $dynamicaUI_activateStartFrame;
-	global float $dynamicaUI_activateEndFrame;
+	global float $dynamicaUI_activeStartFrame;
+	global float $dynamicaUI_activeEndFrame;
 	global int $dynamicaUI_activateAxis; //0 = +X, 1 = -X, 2 = +Y, 3 = -Y, 4 = +Z, 5 = -Z, 6 = radial out, 7 = radial in, 8 = daisy chain
 	global int $dynamicaUI_createActivateSet;
 
@@ -1137,7 +1202,7 @@ global proc dynamicaUI_activateRigidBodies()
 	}
 
 	if ($reverseAxis) $sorted = mbReverseStringArray($sorted);
-	$attrs = mbScaleArray($attrs, $dynamicaUI_activateStartFrame, $dynamicaUI_activateEndFrame, 1);
+	$attrs = mbScaleArray($attrs, $dynamicaUI_activeStartFrame, $dynamicaUI_activeEndFrame, 1);
 
 	for ($i=0;$i<size($sorted);$i++) 
 	{
@@ -1163,7 +1228,7 @@ global proc dynamicaUI_activateRigidBodies()
 	}
 
 	dynamicaUI_print(size($sel) + " rigid bodies activated. Frame range: "
-		+ $dynamicaUI_activateStartFrame + " - " + $dynamicaUI_activateEndFrame, 0);
+		+ $dynamicaUI_activeStartFrame + " - " + $dynamicaUI_activeEndFrame, 0);
 }
 
 global proc dynamicaUI_deactivateRigidBodies(int $toPassive)
@@ -1292,7 +1357,6 @@ global proc dynamicaUI_updateConstraints(string $constraints[])
 		{
 			float $posA[] = `xform -q -ws -t $selection[0]`;
 			setAttr ($s + ".translate") -typ float3 $posA[0] $posA[1] $posA[2];
-			
 		}
 		if (size($selection) == 2)
 		{
@@ -1303,11 +1367,9 @@ global proc dynamicaUI_updateConstraints(string $constraints[])
 			$pivW[1] = mbLerpScalar($posA[1], $posB[1], 0.5);
 			$pivW[2] = mbLerpScalar($posA[2], $posB[2], 0.5);
 			setAttr ($s + ".translate") -typ float3 $pivW[0] $pivW[1] $pivW[2];
-					
 		}
 	}
 }
-
 global proc dynamicaUI_bakeRigidBodies()
 {
 	global int $dynamicaUI_deleteEmptyNodes;
