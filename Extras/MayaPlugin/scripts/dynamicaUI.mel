@@ -30,25 +30,25 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	print("Loading Dynamica plugin...\n");
 	
 	global float $dynamicaUI_startFrame;
-	global int $dynamicaUI_syncSolverJob;
 	
 	source "mbUtils";
 
 	//add Dynamica menu to the main window
 	global string $gMainWindow;
 	string $dynamicaMainMenu = `menu -l "Dynamica" -to 1 -p $gMainWindow`;
-	menuItem -l "Dynamica Window" -command "dynamicaUI_createWindow()" -fi "dynamicaWindow.xpm" $dynamicaMainMenu;
+	menuItem -l "Dynamica Window" -ann "Open the main Dynamica window" -c "dynamicaUI_createWindow()" -fi "dynamicaWindow.xpm" $dynamicaMainMenu;
+	menuItem -d 1 $dynamicaMainMenu;
+	menuItem -l "Help" -ann "View the wiki online" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" $dynamicaMainMenu;
 
-	dynamicaUI_createShelf();
+	//initial settings
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
-	dynamicaUI_onSceneOpen(); //puppet callback for SceneOpened event
+	dynamicaUI_onPluginLoad(); //init script jobs
 	playbackOptions -e -playbackSpeed 0 -maxPlaybackSpeed 1; //set playback options
+	dynamicaUI_createShelf();
 	
 	print("Loading Dynamica plugin...complete.\n");
 }
     
-    
-
 //shelf
 global proc dynamicaUI_createShelf()
 {
@@ -348,7 +348,7 @@ global proc string dynamicaUI_createControlTab()
 			setParent ..;
 		setParent ..;
 
-		dynamicaUI_createFrame("Make Rigid Bodies Active Along A World Axis", "Make selected rigid bodies active along a world axis.", 0, 0);
+		dynamicaUI_createFrame("Make Rigid Bodies Active Along The X, Y, or Z Axis", "Make selected rigid bodies active along a world axis.", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "+X Axis" -w 75 -i "dynamicaActivateX.xpm" 
 					-c "dynamicaUI_activateAxis(0)" -ann "Activate selected rigid bodies along the +X axis";
@@ -364,6 +364,7 @@ global proc string dynamicaUI_createControlTab()
 					-c "dynamicaUI_activateAxis(5)" -ann "Activate selected rigid bodies along the -Z axis";
 			setParent ..;
 		setParent ..;
+		
 		dynamicaUI_createFrame("Make Rigid Bodies Active From A Point", "Make selected rigid bodies active in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
 			rowLayout -nc 3;
 				iconTextButton -st "iconAndTextVertical" -l "Outward" -w 75 -i "dynamicaActivateRadial.xpm" 
@@ -375,7 +376,7 @@ global proc string dynamicaUI_createControlTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Configure Rigid Bodies (frame range ignored)", "Restore default active behavior, convert to passive, or set the initial state of selected rigid bodies.", 0, 0);
+		dynamicaUI_createFrame("Configure & Modify Rigid Bodies (frame range ignored)", "Restore default active behavior, convert to passive, or set the initial state of selected rigid bodies.", 0, 0);
 			rowLayout -nc 4;
 				iconTextButton -st "iconAndTextVertical" -l "Make Active" -w 75 -i "dynamicaUnactivate.xpm" 
 					-c "dynamicaUI_deactivateRigidBodies(0)" -ann "Make selected rigid bodies active (restores default behavior)";
@@ -417,7 +418,7 @@ global proc string dynamicaUI_createBakeTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Bake Selected Rigid Bodies Or All Rigid Bodies", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
+		dynamicaUI_createFrame("Bake Selected Or All Rigid Bodies", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
 			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Bake Selected" -w 75 -i "dynamicaBakeSelected.xpm" 
 					-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies";
@@ -1582,15 +1583,6 @@ global proc int bulletExportOptions( string $parent, string $action, string $set
 }
 
 //script jobs
-global proc dynamicaUI_onSceneOpen()
-{
-	global int $dynamicaUI_syncSolverJob;
-	if (!`scriptJob -exists $dynamicaUI_syncSolverJob`)
-	{
-		$dynamicaUI_syncSolverJob = `scriptJob -kws -e "playbackRangeChanged" dynamicaUI_syncSolver`;
-	}
-}
-
 global proc dynamicaUI_syncSolver()
 {
 	if (`objExists dSolver1`)
@@ -1599,6 +1591,27 @@ global proc dynamicaUI_syncSolver()
 		float $startFrame = `playbackOptions -q -min`;
 		setAttr "dSolver1.startTime" $startFrame;
 		$dynamicaUI_startFrame = $startFrame;
-		print("Dynamica: Updated solver Start Time to: " + (string)$dynamicaUI_startFrame + "\n");
+		dynamicaUI_print("Updated solver Start Time to: " + (string)$dynamicaUI_startFrame, 0);
 	}
 }
+
+global proc dynamicaUI_onSceneOpen()
+{
+	global int $dynamicaUI_syncSolverJob = -1;
+	if (!`scriptJob -ex $dynamicaUI_syncSolverJob`)
+	{
+		$dynamicaUI_syncSolverJob = `scriptJob -kws -e "playbackRangeChanged" dynamicaUI_syncSolver`;
+	}
+}
+
+global proc dynamicaUI_onPluginLoad()
+{
+	global int $dynamicaUI_sceneOpenJob = -1;
+	if (!`scriptJob -ex $dynamicaUI_sceneOpenJob`)
+	{
+		$dynamicaUI_sceneOpenJob = `scriptJob -e "SceneOpened" dynamicaUI_onSceneOpen`;
+	}
+	
+	dynamicaUI_onSceneOpen();
+}
+
