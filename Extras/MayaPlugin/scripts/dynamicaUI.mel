@@ -712,6 +712,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 		
 			for ($i = 0; $i < size($selection) / 2; $i++) 
 			{
+				string $marginShape;
 				string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
 				if(size($connectedCollisionShapes) > 0) $makeCollisionShape = 0;
 				
@@ -725,7 +726,20 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						{
 							mbFreezeScale($obSelection[$i]);
 							mbUnFreezeTranslation($obSelection[$i]);
-							if ($activebody) $margin = mbDeflate($obSelection[$i], $collisionMargin); //if active, deflate
+							
+							//process collision margin if active
+							if ($activebody) 
+							{
+								$dup = `duplicate $obSelection[$i]`;
+								$marginShape = mbGetShape($dup[0]);
+								setAttr ($marginShape + ".visibility") 0;
+								$margin = mbDeflate($marginShape, $collisionMargin);
+								parent -s -add $marginShape $obSelection[$i];
+								delete $dup;
+								delete -ch $obSelection[$i];
+								string $shapes[] = mbGetShapes($obSelection[$i]);
+								$marginShape = $shapes[1]; //update marginShape
+							}
 						}
 						
 						string $rigidBodyNode = `dRigidBody`;
@@ -734,7 +748,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						string $rigidBodyTransforms[] = `listRelatives -p $rigidBodyNode`;
 						
 						if ($selection[$i * 2 + 1] == "mesh") {
-							connectAttr ($selection[$i * 2] + ".message") ($collisionShapeNode + ".inShape");
+							connectAttr ($marginShape + ".message") ($collisionShapeNode + ".inShape");
 							setAttr ($rigidBodyTransforms[0] + ".overrideEnabled") 1;
 							setAttr ($rigidBodyTransforms[0] + ".overrideShading") 0;		
 						}
@@ -782,7 +796,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 						$bodyCount++;
 						
 						refresh;
-						if ($activebody) mbUnflate($margin); //if active, restore shape
+						//if ($activebody) mbUnflate($margin); //if active, restore shape
 					}
 					else
 					{
@@ -1567,6 +1581,8 @@ global proc dynamicaUI_bakeRigidBodies()
 	{
 		dynamicaUI_print("Removing history...", 0);
 		delete -all -ch;
+		
+		for ($b in $baked) mbDeleteShapeHistory($b); //clean shape history
 	}
 	
 	undoInfo -state on;
