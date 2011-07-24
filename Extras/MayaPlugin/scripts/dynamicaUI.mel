@@ -30,6 +30,8 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	print("Loading Dynamica plugin...\n");
 	
 	global float $dynamicaUI_startFrame;
+	global float $dynamicaUI_bakeStartFrame;
+	global float $dynamicaUI_bakeEndFrame;
 	
 	source "mbUtils";
 
@@ -44,6 +46,8 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
 	dynamicaUI_onPluginLoad(); //init script jobs
 	playbackOptions -e -playbackSpeed 0 -maxPlaybackSpeed 1; //set playback options
+	$dynamicaUI_bakeStartFrame = `playbackOptions -q -min`;
+	$dynamicaUI_bakeEndFrame = `playbackOptions -q -max`;
 	dynamicaUI_createShelf();
 	
 	print("Loading Dynamica plugin...complete.\n");
@@ -70,6 +74,8 @@ global proc dynamicaUI_createShelf()
 	
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 	
+	shelfButton -i "dynamicaVoronoiShatter.xpm" 
+		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth))" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveBox.xpm" 
@@ -169,7 +175,6 @@ global proc dynamicaUI_createWindow()
 	$mainForm;
 	
 	string $mainTab = dynamicaUI_createMainTab();
-	string $shatterTab = dynamicaUI_createShatterTab();
 	string $controlTab = dynamicaUI_createControlTab();
 	string $bakeTab = dynamicaUI_createBakeTab();
 	string $solverTab = dynamicaUI_createOptionsTab();
@@ -177,7 +182,6 @@ global proc dynamicaUI_createWindow()
 
 	tabLayout -e 
 		-tl $mainTab "Create" 
-		-tl $shatterTab "Shatter"
 		-tl $controlTab "Control" 
 		-tl $bakeTab "Bake"
 		-tl $solverTab "Options"
@@ -207,8 +211,23 @@ global proc dynamicaUI_tools()
 
 global proc string dynamicaUI_createMainTab()
 {
+	global float $dynamicaUI_crackWidth = 0;
 	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane, 7 = Bvh
+	
 	string $mainForm = `columnLayout -adj 1`;
+	
+		dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
+			rowLayout -nc 2;
+				columnLayout -w 100;
+					iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
+						-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
+				setParent ..;
+				columnLayout -w 350;
+					text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.";
+				setParent ..;
+			setParent ..;
+		setParent ..;
+		
 		dynamicaUI_createFrame("Active Rigid Bodies", "Active rigid bodies are controlled by the simulation solver and react to gravity, collisions, and fields.", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreateActiveSphere.xpm" 
@@ -307,23 +326,6 @@ global proc string dynamicaUI_createMainTab()
 	
 				// iconTextButton -st "iconAndTextVertical" -l "ConeTwist" -w 75 -i "dynamicaCreateConeTwistConstraint.xpm" 
 					// -c "dynamicaUI_createConeTwistConstraint" -ann "Create a cone twist constraint";
-			setParent ..;
-		setParent ..;
-	setParent ..;
-	
-	return $mainForm;
-}
-
-global proc string dynamicaUI_createShatterTab()
-{
-	global float $dynamicaUI_crackWidth;
-	
-	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Voronoi Shatter", "", 0, 0);
-			text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, shards will be created and stored in a new group";
-			rowLayout -nc 1;
-				iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
-					-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -455,7 +457,7 @@ global proc string dynamicaUI_createOptionsTab()
 	global string $dynamicaUI_STcollisionMargin;
 	global string $dynamicaUI_activateSet;
 	global float $dynamicaUI_collisionMargin;
-	global float $dynamicaUI_crackWidth = 0;
+	global float $dynamicaUI_crackWidth;
 	global int $dynamicaUI_createActivateSet = 1;
 	
 	string $mainForm = `columnLayout -adj 1`;
@@ -710,7 +712,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 			mbCreateLayer($rbLayer, 0);
 			//setAttr ($rbLayer + ".shading") 0; //disable shading
 		
-			for ($i = 0; $i < size($selection) / 2; $i++) 
+			for ($i = 0; $i < size($selection) / 2; $i++)
 			{
 				string $marginShape;
 				string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
@@ -1008,6 +1010,7 @@ global proc dynamicaUI_constrainMultiple(int $constraintType)
 	clear($sel);
 	
 }
+
 global proc dynamicaUI_createRigidBodyArray(int $activebody, int $collisionShapeType)
 {
 	global float $dynamicaUI_startFrame;
@@ -1160,7 +1163,7 @@ global proc dynamicaUI_activateRigidBodies()
 	string $sorted[];
 	float $attrs[];
 	string $axis;
-	int $reverseAxis;
+	int $reverseAxis = 0;
 	int $selChunks;
 	string $refr[];
 	int $incr = 0;
@@ -1205,7 +1208,7 @@ global proc dynamicaUI_activateRigidBodies()
 	}
 	else if ($dynamicaUI_activateAxis == 6 || $dynamicaUI_activateAxis == 7)//radial axis
 	{
-		$sorted = mbSortObjectsByDistance($sel, $sel[size($sel)-1], 0, 1, 0);
+		$sorted = mbProximitySort($sel);
 		for ($o in $sorted) $attrs[size($attrs)] = mbDistanceBetweenNodes($sorted[0], $o);
 	}
 	else if ($dynamicaUI_activateAxis == 8) //daisy chain
@@ -1219,6 +1222,7 @@ global proc dynamicaUI_activateRigidBodies()
 	if ($reverseAxis) $sorted = mbReverseStringArray($sorted);
 	$attrs = mbScaleArray($attrs, $dynamicaUI_activeStartFrame, $dynamicaUI_activeEndFrame, 1);
 
+	
 	for ($i=0;$i<size($sorted);$i++) 
 	{
 		float $mass = `getAttr (mbGetShape($sorted[$i]) + ".mass")`;
@@ -1239,6 +1243,7 @@ global proc dynamicaUI_activateRigidBodies()
 			$incr = 0;
 			clear($refr);
 			select -cl;
+			refresh;
 		}
 	}
 

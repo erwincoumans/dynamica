@@ -559,81 +559,33 @@ global proc string[] mbSortObjectsByAttr(string $_objects[], string $_attr, int 
 	return $return;
 }
 
-global proc string[] mbSortObjectsByDistance(string $_objects[], string $_refOb, float $_maxDist, int $_returnObjects, int $_invert)
-/* args
-array objects to sort
-node reference object
-float maximum distance
-int return objects or string distances
-int invert sort
-*/
+global proc string[] mbProximitySort(string $objects[])
 {
-	string $return[];
-	string $objects[];
-	string $inverted[];
-	float $distances[];
-	string $stringDistances[]; //used to match return type
-	string $stringDistancesInverted[];
-	vector $refTrans;
-	vector $oTrans;
-	float $dist;
+	string $ref = $objects[size($objects) - 1];
+	string $tmp[] = {"0," + $ref};
+	string $sorted[];
 	int $i;
 
-	$refTrans = `xform -q -ws -t $_refOb`;
-	
-	//collect attributes
-	for ($o in $_objects) 
+	for ($i=0;$i<size($objects)-1;$i++)
 	{
-		$oTrans = `xform -q -ws -t $o`;
-		$dist = mbDistanceBetween($oTrans, $refTrans);
-		
-		if (0 < $_maxDist && $dist < $_maxDist)
-		{
-			$distances[size($distances)] = $dist;
-		}
-		else if ($_maxDist == 0)
-		{
-			$distances[size($distances)] = $dist;
-		}
-	}
-	
-	//sort them
-	$distances = `sort $distances`;
-	if ($_invert) 
-	{
-		$distances = mbReverseFloatArray($distances);
-	}
+		float $dist = mbDistanceBetweenNodes($ref, $objects[$i]);
+		string $d;
+		if ($dist < 10) $d = "000" + (string)$dist;
+		if ($dist >= 10  && $dist < 100) $d = "00" + (string)$dist;
+		if ($dist >= 100 && $dist < 1000) $d = "0" + (string)$dist;
 
-	//fill new array with objects according to their sorted attributes
-	for ($o in $_objects) 
-	{
-		for ($i=0;$i<size($distances);$i++) 
-		{
-			$oTrans = `xform -q -ws -t $o`;
-			$dist = mbDistanceBetween($oTrans, $refTrans);
-			
-			if ($dist == $distances[$i]) 
-			{
-				$objects[$i] = $o;
-				break;
-			}
-		}
+		$tmp[size($tmp)] = ($d + "," + $objects[$i]);
 	}
 	
-	if ($_returnObjects) 
-	{
-		$return = $objects;
-	} 
-	else 
-	{
-		for ($d in $distances)
-		{
-			$stringDistances[size($stringDistances)] = (string)$d;
-		}
-		$return = $stringDistances;
+	$tmp = `sort $tmp`;
+	
+	for ($t in $tmp)
+	{	
+		string $node[] = stringToStringArray($t, ",");
+		$sorted[size($sorted)] = $node[1];
 	}
 	
-	return $return;
+	return $sorted;
 }
 
 global proc string[] mbDaisyChainObjects(string $objects[], string $refOb, int $invert)
