@@ -341,7 +341,7 @@ global proc string dynamicaUI_createControlTab()
 
 	string $mainForm = `columnLayout -adj 1`;
 
-		dynamicaUI_createFrame("Set The Frame Range For Rigid Body Control", "Set the starting and ending frames for rigid body control", 0, 0);
+		dynamicaUI_createFrame("Frame Range For Rigid Body Control", "Selected rigid bodies will become active during this range", 0, 0);
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $dynamicaUI_activeStartFrame -ann "Activation range start frame"
 					-cc "$dynamicaUI_activeStartFrame = `floatField -q -v activateStart`" activateStart;
@@ -367,7 +367,7 @@ global proc string dynamicaUI_createControlTab()
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Make Rigid Bodies Active From A Point", "Make selected rigid bodies active in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
+		dynamicaUI_createFrame("Make Rigid Bodies Active In A Radial Or Chain Pattern", "Make selected rigid bodies active in a radial or chain pattern, starting with the active object in the selection.", 0, 0);
 			rowLayout -nc 3;
 				iconTextButton -st "iconAndTextVertical" -l "Outward" -w 75 -i "dynamicaActivateRadial.xpm" 
 					-c "dynamicaUI_activateAxis(6)" -ann "Radially activate selected rigid bodies outwards";
@@ -1390,6 +1390,7 @@ global proc dynamicaUI_updateConstraints(string $constraints[])
 		}
 	}
 }
+
 global proc dynamicaUI_bakeRigidBodies()
 {
 	global int $dynamicaUI_deleteEmptyNodes;
@@ -1572,14 +1573,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	if ($dynamicaUI_deleteEmptyNodes)
 	{
 		dynamicaUI_print("Removing empty nodes...", 0);
-		for ($i=0;$i<10;$i++) //trace depth, 10 should clear most nested hierarchies
-		{
-			for ($n in `ls -o -tr`)
-			{
-				string $shapes[] = `listRelatives $n`;
-				if (size($shapes) == 0) delete $n;
-			}
-		}
+		mbDeleteEmptyNodes();
 	}
 
 	if ($dynamicaUI_deleteBakeHistory)

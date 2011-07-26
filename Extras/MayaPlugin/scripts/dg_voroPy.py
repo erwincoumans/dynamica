@@ -391,8 +391,8 @@ def cubeVoro(obj, points, offset, rgb):
 		bool = mc.polyBoolOp( activeShard, cutShard, op=3, ch = False, n = (obj + '_shard_1'))
 		#mc.delete(bool, ch = True)
 		mc.parent(bool, shardsGRP)
-		
-		mc.progressWindow( edit=True, progress=amount, status=("Voronoi Shatter step %d of %d completed . . ." % (amount, len(points))) )
+		mc.delete(cutShard)
+		mc.progressWindow( edit=True, progress=amount, status=("Dynamica Voronoi Shatter: %d of %d created ..." % (amount, len(points))) )
 		mc.refresh() #comment this out to speed things up
 
 	mc.progressWindow(endProgress=1)

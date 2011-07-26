@@ -90,6 +90,17 @@ global proc mbDeleteShapeHistory(string $node)
 	for ($i=1;$i<size($shapes);$i++) delete $shapes[$i];
 }
 
+global proc mbDeleteEmptyNodes()
+{
+	for ($i=0;$i<10;$i++) //trace depth, 10 should clear most nested hierarchies
+	{
+		for ($n in `ls -o -tr`)
+		{
+			if (size(mbGetShapes($n)) == 0) delete $n;
+		}
+	}
+}
+
 global proc string mbGetType(string $node)
 {
 	return `objectType $node`;
@@ -570,9 +581,10 @@ global proc string[] mbProximitySort(string $objects[])
 	{
 		float $dist = mbDistanceBetweenNodes($ref, $objects[$i]);
 		string $d;
-		if ($dist < 10) $d = "000" + (string)$dist;
-		if ($dist >= 10  && $dist < 100) $d = "00" + (string)$dist;
-		if ($dist >= 100 && $dist < 1000) $d = "0" + (string)$dist;
+		if ($dist < 10) $d = "0000" + (string)$dist;
+		if ($dist >= 10  && $dist < 100) $d = "000" + (string)$dist;
+		if ($dist >= 100 && $dist < 1000) $d = "00" + (string)$dist;
+		if ($dist >= 1000 && $dist < 10000) $d = "0" + (string)$dist;
 
 		$tmp[size($tmp)] = ($d + "," + $objects[$i]);
 	}
