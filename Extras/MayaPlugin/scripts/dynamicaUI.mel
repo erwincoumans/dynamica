@@ -30,8 +30,8 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	print("Loading Dynamica plugin...\n");
 	
 	global float $dynamicaUI_startFrame;
-	global float $dynamicaUI_bakeStartFrame;
-	global float $dynamicaUI_bakeEndFrame;
+	global float $dynamicaUI_captureStartFrame;
+	global float $dynamicaUI_captureEndFrame;
 	
 	source "mbUtils";
 
@@ -46,8 +46,8 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
 	dynamicaUI_onPluginLoad(); //init script jobs
 	playbackOptions -e -playbackSpeed 0 -maxPlaybackSpeed 1; //set playback options
-	$dynamicaUI_bakeStartFrame = `playbackOptions -q -min`;
-	$dynamicaUI_bakeEndFrame = `playbackOptions -q -max`;
+	$dynamicaUI_captureStartFrame = `playbackOptions -q -min`;
+	$dynamicaUI_captureEndFrame = `playbackOptions -q -max`;
 	dynamicaUI_createShelf();
 	
 	print("Loading Dynamica plugin...complete.\n");
@@ -141,9 +141,9 @@ global proc dynamicaUI_createShelf()
 		// -c "dynamicaUI_setInitialState(1)" -ann "Restore original initial state" -p $dynamicaShelf;
 		
 	// shelfButton -i "dynamicaBakeSelected.xpm" 
-		// -c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
+		// -c "$dynamicaUI_captureAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies" -p $dynamicaShelf;
 	// shelfButton -i "dynamicaBakeAll.xpm" 
-		// -c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
+		// -c "$dynamicaUI_captureAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
 	
 	shelfButton -i "dynamicaHelp.xpm" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" 
 		-ann "View Online Documentation" -p $dynamicaShelf;
@@ -176,14 +176,14 @@ global proc dynamicaUI_createWindow()
 	
 	string $mainTab = dynamicaUI_createMainTab();
 	string $controlTab = dynamicaUI_createControlTab();
-	string $bakeTab = dynamicaUI_createBakeTab();
+	string $bakeTab = dynamicaUI_createCaptureTab();
 	string $solverTab = dynamicaUI_createOptionsTab();
 	string $helpTab = dynamicaUI_createHelpTab();
 
 	tabLayout -e 
 		-tl $mainTab "Create" 
 		-tl $controlTab "Control" 
-		-tl $bakeTab "Bake"
+		-tl $bakeTab "Capture"
 		-tl $solverTab "Options"
 		-tl $helpTab "Help"
 	$dynamicaUI_tabs;
@@ -395,41 +395,41 @@ global proc string dynamicaUI_createControlTab()
 	return $mainForm;
 }
 
-global proc string dynamicaUI_createBakeTab() 
+global proc string dynamicaUI_createCaptureTab() 
 {
 	global int $dynamicaUI_deleteEmptyNodes = 1;
 	global int $dynamicaUI_deleteBakeHistory = 1;
 	global int $dynamicaUI_deleteStaticChannels = 1;
 	global int $dynamicaUI_optimizeChannels = 1;
-	global int $dynamicaUI_bakeAll = 1;
-	global float $dynamicaUI_bakeStartFrame;
-	global float $dynamicaUI_bakeEndFrame;
+	global int $dynamicaUI_captureAll = 1;
+	global float $dynamicaUI_captureStartFrame;
+	global float $dynamicaUI_captureEndFrame;
 	
 	float $start = `playbackOptions -q -min`;
 	float $end = `playbackOptions -q -max`;
 
 	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Set The Frame Range To Bake", "Set the starting and ending frames for baking.", 0, 0);
+		dynamicaUI_createFrame("Frame Range To Capture As Keyframes", "Set the starting and ending frames for capture.", 0, 0);
 			rowLayout -nc 2;
 				floatField -pre 3 -w 50 -v $start
-					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeStart`) bakeEnd;$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`" bakeStart;
+					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeStart`) bakeEnd;$dynamicaUI_captureStartFrame = `floatField -q -v bakeStart`" bakeStart;
 				floatField -pre 3 -w 50 -v $end
-					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeEnd`) bakeStart;$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
-				$dynamicaUI_bakeStartFrame = `floatField -q -v bakeStart`;
-				$dynamicaUI_bakeEndFrame = `floatField -q -v bakeEnd`;
+					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeEnd`) bakeStart;$dynamicaUI_captureEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
+				$dynamicaUI_captureStartFrame = `floatField -q -v bakeStart`;
+				$dynamicaUI_captureEndFrame = `floatField -q -v bakeEnd`;
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Bake Selected Or All Rigid Bodies", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
+		dynamicaUI_createFrame("Capture Selected Or All Rigid Bodies", "Capture keyframe data for selected or all rigid bodies in the scene.", 0, 0);
 			rowLayout -nc 2;
-				iconTextButton -st "iconAndTextVertical" -l "Bake Selected" -w 75 -i "dynamicaBakeSelected.xpm" 
-					-c "$dynamicaUI_bakeAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies";
-				iconTextButton -st "iconAndTextVertical" -l "Bake All" -w 75 -i "dynamicaBakeAll.xpm" 
-					-c "$dynamicaUI_bakeAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies";
+				iconTextButton -st "iconAndTextVertical" -l "Capture Selected" -w 85 -i "dynamicaBakeSelected.xpm" 
+					-c "$dynamicaUI_captureAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies";
+				iconTextButton -st "iconAndTextVertical" -l "Capture All" -w 75 -i "dynamicaBakeAll.xpm" 
+					-c "$dynamicaUI_captureAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies";
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Bake Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
+		dynamicaUI_createFrame("Capture Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
 			columnLayout;
 				checkBox -l "Optimize Channels (Recommended)" -v $dynamicaUI_optimizeChannels -ann "Remove unneccassary keyframes (significantly reduces data and file size)" 
 					-cc "$dynamicaUI_optimizeChannels  = `checkBox -q -v bakeOptimize`" bakeOptimize;
@@ -943,6 +943,7 @@ global proc dynamicaUI_constrainMultiple(int $constraintType)
 	string $selTmp[] = $sel;
 	string $overlapping[];
 	string $nearest[];
+	string $constraints[];
 	string $newConstraint;
 	string $constraintLayer = "DynamicaConstraints";
 	string $constraintGroup;
@@ -1002,9 +1003,11 @@ global proc dynamicaUI_constrainMultiple(int $constraintType)
 		$constraintCount++;
 		mbAddToLayer($newConstraint, $constraintLayer);
 		parent $newConstraint $constraintGroup;
+		$constraints[size($constraints)] = $newConstraint;
 		refresh;
 	}
 	
+	select -r $constraints;
 	dynamicaUI_print("Created " + $constraintCount + " constraints.", 0);
 	clear($nearest);
 	clear($sel);
@@ -1396,9 +1399,9 @@ global proc dynamicaUI_bakeRigidBodies()
 	global int $dynamicaUI_deleteEmptyNodes;
 	global int $dynamicaUI_deleteBakeHistory;
 	global int $dynamicaUI_optimizeChannels;
-	global int $dynamicaUI_bakeAll;
-	global float $dynamicaUI_bakeStartFrame;
-	global float $dynamicaUI_bakeEndFrame;
+	global int $dynamicaUI_captureAll;
+	global float $dynamicaUI_captureStartFrame;
+	global float $dynamicaUI_captureEndFrame;
 	
 	string $dBakeLayer = "DynamicaBaked";
 	string $bakeGroup;
@@ -1412,7 +1415,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	select -cl;
 	
 	//select all rigid bodies
-	if ($dynamicaUI_bakeAll) $sel = `ls -tr`;
+	if ($dynamicaUI_captureAll) $sel = `ls -tr`;
 	for ($s in $sel) if (mbIsType($s, "dRigidBody")) mbAddToSelection($s);
 	$sel = `ls -sl`;
 	
@@ -1482,7 +1485,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	cycleCheck -e off;
 	bakeResults 
 		-simulation 1 
-		-t ((string)$dynamicaUI_bakeStartFrame + ":" + (string)$dynamicaUI_bakeEndFrame) 
+		-t ((string)$dynamicaUI_captureStartFrame + ":" + (string)$dynamicaUI_captureEndFrame) 
 		-sampleBy 1 
 		-disableImplicitControl 1 
 		-preserveOutsideKeys 1 
@@ -1588,7 +1591,7 @@ global proc dynamicaUI_bakeRigidBodies()
 	select -r $baked;
 	$bakeGroup = `group -em -n dBaked`;
 	for ($b in $baked) parent $b $bakeGroup; //move to baked group
-	dynamicaUI_print("Baked " + size($baked) + " rigid bodies on frames " + $dynamicaUI_bakeStartFrame + " - " + $dynamicaUI_bakeEndFrame, 0);
+	dynamicaUI_print("Baked " + size($baked) + " rigid bodies on frames " + $dynamicaUI_captureStartFrame + " - " + $dynamicaUI_captureEndFrame, 0);
 }
 
 //callbacks
