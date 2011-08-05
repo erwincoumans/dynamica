@@ -74,6 +74,8 @@ global proc dynamicaUI_createShelf()
 	
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 	
+	shelfButton -i "dynamicaVoronoiShatter.xpm" 
+		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveBox.xpm" 
@@ -86,6 +88,8 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveMesh.xpm"
 		-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
+	shelfButton -i "dynamicaCreateHACD.xpm"
+		-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
 		
 	shelfButton -i "dynamicaCreatePassiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid body" -p $dynamicaShelf;
@@ -106,9 +110,6 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createConstraint(2)" -ann "Create a breakable slider constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreate6dofConstraint.xpm" 
 		-c "dynamicaUI_createConstraint(3)" -ann "Create a breakable 6dof constraint" -p $dynamicaShelf;
-	shelfButton -i "dynamicaVoronoiShatter.xpm" 
-		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth))" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
-
 	// shelfButton -i "dynamicaCreateConetwistConstraint.xpm" 
 		// -c "dynamicaUI_createConstraint(3)" -ann "Create a breakable cone twist constraint" -p $dynamicaShelf;
 		
@@ -183,8 +184,8 @@ global proc dynamicaUI_createWindow()
 
 	tabLayout -e 
 		-tl $mainTab "Create" 
-		-tl $controlTab "Control" 
-		-tl $bakeTab "Capture"
+		-tl $controlTab "Activate" 
+		-tl $bakeTab "Bake"
 		-tl $solverTab "Options"
 		-tl $helpTab "Help"
 	$dynamicaUI_tabs;
@@ -217,6 +218,17 @@ global proc string dynamicaUI_createMainTab()
 	
 	string $mainForm = `columnLayout -adj 1`;
 	
+		// dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
+			// rowLayout -nc 2;
+				// columnLayout -w 100;
+					// iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
+						// -c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
+				// setParent ..;
+				// columnLayout -w 350;
+					// text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.";
+				// setParent ..;
+			// setParent ..;
+		// setParent ..;
 		
 		dynamicaUI_createFrame("Active Rigid Bodies", "Active rigid bodies are controlled by the simulation solver and react to gravity, collisions, and fields.", 0, 0);
 			rowLayout -nc 6;
@@ -237,6 +249,9 @@ global proc string dynamicaUI_createMainTab()
 
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreateActiveMesh.xpm"
 					-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies from selection";
+				
+				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
+					-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
 			setParent ..;
 		setParent ..;
 
@@ -318,20 +333,6 @@ global proc string dynamicaUI_createMainTab()
 					// -c "dynamicaUI_createConeTwistConstraint" -ann "Create a cone twist constraint";
 			setParent ..;
 		setParent ..;
-		
-		
-			dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
-			rowLayout -nc 2;
-				columnLayout -w 100;
-					iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
-						-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
-				setParent ..;
-				columnLayout -w 350;
-					text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.\nCreated by Dave Greenwood";
-				setParent ..;
-			setParent ..;
-		setParent ..;
-		
 	setParent ..;
 	
 	return $mainForm;
@@ -347,9 +348,9 @@ global proc string dynamicaUI_createControlTab()
 
 		dynamicaUI_createFrame("Frame Range For Rigid Body Control", "Selected rigid bodies will become active during this range", 0, 0);
 			rowLayout -nc 2;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activeStartFrame -ann "Activation range start frame"
+				floatField -pre 3 -w 60 -v $dynamicaUI_activeStartFrame -ann "Activation range start frame"
 					-cc "$dynamicaUI_activeStartFrame = `floatField -q -v activateStart`" activateStart;
-				floatField -pre 3 -w 50 -v $dynamicaUI_activeEndFrame -ann "Activation range end frame"
+				floatField -pre 3 -w 60 -v $dynamicaUI_activeEndFrame -ann "Activation range end frame"
 					-cc "$dynamicaUI_activeEndFrame = `floatField -q -v activateEnd`" activateEnd;
 			setParent ..;
 		setParent ..;
@@ -413,27 +414,27 @@ global proc string dynamicaUI_createCaptureTab()
 	float $end = `playbackOptions -q -max`;
 
 	string $mainForm = `columnLayout -adj 1`;
-		dynamicaUI_createFrame("Frame Range To Capture As Keyframes", "Set the starting and ending frames for capture.", 0, 0);
+		dynamicaUI_createFrame("Frame Range To Bake", "Set the starting and ending frames for baking.", 0, 0);
 			rowLayout -nc 2;
-				floatField -pre 3 -w 50 -v $start
+				floatField -pre 3 -w 60 -v $start
 					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeStart`) bakeEnd;$dynamicaUI_captureStartFrame = `floatField -q -v bakeStart`" bakeStart;
-				floatField -pre 3 -w 50 -v $end
+				floatField -pre 3 -w 60 -v $end
 					-cc "if (`floatField -q -v bakeStart` > `floatField -q -v bakeEnd`) floatField -e -v (`floatField -q -v bakeEnd`) bakeStart;$dynamicaUI_captureEndFrame = `floatField -q -v bakeEnd`" bakeEnd;
 				$dynamicaUI_captureStartFrame = `floatField -q -v bakeStart`;
 				$dynamicaUI_captureEndFrame = `floatField -q -v bakeEnd`;
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Capture Selected Or All Rigid Bodies", "Capture keyframe data for selected or all rigid bodies in the scene.", 0, 0);
+		dynamicaUI_createFrame("Bake Selected Or All Rigid Bodies", "Bake keyframe data for selected or all rigid bodies in the scene.", 0, 0);
 			rowLayout -nc 2;
-				iconTextButton -st "iconAndTextVertical" -l "Capture Selected" -w 85 -i "dynamicaBakeSelected.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Bake Selected" -w 85 -i "dynamicaBakeSelected.xpm" 
 					-c "$dynamicaUI_captureAll = 0; dynamicaUI_bakeRigidBodies()" -ann "Bake Selected Rigid Bodies";
-				iconTextButton -st "iconAndTextVertical" -l "Capture All" -w 75 -i "dynamicaBakeAll.xpm" 
+				iconTextButton -st "iconAndTextVertical" -l "Bake All" -w 75 -i "dynamicaBakeAll.xpm" 
 					-c "$dynamicaUI_captureAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies";
 			setParent ..;
 		setParent ..;
 		
-		dynamicaUI_createFrame("Capture Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
+		dynamicaUI_createFrame("Bake Options", "Enabling these options can dramatically reduce scene size and overhead.", 1, 1);
 			columnLayout;
 				checkBox -l "Optimize Channels (Recommended)" -v $dynamicaUI_optimizeChannels -ann "Remove unneccassary keyframes (significantly reduces data and file size)" 
 					-cc "$dynamicaUI_optimizeChannels  = `checkBox -q -v bakeOptimize`" bakeOptimize;
@@ -608,7 +609,9 @@ global proc string dynamicaUI_createHelpTab()
 			text -al "left" -l "Original Plugin: Walt Disney Studios";
 			text -al "left" -l "Original Author: Nicola Candussi";
 			text -al "left" -l "Modified By: Roman Ponomarev";
-			text -al "left" -l "Tools, UI & Maintenance: Michael Baker";
+			text -al "left" -l "Tools, Features, & Maintenance: Michael Baker";
+			text -al "left" -l "UI Design: Michael Baker & Erwin Coumans";
+			text -al "left" -l "Bullet Physics Framework: Erwin Coumans";
 			setParent ..;
 		setParent ..;
 		
@@ -667,10 +670,18 @@ global proc dynamicaUI_print(string $out, int $mode)
 //procs
 global proc dynamicaUI_voronoiShatter(float $crackWidth)
 {
-	python("import dg_voroPy as v");
-	python("reload(v)");
-	print $crackWidth;
-	python( "v.doVoro(" + $crackWidth +", (" + 0.3 + "," + 0.6 + "," + 0.7 + "))");
+	string $script = `whatIs "dg_voro_py_UI.mel"`;
+	if ($script != "unknown") 
+	{
+		source "dg_voro_py_UI";
+		dg_voro_py_UI();
+	}
+	
+	// for direct integration into the dynamicaUI; 
+	// python("import dg_voroPy as v");
+	// python("reload(v)");
+	// print $crackWidth;
+	// python( "v.doVoro(" + $crackWidth +", (" + 0.3 + "," + 0.6 + "," + 0.7 + "))");
 }
 
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
@@ -695,12 +706,13 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	$selection = `ls -selection -dag -leaf -showType -type "geometry"`;
 	
 	if ($activebody == false) $mass = 0;
-	
 	dSolver; //create dSolver node if necessary
 	
 	//pick the selected object's transform only if we are creating a hull or a mesh
 	if ($collisionShapeType == 0 || $collisionShapeType == 1) 
 	{
+		string $rigidBodyNode;
+		
 		if (size($selection))
 		{
 			dynamicaUI_print("Creating Dynamica rigid bodies...", 0);
@@ -716,7 +728,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 		
 			for ($i = 0; $i < size($selection) / 2; $i++)
 			{
-				string $marginShape;
+				string $marginShape = mbGetShape($obSelection[$i]);
 				string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
 				if(size($connectedCollisionShapes) > 0) $makeCollisionShape = 0;
 				
@@ -745,8 +757,8 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 								$marginShape = $shapes[1]; //update marginShape
 							}
 						}
-						
-						string $rigidBodyNode = `dRigidBody`;
+
+						$rigidBodyNode = `dRigidBody`;
 						string $collisionShapeNode = `createNode dCollisionShape`;
 						connectAttr ($collisionShapeNode + ".outCollisionShape") ($rigidBodyNode + ".inCollisionShape");
 						string $rigidBodyTransforms[] = `listRelatives -p $rigidBodyNode`;
@@ -812,6 +824,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 					dynamicaUI_print($shapeTransforms[0] + " is already a rigid body", 1);
 					//$newBodies[$i] = $shapeTransforms[0];
 				}
+				
 				$makeCollisionShape = 1;
 			}
 			if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies. Find rigid bodies and source meshes in Outliner and Display Layers.", 0);
@@ -845,10 +858,10 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 		addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
 
 		$newBodies[0] = $rigidBodyTransforms[0];
-		
 		dynamicaUI_print("Created rigid body primitive: " + $rigidBodyNode, 0);
 	}
 
+	
 	currentTime $dynamicaUI_startFrame; //force refresh
 	select -r $newBodies;
 }
