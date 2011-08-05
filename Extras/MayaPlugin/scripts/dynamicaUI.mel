@@ -671,10 +671,14 @@ global proc dynamicaUI_print(string $out, int $mode)
 global proc dynamicaUI_voronoiShatter(float $crackWidth)
 {
 	string $script = `whatIs "dg_voro_py_UI.mel"`;
-	if ($script != "unknown") 
+	if ($script != "Unknown") 
 	{
 		source "dg_voro_py_UI";
 		dg_voro_py_UI();
+	}
+	else
+	{
+		error("dg_Voro_Py script must be installed to use this feature. Download here: http://www.creativecrash.com/maya/downloads/scripts-plugins/modeling/poly-tools/c/dg_voro_py--2");
 	}
 	
 	// for direct integration into the dynamicaUI; 
