@@ -403,7 +403,7 @@ def doVoro(crack, rgb):
 	#rgb = 1.0 , 1.0, 0.0
 	#crack = 0.05
 	mesh_points = doConstParToLoc()
-	print (mesh_points)
+	#print (mesh_points)
 	#sel = mc.ls( selection=True )
 	points = locToPointMVector(mesh_points[1])
 	cubeVoro(mesh_points[0], points, crack, rgb)

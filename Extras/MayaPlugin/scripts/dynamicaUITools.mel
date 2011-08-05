@@ -42,7 +42,7 @@ global proc dynamicaUI_addTools()
 			{ 
 				deleteUI $dynamicaUI_toolTab;
 				//tabLayout -e -sti 1 $dynamicaUI_tabs;
-				dynamicaUI_print("Tools tab removed from main Dynamica window", 1);
+				dynamicaUI_print("Advanced tab removed from main Dynamica window", 1);
 				$toolsTabExists = 1;
 				break;
 			}
@@ -53,14 +53,14 @@ global proc dynamicaUI_addTools()
 			$dynamicaUI_toolTab = dynamicaUI_createToolsTab();
 			tabLayout -e -tl $dynamicaUI_toolTab $dynamicaUI_toolTabLabel $dynamicaUI_tabs;
 			//tabLayout -e -st $dynamicaUI_toolTab $dynamicaUI_tabs;
-			dynamicaUI_print("Tools tab added to main Dynamica window", 1);
+			dynamicaUI_print("Advanced tab added to main Dynamica window", 1);
 		}
 		
 		showWindow $dynamicaUI_window;
 	}
 	else
 	{
-		error("Dynamica window not loaded, unable to add Tools");
+		error("Dynamica window not loaded, unable to add Advanced tools");
 	}
 }
 
