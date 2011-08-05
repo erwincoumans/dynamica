@@ -74,8 +74,6 @@ global proc dynamicaUI_createShelf()
 	
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 	
-	shelfButton -i "dynamicaVoronoiShatter.xpm" 
-		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth))" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveBox.xpm" 
@@ -108,6 +106,9 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createConstraint(2)" -ann "Create a breakable slider constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreate6dofConstraint.xpm" 
 		-c "dynamicaUI_createConstraint(3)" -ann "Create a breakable 6dof constraint" -p $dynamicaShelf;
+	shelfButton -i "dynamicaVoronoiShatter.xpm" 
+		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth))" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
+
 	// shelfButton -i "dynamicaCreateConetwistConstraint.xpm" 
 		// -c "dynamicaUI_createConstraint(3)" -ann "Create a breakable cone twist constraint" -p $dynamicaShelf;
 		
@@ -216,17 +217,6 @@ global proc string dynamicaUI_createMainTab()
 	
 	string $mainForm = `columnLayout -adj 1`;
 	
-		dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
-			rowLayout -nc 2;
-				columnLayout -w 100;
-					iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
-						-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
-				setParent ..;
-				columnLayout -w 350;
-					text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.";
-				setParent ..;
-			setParent ..;
-		setParent ..;
 		
 		dynamicaUI_createFrame("Active Rigid Bodies", "Active rigid bodies are controlled by the simulation solver and react to gravity, collisions, and fields.", 0, 0);
 			rowLayout -nc 6;
@@ -328,6 +318,20 @@ global proc string dynamicaUI_createMainTab()
 					// -c "dynamicaUI_createConeTwistConstraint" -ann "Create a cone twist constraint";
 			setParent ..;
 		setParent ..;
+		
+		
+			dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
+			rowLayout -nc 2;
+				columnLayout -w 100;
+					iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
+						-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
+				setParent ..;
+				columnLayout -w 350;
+					text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.\nCreated by Dave Greenwood";
+				setParent ..;
+			setParent ..;
+		setParent ..;
+		
 	setParent ..;
 	
 	return $mainForm;
@@ -604,9 +608,7 @@ global proc string dynamicaUI_createHelpTab()
 			text -al "left" -l "Original Plugin: Walt Disney Studios";
 			text -al "left" -l "Original Author: Nicola Candussi";
 			text -al "left" -l "Modified By: Roman Ponomarev";
-			text -al "left" -l "Tools, Features, & Maintenance: Michael Baker";
-			text -al "left" -l "UI Design: Michael Baker & Erwin Coumans";
-			text -al "left" -l "Bullet Physics Framework: Erwin Coumans";
+			text -al "left" -l "Tools, UI & Maintenance: Michael Baker";
 			setParent ..;
 		setParent ..;
 		

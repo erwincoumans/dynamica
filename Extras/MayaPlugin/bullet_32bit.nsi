@@ -8,14 +8,14 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "Dynamica Bullet 2.76 physics plugin for Maya 2009"
+Name "Dynamica Bullet 2.78 physics plugin for Maya 2012"
 
 ; The file to write
-OutFile "DynamicaForMaya2009_32bit.exe"
+OutFile "DynamicaForMaya2012_32bit.exe"
 
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\DynamicaBullet2.76\
+InstallDir $PROGRAMFILES\DynamicaBullet2.78\
 
 UninstPage uninstConfirm
 UninstPage instfiles
@@ -30,6 +30,7 @@ Section "" ;No components page, name is not important
 ;Create Dynamica directories
 ;CreateDirectory "$INSTDIR\dll"
 CreateDirectory "$INSTDIR\doc"	
+CreateDirectory "$INSTDIR\doc\images"	
 CreateDirectory "$INSTDIR\scenes\"
 CreateDirectory "$INSTDIR\icons"
 CreateDirectory "$INSTDIR\plug-ins"	
@@ -39,17 +40,20 @@ CreateDirectory "$INSTDIR\scripts"
 ;File "dll\*.dll"
 SetOutPath "$INSTDIR\doc"
 File "doc\*.*"
+SetOutPath "$INSTDIR\doc\images"
+File "doc\images\*.*"
+
 SetOutPath "$INSTDIR\scenes"
 File "scenes\*.*"
 SetOutPath "$INSTDIR\icons"
 File "icons\*.*"
 SetOutPath "$INSTDIR\plug-ins"
-File "BulletMayaPlugin.mll"
-File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
-File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
+File "..\..\lib\release\plug-ins\BulletMayaPlugin.mll"
+;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
+;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
 
-;File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
-;File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcr90.dll"
+File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
+File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcr90.dll"
 
 SetOutPath "$INSTDIR\scripts"
 File "scripts\*.*"
