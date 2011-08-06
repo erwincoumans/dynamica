@@ -606,12 +606,15 @@ global proc string dynamicaUI_createHelpTab()
 		// setParent ..;
 			
 		dynamicaUI_createFrame("Credits", "", 0, 0);
-			text -al "left" -l "Original Plugin: Walt Disney Studios";
-			text -al "left" -l "Original Author: Nicola Candussi";
-			text -al "left" -l "Modified By: Roman Ponomarev";
 			text -al "left" -l "Tools, Features, & Maintenance: Michael Baker";
 			text -al "left" -l "UI Design: Michael Baker & Erwin Coumans";
 			text -al "left" -l "Bullet Physics Framework: Erwin Coumans";
+			text -al "left" -l "Original Baking Scripts: RBD";
+			text -al "left" -l "Voronoi Shatter Script: Dave Greenwood";
+			text -al "left" -l "Original Plugin: Walt Disney Studios";
+			text -al "left" -l "Original Author: Nicola Candussi";
+			text -al "left" -l "Modified By: Roman Ponomarev";
+			
 			setParent ..;
 		setParent ..;
 		
