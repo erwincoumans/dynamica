@@ -52,24 +52,30 @@ def parToLocMesh(mesh, particles):
 	#count the particles
 	count = mc.getAttr( particles + '.count' )
 	#create a group for the locators
-	locGroup = mc.group( em=True )
-	newCount = 0	
+	#locGroup = mc.group( em=True )
+	newCount = 0
+	points = []
 	for p in range(count):
 		pos = mc.getParticleAttr( ('%s.pt[%d]'%(particles, p)), at='worldPosition' )
 		point = (pos[0] , pos[1] , pos[2])
 		direction=(0.0, 1.0, 0.0)
 
 		if rayIntersect(mesh, point , direction):
-			loc = mc.spaceLocator( )
-			mc.move( pos[0] , pos[1] , pos[2], loc, a = True )
-			mc.scale( 0.1, 0.1, 0.1, loc, a = True, p = ( pos[0] , pos[1] , pos[2] ))
-			mc.parent(loc, locGroup)
+			points.append([pos[0] , pos[1] , pos[2]])
+			# loc = mc.spaceLocator( )
+			# mc.move( pos[0] , pos[1] , pos[2], loc, a = True )
+			# mc.scale( 0.1, 0.1, 0.1, loc, a = True, p = ( pos[0] , pos[1] , pos[2] ))
+			# mc.parent(loc, locGroup)
 			newCount = newCount + 1
 			
-	locGroup = mc.rename(locGroup , 'loc_%d_GRP' % (newCount) )
+	#locGroup = mc.rename(locGroup , 'loc_%d_GRP' % (newCount) )
+
 	mc.delete (trinode)
 
-	return locGroup
+	if (newCount == 0):
+		# mc.delete (locGroup)
+		mc.warning ("Dynamica: No particles contained within selected mesh")
+	return [mesh, points]
 
 
 def particleToLocator(particles):
@@ -136,12 +142,12 @@ def calcMidPointMVector(posA, posB, aim, offset):
 	return cut
 
 
-def locToPointMVector(group):
+def locToPointMVector(pPoints):
 	points = []
-	locators = mc.listRelatives ( group )
-	for loc in locators:
-		point = mc.xform(loc, q = True, ws = True, t = True)
-		vector = om.MVector( point[0], point[1], point[2] )
+	#locators = mc.listRelatives ( group )
+	for p in pPoints:
+		# point = mc.xform(loc, q = True, ws = True, t = True)
+		vector = om.MVector( p[0], p[1], p[2] )
 		points.append(vector)
 	return points
 
@@ -307,7 +313,8 @@ def delObjHistory(obj):
 
 def cubeVoro(obj, points, offset, rgb):
 	mc.undoInfo( state = False)
-
+	print ("cubeVoro")
+	print (obj, points, offset, rgb)
 	#variables
 	usedPoints =[]
 	validPoints =[]
@@ -322,7 +329,7 @@ def cubeVoro(obj, points, offset, rgb):
 	isInterruptable = True,
 	maxValue = len(points)  )#end of progress window
 
-	shardsGRP = mc.group(empty = True, name = (obj + '_shardsGRP'))
+	shardsGRP = mc.group(empty = True, name = (obj + '_shards_' + str(len(points))))
 	color = rgb
 	aim = (0,0,1) # Z_direction
 	mat = makeMat(obj, color)
@@ -384,20 +391,22 @@ def cubeVoro(obj, points, offset, rgb):
 		bool = mc.polyBoolOp( activeShard, cutShard, op=3, ch = False, n = (obj + '_shard_1'))
 		#mc.delete(bool, ch = True)
 		mc.parent(bool, shardsGRP)
-		
-		mc.progressWindow( edit=True, progress=amount, status=("Voronoi Shatter step %d of %d completed . . ." % (amount, len(points))) )
-		mc.refresh()
+		mc.delete(cutShard)
+		mc.progressWindow( edit=True, progress=amount, status=("Dynamica Voronoi Shatter: %d of %d created ..." % (amount, len(points))) )
+		mc.refresh() #comment this out to speed things up
 
 	mc.progressWindow(endProgress=1)
 	mc.undoInfo( state = True)
 
 	
-def doVoro(crack,rgb):
+def doVoro(crack, rgb):
 	#rgb = 1.0 , 1.0, 0.0
 	#crack = 0.05
-	sel = mc.ls( selection=True )
-	points = locToPointMVector(sel[1])
-	cubeVoro(sel[0], points, crack, rgb)
+	mesh_points = doConstParToLoc()
+	#print (mesh_points)
+	#sel = mc.ls( selection=True )
+	points = locToPointMVector(mesh_points[1])
+	cubeVoro(mesh_points[0], points, crack, rgb)
 	
 def doParToLoc():
 	sel = mc.ls( selection=True )
@@ -405,4 +414,5 @@ def doParToLoc():
 
 def doConstParToLoc():
 	sel = mc.ls( selection=True )
-	parToLocMesh(sel[0], sel[1] )
+	return parToLocMesh(sel[0], sel[1] )
+	
