@@ -88,8 +88,8 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveMesh.xpm"
 		-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
-	shelfButton -i "dynamicaCreateHACD.xpm"
-		-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
+//	shelfButton -i "dynamicaCreateHACD.xpm"
+	//	-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
 		
 	shelfButton -i "dynamicaCreatePassiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid body" -p $dynamicaShelf;
@@ -250,8 +250,8 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreateActiveMesh.xpm"
 					-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies from selection";
 				
-				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
-					-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
+//				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
+	//				-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
 			setParent ..;
 		setParent ..;
 
@@ -606,15 +606,12 @@ global proc string dynamicaUI_createHelpTab()
 		// setParent ..;
 			
 		dynamicaUI_createFrame("Credits", "", 0, 0);
-			text -al "left" -l "Tools, Features, & Maintenance: Michael Baker";
-			text -al "left" -l "UI Design: Michael Baker & Erwin Coumans";
-			text -al "left" -l "Bullet Physics Framework: Erwin Coumans";
-			text -al "left" -l "Original Baking Scripts: RBD";
-			text -al "left" -l "Voronoi Shatter Script: Dave Greenwood";
 			text -al "left" -l "Original Plugin: Walt Disney Studios";
 			text -al "left" -l "Original Author: Nicola Candussi";
-			text -al "left" -l "Modified By: Roman Ponomarev";
-			
+			text -al "left" -l "Modified By: Roman Ponomarev, Erwin Coumans";
+			text -al "left" -l "Tools, Features, UI & Maintenance: Michael Baker";
+			text -al "left" -l "Original Baking Scripts: RBD";
+			text -al "left" -l "Voronoi Shatter Script: Dave Greenwood";			
 			setParent ..;
 		setParent ..;
 		
