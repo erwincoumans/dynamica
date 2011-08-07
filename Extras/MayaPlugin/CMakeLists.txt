@@ -118,8 +118,23 @@ IF (WIN32 AND NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/${PLUG_NSI_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${PLUG_NSI_FILE}
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/BulletDynamica.6_module ${CMAKE_CURRENT_BINARY_DIR}
+
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdCollisionShapeTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdCollisionShapeTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdHingeConstraintTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdHingeConstraintTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdNailConstraintTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdNailConstraintTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdRigidBodyArrayTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdRigidBodyArrayTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdRigidBodyTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdRigidBodyTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdSixdofConstraintTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdSixdofConstraintTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdSliderConstraintTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdSliderConstraintTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/AEdSolverTemplate.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/AEdSolverTemplate.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/dynamica.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/dynamica.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/dynamicaUI.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/dynamicaUI.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/dynamicaUITools.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/dynamicaUITools.mel
+		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts/mbUtils.mel ${CMAKE_CURRENT_BINARY_DIR}/scripts/mbUtils.mel
+		
 	)
-	file(COPY ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+
+#	file(COPY ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scripts DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 	file(COPY ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/icons DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 	file(COPY ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/scenes DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 	file(COPY ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/doc DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )

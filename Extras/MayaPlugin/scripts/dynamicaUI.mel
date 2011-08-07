@@ -40,7 +40,7 @@ global proc dynamicaUI_initialize() //this proc is called from the plugin
 	string $dynamicaMainMenu = `menu -l "Dynamica" -to 1 -p $gMainWindow`;
 	menuItem -l "Dynamica Window" -ann "Open the main Dynamica window" -c "dynamicaUI_createWindow()" -fi "dynamicaWindow.xpm" $dynamicaMainMenu;
 	menuItem -d 1 $dynamicaMainMenu;
-	menuItem -l "Help" -ann "View the wiki online" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" $dynamicaMainMenu;
+	menuItem -l "Help" -ann "View the wiki online" -c "system(\"load http://code.google.com/p/dynamica/wiki/DynamicaIntroduction\")" $dynamicaMainMenu;
 
 	//initial settings
 	$dynamicaUI_startFrame = `playbackOptions -q -min`; //init start frame
@@ -74,8 +74,6 @@ global proc dynamicaUI_createShelf()
 	
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 	
-	shelfButton -i "dynamicaVoronoiShatter.xpm" 
-		-c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveBox.xpm" 
@@ -147,7 +145,7 @@ global proc dynamicaUI_createShelf()
 	// shelfButton -i "dynamicaBakeAll.xpm" 
 		// -c "$dynamicaUI_captureAll = 1; dynamicaUI_bakeRigidBodies()" -ann "Bake All Rigid Bodies" -p $dynamicaShelf;
 	
-	shelfButton -i "dynamicaHelp.xpm" -c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" 
+	shelfButton -i "dynamicaHelp.xpm" -c "system(\"load http://code.google.com/p/dynamica/wiki/DynamicaIntroduction\")" 
 		-ann "View Online Documentation" -p $dynamicaShelf;
 	// shelfButton -i "dynamicaTools.xpm" -c "dynamicaUI_tools()" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 }
@@ -218,17 +216,6 @@ global proc string dynamicaUI_createMainTab()
 	
 	string $mainForm = `columnLayout -adj 1`;
 	
-		// dynamicaUI_createFrame("Pre-fracture Mesh", "", 0, 0);
-			// rowLayout -nc 2;
-				// columnLayout -w 100;
-					// iconTextButton -st "iconAndTextVertical" -l "Voronoi Shatter" -w 85 -i "dynamicaVoronoiShatter.xpm"
-						// -c "dynamicaUI_voronoiShatter($dynamicaUI_crackWidth)" -ann "Shatter a mesh into voronoi fragments";
-				// setParent ..;
-				// columnLayout -w 350;
-					// text -align "left" -l "First select a mesh, then select particles. \nIf any particles intersect the mesh, voronoi fragments will be created.";
-				// setParent ..;
-			// setParent ..;
-		// setParent ..;
 		
 		dynamicaUI_createFrame("Active Rigid Bodies", "Active rigid bodies are controlled by the simulation solver and react to gravity, collisions, and fields.", 0, 0);
 			rowLayout -nc 6;
@@ -525,10 +512,6 @@ global proc string dynamicaUI_createOptionsTab()
 		dynamicaUI_createFrame("Tool Options", "", 1, 0);
 			columnLayout;
 				rowLayout -nc 2;
-					columnLayout -w 220;
-						text -al "left" -fn "boldLabelFont" -l "Shatter Crack Width";
-						floatField -pre 3 -w 50 -min 0 -v $dynamicaUI_crackWidth -cc "$dynamicaUI_crackWidth = `floatField -q -v voroCrack`" voroCrack;
-					setParent ..;
 					columnLayout;
 						text -al "left" -fn "boldLabelFont" -l "Colision Margin (creation only)";
 						$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
@@ -577,7 +560,7 @@ global proc string dynamicaUI_createHelpTab()
 		dynamicaUI_createFrame("Documentation & Resources", "View the online wiki documentation or bulletphysics.org", 0, 0);
 			rowLayout -nc 2;
 				iconTextButton -st "iconAndTextVertical" -l "Online Help" -w 75 -i "dynamicaHelp.xpm" 
-					-c "system(\"load http://bulletphysics.org/mediawiki-1.5.8/index.php/Maya_Dynamica_Plugin\")" -ann "View Online Documentation";
+					-c "system(\"load http://code.google.com/p/dynamica/wiki/DynamicaIntroduction\")" -ann "View Online Documentation";
 				iconTextButton -st "iconAndTextVertical" -l "bulletphysics.org" -w 90 -i "dynamicaBulletWebsite.xpm" 
 					-c "system(\"load http://bulletphysics.org\")" -ann "Visit bulletphysics.org";
 			setParent ..;
@@ -611,7 +594,6 @@ global proc string dynamicaUI_createHelpTab()
 			text -al "left" -l "Modified By: Roman Ponomarev, Erwin Coumans";
 			text -al "left" -l "Tools, Features, UI & Maintenance: Michael Baker";
 			text -al "left" -l "Original Baking Scripts: RBD";
-			text -al "left" -l "Voronoi Shatter Script: Dave Greenwood";			
 			setParent ..;
 		setParent ..;
 		
@@ -667,26 +649,6 @@ global proc dynamicaUI_print(string $out, int $mode)
 	refresh;
 }
 
-//procs
-global proc dynamicaUI_voronoiShatter(float $crackWidth)
-{
-	string $script = `whatIs "dg_voro_py_UI.mel"`;
-	if ($script != "Unknown") 
-	{
-		source "dg_voro_py_UI";
-		dg_voro_py_UI();
-	}
-	else
-	{
-		error("dg_Voro_Py script must be installed to use this feature. Download here: http://www.creativecrash.com/maya/downloads/scripts-plugins/modeling/poly-tools/c/dg_voro_py--2");
-	}
-	
-	// for direct integration into the dynamicaUI; 
-	// python("import dg_voroPy as v");
-	// python("reload(v)");
-	// print $crackWidth;
-	// python( "v.doVoro(" + $crackWidth +", (" + 0.3 + "," + 0.6 + "," + 0.7 + "))");
-}
 
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 {
