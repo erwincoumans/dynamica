@@ -75,39 +75,39 @@ global proc dynamicaUI_createShelf()
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
 	
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
+		-c "dynamicaUI_createActiveSphere" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveBox.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create an active box rigid body" -p $dynamicaShelf;
+		-c "dynamicaUI_createActiveBox" -ann "Create an active box rigid body" -p $dynamicaShelf;
 	// shelfButton -i "dynamicaCreateActiveCylinder.xpm" 
 		// -c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active cylinder rigid body" -p $dynamicaShelf;
 	// shelfButton -i "dynamicaCreateActiveCapsule.xpm" 
 		// -c "dynamicaUI_createRigidBody(true, 4)" -ann "Create an active capsule rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveHull.xpm" 
-		-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
+		-c "dynamicaUI_createActiveHull" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveMesh.xpm"
-		-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
+		-c "dynamicaUI_createActiveMesh" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
 //	shelfButton -i "dynamicaCreateHACD.xpm"
 	//	-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
 		
 	shelfButton -i "dynamicaCreatePassiveSphere.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create passive sphere rigid body" -p $dynamicaShelf;
+		-c "dynamicaUI_createPassiveSphere" -ann "Create passive sphere rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassiveBox.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create passive box rigid body" -p $dynamicaShelf;
+		-c "dynamicaUI_createPassiveBox" -ann "Create passive box rigid body" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassiveHull.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies" -p $dynamicaShelf;
+		-c "dynamicaUI_createPassiveHull" -ann "Create passive hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassiveMesh.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies" -p $dynamicaShelf;
+		-c "dynamicaUI_createPassiveMesh" -ann "Create passive mesh rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreatePassivePlane.xpm" 
-		-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create passive plane rigid body" -p $dynamicaShelf;
+		-c "dynamicaUI_createPassivePlane" -ann "Create passive plane rigid body" -p $dynamicaShelf;
 
 	shelfButton -i "dynamicaCreateNailConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(0)" -ann "Create a breakable nail constraint" -p $dynamicaShelf;
+		-c "dynamicaUI_createNail" -ann "Create a breakable nail constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateHingeConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(1)" -ann "Create a breakable hinge constraint" -p $dynamicaShelf;
+		-c "dynamicaUI_createHinge" -ann "Create a breakable hinge constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateSliderConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(2)" -ann "Create a breakable slider constraint" -p $dynamicaShelf;
+		-c "dynamicaUI_createSlider" -ann "Create a breakable slider constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreate6dofConstraint.xpm" 
-		-c "dynamicaUI_createConstraint(3)" -ann "Create a breakable 6dof constraint" -p $dynamicaShelf;
+		-c "dynamicaUI_create6Dof" -ann "Create a breakable 6dof constraint" -p $dynamicaShelf;
 	// shelfButton -i "dynamicaCreateConetwistConstraint.xpm" 
 		// -c "dynamicaUI_createConstraint(3)" -ann "Create a breakable cone twist constraint" -p $dynamicaShelf;
 		
@@ -220,10 +220,10 @@ global proc string dynamicaUI_createMainTab()
 		dynamicaUI_createFrame("Active Rigid Bodies", "Active rigid bodies are controlled by the simulation solver and react to gravity, collisions, and fields.", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreateActiveSphere.xpm" 
-					-c "dynamicaUI_createRigidBody(true, 5)" -ann "Create an active sphere rigid body";
+					-c "dynamicaUI_createActiveSphere" -ann "Create an active sphere rigid body";
 
 				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i "dynamicaCreateActiveBox.xpm" 
-					-c "dynamicaUI_createRigidBody(true, 4)" -ann "Create an active box rigid body";
+					-c "dynamicaUI_createActiveBox" -ann "Create an active box rigid body";
 
 				// iconTextButton -st "iconAndTextVertical" -l "Cylinder" -w 75 -i "dynamicaCreateActiveCylinder.xpm"
 					// -c "dynamicaUI_createRigidBody(true, 1)" -ann "Create an active cylinder rigid body";
@@ -232,10 +232,10 @@ global proc string dynamicaUI_createMainTab()
 					// -c "dynamicaUI_createRigidBody(true, 1)" -ann "Create an active capsule rigid body";
 					
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i "dynamicaCreateActiveHull.xpm" 
-					-c "dynamicaUI_createRigidBody(true, 0)" -ann "Create active hull rigid bodies from selection";
+					-c "dynamicaUI_createActiveHull" -ann "Create active hull rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreateActiveMesh.xpm"
-					-c "dynamicaUI_createRigidBody(true, 1)" -ann "Create active mesh rigid bodies from selection";
+					-c "dynamicaUI_createAtiveMesh" -ann "Create active mesh rigid bodies from selection";
 				
 //				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
 	//				-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
@@ -245,22 +245,22 @@ global proc string dynamicaUI_createMainTab()
 		dynamicaUI_createFrame("Passive Rigid Bodies", "Passive rigid bodies do not react to gravity or fields, but are included in collisions.\nIf passive rigid bodies are keyed and moving, they are considered kinematic - active bodies will collide and react accordingly.", 0, 0);
 			rowLayout -nc 6;
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreatePassiveSphere.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 5)" -ann "Create a passive sphere rigid body";
+					-c "dynamicaUI_createPassiveSphere" -ann "Create a passive sphere rigid body";
 
 				iconTextButton -st "iconAndTextVertical" -l "Box" -w 75 -i "dynamicaCreatePassiveBox.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 4)" -ann "Create a passive box rigid body";
+					-c "dynamicaUI_createPassiveBox" -ann "Create a passive box rigid body";
 
 				iconTextButton -st "iconAndTextVertical" -l "Hull" -w 75 -i "dynamicaCreatePassiveHull.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 0)" -ann "Create passive hull rigid bodies from selection";
+					-c "dynamicaUI_createPassiveHull" -ann "Create passive hull rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreatePassiveMesh.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive mesh rigid bodies from selection";
+					-c "dynamicaUI_createPassiveMesh" -ann "Create passive mesh rigid bodies from selection";
 
 				// iconTextButton -st "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMesh.xpm" 
 					// -c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive Bvh mesh rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlane.xpm" 
-					-c "dynamicaUI_createRigidBody(false, 6)" -ann "Create a passive plane rigid body";
+					-c "dynamicaUI_createPassivePlane" -ann "Create a passive plane rigid body";
 			setParent ..;
 		setParent ..;
 
@@ -305,16 +305,16 @@ global proc string dynamicaUI_createMainTab()
 		dynamicaUI_createFrame("Constraints", "Constraints inhibit the natural (unconstrained) behavior of an active rigid body.\nConstraints require at least one rigid body to be selected. Rigid bodies can be influenced by multiple constraints.", 0, 0);
 			rowLayout -nc 5;
 				iconTextButton -st "iconAndTextVertical" -l "Nail" -w 75 -i "dynamicaCreateNailConstraint.xpm" 
-					-c "dynamicaUI_createConstraint(0)" -ann "Create a breakable nail constraint";
+					-c "dynamicaUI_createNail" -ann "Create a breakable nail constraint";
 				
 				iconTextButton -st "iconAndTextVertical" -l "Hinge" -w 75 -i "dynamicaCreateHingeConstraint.xpm" 
-					-c "dynamicaUI_createConstraint(1)" -ann "Create a breakable hinge constraint";
+					-c "dynamicaUI_createHinge" -ann "Create a breakable hinge constraint";
 				
 				iconTextButton -st "iconAndTextVertical" -l "Slider" -w 75  -i "dynamicaCreateSliderConstraint.xpm" 
-					-c "dynamicaUI_createConstraint(2)" -ann "Create a breakable slider constraint";
+					-c "dynamicaUI_createSlider" -ann "Create a breakable slider constraint";
 				
 				iconTextButton -st "iconAndTextVertical" -l "6Dof" -w 75 -i "dynamicaCreate6dofConstraint.xpm" 
-					-c "dynamicaUI_createConstraint(3)" -ann "Create a breakable 6dof constraint";
+					-c "dynamicaUI_create6Dof" -ann "Create a breakable 6dof constraint";
 	
 				// iconTextButton -st "iconAndTextVertical" -l "ConeTwist" -w 75 -i "dynamicaCreateConeTwistConstraint.xpm" 
 					// -c "dynamicaUI_createConeTwistConstraint" -ann "Create a cone twist constraint";
@@ -649,12 +649,42 @@ global proc dynamicaUI_print(string $out, int $mode)
 	refresh;
 }
 
+//repeatable argless commands
+global proc dynamicaUI_createActiveSphere() { dynamicaUI_createRigidBody(true, 5); }
+
+global proc dynamicaUI_createActiveBox() { dynamicaUI_createRigidBody(true, 4); } 
+
+global proc dynamicaUI_createActiveHull() { dynamicaUI_createRigidBody(true, 0); }
+
+global proc dynamicaUI_createActiveMesh() { dynamicaUI_createRigidBody(true, 1); }
+
+global proc dynamicaUI_createPassiveSphere() { dynamicaUI_createRigidBody(false, 5); }
+
+global proc dynamicaUI_createPassiveBox() { dynamicaUI_createRigidBody(false, 4); }
+
+global proc dynamicaUI_createPassiveHull() { dynamicaUI_createRigidBody(false, 0); }
+
+global proc dynamicaUI_createPassiveMesh()  { dynamicaUI_createRigidBody(false, 1); }
+
+global proc dynamicaUI_createPassivePlane()  { dynamicaUI_createRigidBody(false, 6); }
+
+global proc dynamicaUI_createNail() { dynamicaUI_createConstraint(0); }
+
+global proc dynamicaUI_createHinge() { dynamicaUI_createConstraint(1); }
+
+global proc dynamicaUI_createSlider() { dynamicaUI_createConstraint(2); }
+
+global proc dynamicaUI_create6Dof() { dynamicaUI_createConstraint(3); }
+//end commands
 
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
-{
-	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
+{	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
+	
+	dSolver; //create dSolver node if necessary
+	
 	global float $dynamicaUI_startFrame;
 	global float $dynamicaUI_collisionMargin;
+	$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`;
 	float $mass = 1; 
 	string $meshLayer = "DynamicaInputMeshes";
 	string $rbLayer = "DynamicaRigidBodies";
@@ -672,7 +702,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	$selection = `ls -selection -dag -leaf -showType -type "geometry"`;
 	
 	if ($activebody == false) $mass = 0;
-	dSolver; //create dSolver node if necessary
+	
 	
 	//pick the selected object's transform only if we are creating a hull or a mesh
 	if ($collisionShapeType == 0 || $collisionShapeType == 1) 
