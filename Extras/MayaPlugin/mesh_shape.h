@@ -45,4 +45,17 @@ protected:
 
 };
 
+class hacd_shape_t: public collision_shape_t
+{
+public:
+    //typedefs
+    typedef shared_ptr<hacd_shape_t> pointer;
+
+protected:
+    friend class solver_t;
+
+    hacd_shape_t(collision_shape_impl_t* impl): collision_shape_t(impl) { }
+
+};
+
 #endif

@@ -58,6 +58,10 @@ public:
                                                              vec3f const* normals,
                                                              unsigned int const *indices, size_t num_indices) = 0; 
 
+	virtual collision_shape_impl_t* create_hacd_shape(vec3f const* vertices, size_t num_vertices,
+                                                             vec3f const* normals,
+                                                             unsigned int const *indices, size_t num_indices) = 0; 
+
     virtual rigid_body_impl_t* create_rigid_body(collision_shape_impl_t* cs) = 0;
 
     virtual nail_constraint_impl_t* create_nail_constraint(rigid_body_impl_t* rb, vec3f const& pivot) = 0;

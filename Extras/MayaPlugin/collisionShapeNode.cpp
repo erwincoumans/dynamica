@@ -59,7 +59,7 @@ MStatus collisionShapeNode::initialize()
     MFnNumericAttribute fnNumericAttr;
     MFnEnumAttribute fnEnumAttr;
 
-    ia_type = fnEnumAttr.create("type", "tp", 5, &status);
+    ia_type = fnEnumAttr.create("type", "tp", 7, &status);
     MCHECKSTATUS(status, "creating type attribute")
     fnEnumAttr.addField("Convex Hull", 0);
     fnEnumAttr.addField("Mesh", 1);
@@ -68,7 +68,8 @@ MStatus collisionShapeNode::initialize()
     fnEnumAttr.addField("Box", 4);
     fnEnumAttr.addField("Sphere", 5);
     fnEnumAttr.addField("Plane", 6);
-	fnEnumAttr.addField("BvhMesh", 6);
+	fnEnumAttr.addField("BvhMesh", 7);
+	fnEnumAttr.addField("HACD", 8);
     fnEnumAttr.setKeyable(true);
     status = addAttribute(ia_type);
     MCHECKSTATUS(status, "adding type attribute")
@@ -367,9 +368,51 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
 			}
         }
         break;
+		case 8:
+        //btBvhTriangleMeshShape
+        {
+		
+        MPlugArray plgaConnectedTo;
+        plgInShape.connectedTo(plgaConnectedTo, true, true);
+        if(plgaConnectedTo.length() > 0) {
+            MObject node = plgaConnectedTo[0].node();
+            if(node.hasFn(MFn::kMesh)) {
+                MDagPath dagPath;
+                MDagPath::getAPathTo(node, dagPath);
+                MFnMesh fnMesh(dagPath);
+                MFloatPointArray mpoints;
+                MFloatVectorArray mnormals;
+                MIntArray mtrianglecounts;
+                MIntArray mtrianglevertices;
+                fnMesh.getPoints(mpoints, MSpace::kObject);
+                fnMesh.getNormals(mnormals, MSpace::kObject);
+                fnMesh.getTriangles(mtrianglecounts, mtrianglevertices);
+
+                std::vector<vec3f> vertices(mpoints.length());
+                std::vector<vec3f> normals(mpoints.length());
+                std::vector<unsigned int> indices(mtrianglevertices.length());
+
+                for(size_t i = 0; i < vertices.size(); ++i) {
+                    vertices[i] = vec3f(mpoints[i].x, mpoints[i].y, mpoints[i].z);
+                    normals[i] = vec3f(mnormals[i].x, mnormals[i].y, mnormals[i].z);
+                }
+                for(size_t i = 0; i < indices.size(); ++i) {
+                    indices[i] = mtrianglevertices[i];
+                }
+				bool dynamicMesh = false;
+                m_collision_shape = solver_t::create_hacd_shape(&(vertices[0]), vertices.size(), &(normals[0]),
+                                                                &(indices[0]), indices.size(),dynamicMesh);
+				}
+			}
+        }
+        break;
+	default:
+		{
+			m_collision_shape = 0;
+		}
     }
 
-    assert(m_collision_shape);
+    //btAssert(m_collision_shape);
 
     data.setClean(plug);
 }

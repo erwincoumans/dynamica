@@ -42,6 +42,8 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "bt_box_shape.h"
 #include "bt_convex_hull_shape.h"
 #include "bt_mesh_shape.h"
+#include "bt_hacd_shape.h"
+
 #include "constraint/bt_nail_constraint.h"
 #include "constraint/bt_hinge_constraint.h"
 #include "constraint/bt_slider_constraint.h"
@@ -80,6 +82,17 @@ public:
 		bool dynamicMesh = true;
         return new bt_mesh_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
     }
+
+	
+
+	virtual collision_shape_impl_t* create_hacd_shape(vec3f const* vertices, size_t num_vertices,
+                                                      vec3f const* normals,
+                                                      unsigned int const *indices, size_t num_indices)
+    {
+		bool dynamicMesh = true;
+        return new bt_hacd_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
+    }
+
 
 	virtual collision_shape_impl_t* create_static_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                       vec3f const* normals,
