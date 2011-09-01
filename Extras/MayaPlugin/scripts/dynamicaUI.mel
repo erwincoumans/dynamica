@@ -235,7 +235,7 @@ global proc string dynamicaUI_createMainTab()
 					-c "dynamicaUI_createActiveHull" -ann "Create active hull rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreateActiveMesh.xpm"
-					-c "dynamicaUI_createAtiveMesh" -ann "Create active mesh rigid bodies from selection";
+					-c "dynamicaUI_createActiveMesh" -ann "Create active mesh rigid bodies from selection";
 				
 //				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
 	//				-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
