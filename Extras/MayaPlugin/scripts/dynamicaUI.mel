@@ -589,11 +589,12 @@ global proc string dynamicaUI_createHelpTab()
 		// setParent ..;
 			
 		dynamicaUI_createFrame("Credits", "", 0, 0);
-			text -al "left" -l "Original Plugin: Walt Disney Studios";
-			text -al "left" -l "Original Author: Nicola Candussi";
-			text -al "left" -l "Modified By: Roman Ponomarev, Erwin Coumans";
-			text -al "left" -l "Tools, Features, UI & Maintenance: Michael Baker";
-			text -al "left" -l "Original Baking Scripts: RBD";
+			columnLayout;
+				text -al "left" -l "Original Plugin: Walt Disney Studios";
+				text -al "left" -l "Original Author: Nicola Candussi";
+				text -al "left" -l "Modified By: Roman Ponomarev, Erwin Coumans";
+				text -al "left" -l "Tools, Features, UI & Maintenance: Michael Baker";
+				text -al "left" -l "Original Baking Scripts: RBD";
 			setParent ..;
 		setParent ..;
 		

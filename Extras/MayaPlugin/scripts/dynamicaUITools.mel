@@ -32,7 +32,7 @@ global proc dynamicaUI_addTools()
 
 	if ( `window -ex $dynamicaUI_window` )
 	{
-		string $tabs[] = `tabLayout -q -tl -fpn $dynamicaUI_tabs`;
+		string $tabs[] = `tabLayout -q -tl $dynamicaUI_tabs`;
 		int $toolsTabExists = 0;
 		
 		//check if Tools tab exists, delete if yes, create if no
