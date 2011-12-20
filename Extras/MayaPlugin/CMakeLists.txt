@@ -26,6 +26,7 @@ FIND_PATH(MAYA_BASE_DIR include/maya/MFn.h PATH
 			"C:/Program Files/Autodesk/Maya2009" 
 			"C:/Program Files/Autodesk/Maya2008"
 			"C:/Program Files/Autodesk/Maya8.5"
+			"C:/Public/Programs/AutoD/Maya2011"
 
 			)
 
@@ -54,7 +55,8 @@ IF (MAYA_BASE_DIR)
 		bt_plane_shape.h        dRigidBodyArrayCmd.h      plane_shape_impl.h
 		bt_rigid_body.h         dRigidBodyCmd.h           rigidBodyArrayNode.h
 		bt_solver.h             dSolverCmd.h              rigid_body.h 		pdbIO.h
-		shared_ptr.h		drawUtils.h convex_decomposition_hacd.h
+		shared_ptr.h		drawUtils.h convex_decomposition_hacd.h	bt_soft_body.h
+		dSoftBodyCmd.h	soft_body_impl_t.h	soft_body_t.h	softBodyNode.h
 	)
 
 	SET(TARGET_SRC 
@@ -64,6 +66,7 @@ IF (MAYA_BASE_DIR)
 		  pdbIO.cpp drawUtils.cpp  constraint/dHingeConstraintCmd.cpp	constraint/dSliderConstraintCmd.cpp
 		constraint/hingeConstraintNode.cpp	constraint/sixdofConstraintNode.cpp constraint/dNailConstraintCmd.cpp
 		constraint/dsixdofConstraintCmd.cpp	constraint/nailConstraintNode.cpp	constraint/sliderConstraintNode.cpp
+		bt_soft_body.cpp	dSoftBodyCmd.cpp	soft_body_t.cpp	softBodyNode.cpp
 	)	
 
 	INCLUDE_DIRECTORIES(${MAYA_INC_DIR} ${BULLET_PHYSICS_SOURCE_DIR}/src ${BULLET_PHYSICS_SOURCE_DIR}/Extras/HACD ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin )
@@ -76,10 +79,10 @@ IF (MAYA_BASE_DIR)
 
 	IF (BUILD_COLLADA)
 		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} colladaExport.h ${TARGET_SRC} colladaExport.cpp )
-		TARGET_LINK_LIBRARIES( BulletMayaPlugin BulletColladaConverter BulletDynamics BulletCollision LinearMath ColladaDom XML HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+		TARGET_LINK_LIBRARIES( BulletMayaPlugin BulletColladaConverter BulletDynamics BulletCollision LinearMath ColladaDom BulletSoftBody XML HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 	ELSE()
 		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} ${TARGET_SRC})
-		TARGET_LINK_LIBRARIES(BulletMayaPlugin BulletDynamics BulletCollision LinearMath HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}) 
+		TARGET_LINK_LIBRARIES(BulletMayaPlugin BulletDynamics BulletCollision BulletSoftBody LinearMath HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}) 
 	ENDIF()
 
 	IF (WIN32)

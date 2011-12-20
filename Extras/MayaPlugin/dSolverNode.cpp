@@ -21,6 +21,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
 //dSolverNode.cpp
@@ -37,6 +40,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include <maya/MEulerRotation.h>
 #include <maya/MQuaternion.h>
 #include <maya/MFnTransform.h>
+#include <maya/MFnMesh.h>
 #include <maya/MVector.h>
 #include <maya/MGlobal.h>
 #include <maya/MFnField.h>
@@ -47,9 +51,12 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include <maya/MDGMessage.h>
 #include <maya/MDagPath.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MFloatPointArray.h>
+
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <iterator>
 
 #include "mayaUtils.h"
@@ -64,9 +71,8 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "LinearMath/btGeometryUtil.h"
 #include "pdbIO.h"
 #include "collisionShapeNode.h"
-
-
-
+#include "SoftBodyNode.h"
+#include "soft_body_t.h"
 
 
 MTypeId dSolverNode::typeId(0x100331);
@@ -82,6 +88,7 @@ MObject dSolverNode::ia_fixedPhysicsRate;
 MObject dSolverNode::ia_splitImpulse;
 MObject dSolverNode::ia_substeps;
 MObject dSolverNode::oa_rigidBodies;
+MObject dSolverNode::oa_softBodies;
 MObject dSolverNode::ssSolverType;
 bool	dSolverNode::isStartTime;
 
@@ -278,6 +285,18 @@ void dSolverNode::updateAllRigidBodies()
 				rbNode->update();
 			}
 		}
+
+		if(fnNode.typeId() == SoftBodyNode::typeId)
+		{
+			MPlug plgMeshShape(mObj, SoftBodyNode::inputMesh);
+			MObject update;
+			plgMeshShape.getValue(update);
+			if(plgMeshShape.isConnected())
+			{
+				SoftBodyNode *sbNode = static_cast<SoftBodyNode*>(dagNode.userNode());
+				sbNode->update();
+			}
+		}
         if(fnNode.typeId() == nailConstraintNode::typeId) 
 		{
 			MPlug plgRbA(mObj, nailConstraintNode::ia_rigidBodyA);
@@ -346,6 +365,7 @@ void dSolverNode::updateAllRigidBodies()
 }
 
 
+
 MStatus dSolverNode::initialize()
 { 
     MStatus                 status;
@@ -383,6 +403,11 @@ MStatus dSolverNode::initialize()
     MCHECKSTATUS(status, "creating oa_rigidBodies attribute")
     status = addAttribute(oa_rigidBodies);
     MCHECKSTATUS(status, "adding oa_rigidBodies attribute")
+
+	oa_softBodies = fnMsgAttr.create("softBodies", "sbds", &status);
+    MCHECKSTATUS(status, "creating oa_softBodies attribute")
+    status = addAttribute(oa_softBodies);
+    MCHECKSTATUS(status, "adding oa_softBodies attribute")
 
     ia_gravity = fnNumericAttr.createPoint("gravity", "grvt", &status);
     MCHECKSTATUS(status, "creating gravity attribute")
@@ -490,8 +515,11 @@ MStatus dSolverNode::initialize()
 
     status = attributeAffects(ia_time, oa_rigidBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_rigidBodies)")
-    status = attributeAffects(ia_enabled, oa_rigidBodies);
-    MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
+	
+	status = attributeAffects(ia_time, oa_softBodies);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_softBodies)")
+    //status = attributeAffects(ia_enabled, oa_rigidBodies);
+    //MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
 
     return MS::kSuccess;
 }
@@ -523,7 +551,10 @@ bool dSolverNode::setInternalValueInContext( const  MPlug & plug, const  MDataHa
 
 MStatus dSolverNode::compute(const MPlug& plug, MDataBlock& data)
 {
-    if(plug == oa_rigidBodies) {
+//    std::cout << "Calling dSolverNode::compute \n";
+//	std::cout << "Plug: " << plug.name().asChar() << std::endl;
+
+	if(plug == oa_rigidBodies) {
          computeRigidBodies(plug, data);
     } else {
         return MStatus::kUnknownParameter;
@@ -600,6 +631,86 @@ void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
         rb->set_interpolation_transform(vec3f((float)mpos.x, (float)mpos.y, (float)mpos.z), quatf((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z));
         rb->set_kinematic(true);
     }
+}
+
+
+void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& data)
+{
+	// std::cout << "(dSolverNode::initSoftBody) | " << "plug: " << plug.name().asChar() << std::endl;
+	
+	MFnDagNode fnDagNode(node);
+
+    SoftBodyNode *sbNode = static_cast<SoftBodyNode*>(fnDagNode.userNode());
+	MObject thisObject(thisMObject());
+	/*
+	MObject temp;
+	
+	MPlug plgSoft(node, SoftBodyNode::ca_softBody);
+	plgSoft.setValue(false);
+	plgSoft.getValue(temp);
+	*/
+	MPlug plgInputMesh(node, SoftBodyNode::inputMesh);
+    MObject upd;
+    //force evaluation of the shape
+    plgInputMesh.getValue(upd);
+	
+	assert(plgInputMesh.isConnected());
+	MPlugArray connections;
+	plgInputMesh.connectedTo(connections, true, false);
+	
+	// MFnDependencyNode fnNode(connections[0].node());
+	assert( connections.length() != 0);
+
+	// std::cout << "(SoftBodyNode::computeSoftBody) Dependency node fn name: | " << fnNode.name() << std::endl;
+	
+	MFnMesh meshFn(connections[0].node());
+	
+	soft_body_t::pointer sb = sbNode->soft_body();
+	if(sb)
+	{
+		solver_t::remove_soft_body(sb);
+	}
+	std::vector<int> triVertIndices;
+	std::vector<float> triVertCoords;
+	
+	SoftBodyNode::createHelperMesh(meshFn, triVertIndices, triVertCoords, MSpace::kTransform);
+	// this->m_soft_body = solver_t::create_soft_body(triVertCoords, triVertIndices);	
+	sb = solver_t::create_soft_body(triVertCoords, triVertIndices);	
+
+	solver_t::add_soft_body(sb, this->name().asChar());
+	sbNode->set_soft_body(sb);
+
+	// get transforms and apply
+	MFnTransform fnTransform(fnDagNode.parent(0));
+	MVector mtranslation = fnTransform.getTranslation(MSpace::kTransform);
+    MQuaternion mrotation;
+    fnTransform.getRotation(mrotation, MSpace::kObject);
+	
+	//sb->set_transform(vec3f((float)mtranslation.x, (float)mtranslation.y, (float)mtranslation.z),
+	//							quatf((float)mrotation.w, (float)mrotation.x, (float)mrotation.y, (float)mrotation.z));
+
+
+	MPlug plgOutputMesh(node, SoftBodyNode::outputMesh);
+	MObject update;
+		
+	//force evaluation of the shape
+	plgOutputMesh.getValue(update);
+	
+	assert(plgOutputMesh.isConnected());
+	
+	plgOutputMesh.connectedTo(connections, false, true);
+							
+	MFnMesh meshFnOut(connections[0].node());
+	MFloatPointArray newPoints;
+			
+	for(int j = 0;j < triVertCoords.size() / 3; j ++)
+	{
+		newPoints.append(triVertCoords[j*3], triVertCoords[j*3 + 1], triVertCoords[j*3 + 2], 1.0f);
+	}
+
+	MStatus setPtStat = meshFnOut.setPoints(newPoints, MSpace::kTransform);
+	assert(setPtStat == MStatus::kSuccess);
+
 }
 
 void initConstraint(MObject& bodyNode) 
@@ -789,6 +900,7 @@ void initRigidBodyArray(MObject &node)
 //init the rigid bodies to it's first frame configuration
 void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data)
 {
+	std::cout << "Initializing rigid bodies" << std::endl;
 	dSolverNode::collisionMarginOffset = data.inputValue(dSolverNode::ia_collisionMargin).asFloat(); //mb
 
     for(size_t i = 0; i < rbConnections.length(); ++i) {
@@ -801,7 +913,27 @@ void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, 
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
             initRigidBodyArray(node);
         }
+		else if(fnNode.typeId() == SoftBodyNode::typeId)
+		{
+			initSoftBody(plug, node, data);
+		}
     }
+}
+
+void dSolverNode::initSoftBodies(const MPlug& plug, MPlugArray &sbConnections, MDataBlock& data)
+{
+	// std::cout << " (dSolverNode::initSoftBodies)| Initializing soft bodies" << std::endl;
+	
+    for(size_t i = 0; i < sbConnections.length(); ++i) {
+        MObject node = sbConnections[i].node();
+        MFnDependencyNode fnNode(node);
+
+       if(fnNode.typeId() == SoftBodyNode::typeId)
+		{
+			initSoftBody(plug, node, data);
+		}
+    }
+
 }
 
 //gather previous and current frame transformations for substep interpolation
@@ -1013,14 +1145,63 @@ void dSolverNode::updateConstraint(MObject& bodyNode)
 	}
 }
 
+
+void dSolverNode::updateActiveSoftBodies(MPlugArray &sbConnections)
+{	
+	for(size_t i = 0; i < sbConnections.length(); i++) 
+	{    
+		MObject node = sbConnections[i].node();
+        MFnDagNode fnDagNode(node);	
+		if(fnDagNode.typeId() == SoftBodyNode::typeId)
+		{
+			SoftBodyNode *sbNode = static_cast<SoftBodyNode*>(fnDagNode.userNode());             
+			soft_body_t::pointer sb = sbNode->soft_body();
+
+			std::vector<int> triIndices;
+			std::vector<vec3f> triCoords;			
+			sb->get_mesh(triIndices, triCoords);
+			
+			MPlug plgOutputMesh(sbNode->thisMObject(), SoftBodyNode::outputMesh);
+			MObject update;
+		
+			//force evaluation of the shape
+			plgOutputMesh.getValue(update);
+	
+			// assert(plgOutputMesh.isConnected());
+			MPlugArray connections;
+			plgOutputMesh.connectedTo(connections, false, true);
+				
+			// assert( connections.length() != 0);
+	
+			MFnMesh meshFn(connections[0].node());
+			MFloatPointArray newPoints;
+
+//			std::cout << "(void dSolverNode::updateActiveSoftBodies) | mesh: ";
+			
+			for(int j = 0;j < triCoords.size(); j ++)
+			{ 
+				newPoints.append(triCoords[j][0], triCoords[j][1], triCoords[j][2], 1.0f);
+			}
+	
+			MStatus setPtStat = meshFn.setPoints(newPoints, MSpace::kTransform);
+			// assert(setPtStat == MStatus::kSuccess);
+		}		
+	}
+}
+
+
+
 //update the scene after a simulation step
+
 void dSolverNode::updateActiveRigidBodies(MPlugArray &rbConnections)
 {
    //update the active rigid bodies to the new configuration
     for(size_t i = 0; i < rbConnections.length(); ++i) {
-        MObject node = rbConnections[i].node();
+        
+		MObject node = rbConnections[i].node();
         MFnDagNode fnDagNode(node);
-        if(fnDagNode.typeId() == rigidBodyNode::typeId) {
+        // std::cout << "(dSolverNode::updateActiveRigidBodies) | current connection: " <<  fnDagNode.name().asChar() << std::endl;
+		if(fnDagNode.typeId() == rigidBodyNode::typeId) {
             rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
             rigid_body_t::pointer rb = rbNode->rigid_body();
 
@@ -1087,7 +1268,6 @@ void dSolverNode::updateActiveRigidBodies(MPlugArray &rbConnections)
         }
     }
 }
-
 //apply fields in the scene from the rigid body
 void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 {
@@ -1096,6 +1276,7 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
     MDoubleArray mass;
 
     std::vector<rigid_body_t*> rigid_bodies;
+	std::vector<soft_body_t::pointer> soft_bodies;
     //gather active rigid bodies
     for(size_t i = 0; i < rbConnections.length(); ++i) {
         MObject node = rbConnections[i].node();
@@ -1124,7 +1305,12 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
                     rigid_bodies.push_back(rbs[j].get());
                 }
             }
-        }
+		} else if(fnDagNode.typeId() == SoftBodyNode::typeId) {
+			// soft body node
+			SoftBodyNode *sbNode = static_cast<SoftBodyNode*>(fnDagNode.userNode());
+			soft_bodies.push_back(sbNode->soft_body());	
+
+		}
     }
 
     //clear forces and get the properties needed for field computation    
@@ -1139,23 +1325,53 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
         //TODO
         mass.append(1.0);
         //
-    }
+    }		   
+	
+	// arrays storing soft-body information for applying forces
+	MVectorArray softPosition;
+    MVectorArray softVelocity;
+    MDoubleArray softMass;
+	// now apply forces to soft bodies
+	for(size_t i = 0; i < soft_bodies.size(); i++)
+	{
+		
+		// get the central point of the soft body.  Note that
+		// at the moment, forces are applied uniformly to all nodes
+		// based on the value of the force at the centre, rather than
+		// node by node
 
-    //apply the fields to the rigid bodies
-    MVectorArray force;
+		vec3f pos = soft_bodies[i]->get_center();
+		softPosition.append(MVector(pos[0], pos[1], pos[2]));		
+
+		vec3f vel = soft_bodies[i]->get_average_velocity();
+		softVelocity.append(MVector(vel[0], vel[1], vel[2]));
+		softMass.append(soft_bodies[i]->get_total_mass());
+
+	}
+	
+	//apply the fields to the rigid and soft bodies
+
+	MVectorArray force;
+	MVectorArray softForce;
     for(MItDag it(MItDag::kDepthFirst, MFn::kField); !it.isDone(); it.next()) {
         MFnField fnField(it.item());
         fnField.getForceAtPoint(position, velocity, mass, force, dt);
         for(size_t i = 0; i < rigid_bodies.size(); ++i) {
             rigid_bodies[i]->apply_central_force(vec3f((float)force[i].x, (float)force[i].y, (float)force[i].z));
         }
+		fnField.getForceAtPoint(softPosition, softVelocity, softMass, softForce, dt);
+		for(size_t i = 0; i < soft_bodies.size(); ++i) {
+            soft_bodies[i]->apply_central_force(vec3f((float)softForce[i].x, (float)softForce[i].y, (float)softForce[i].z));
+        }
     }
 }
 
+/*
+	Note : This is the big update function which steps the solver
+*/
+
 void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 {
-	//std::cout << "dSolverNode::computeRigidBodies" << std::endl;
-
     bool enabled = data.inputValue(ia_enabled).asBool();
     if(!enabled) {
         data.outputValue(oa_rigidBodies).set(true);
@@ -1169,21 +1385,23 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 	int fixedPhysicsFrameHertz = data.inputValue(ia_fixedPhysicsRate).asInt();
     MObject thisObject = thisMObject();
     MPlug plgRigidBodies(thisObject, oa_rigidBodies); 
-    MPlugArray rbConnections;
+	MPlugArray rbConnections;
     plgRigidBodies.connectedTo(rbConnections, true, true);
+	
 
     MPlug plgSplitImpulse(thisObject, ia_splitImpulse);
     bool splitImpulseEnabled;
     plgSplitImpulse.getValue(splitImpulseEnabled);
 
     if(time == startTime) {
-        //first frame, init the simulation
-		//std::cout << "init sim" << std::endl;
+        //first frame, init the simulation		
 		isStartTime = true;
         initRigidBodies(plug, rbConnections, data);
+	
         solver_t::set_split_impulse(splitImpulseEnabled);
         m_prevTime = time;
     } else {
+		// std::cout  << time.value() << std::endl;
 		isStartTime = false;
         double delta_frames = (time - m_prevTime).value();
         bool playback = MConditionMessage::getConditionState("playingBack");
@@ -1224,6 +1442,7 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
             m_prevTime = time;
 
             updateActiveRigidBodies(rbConnections);
+			updateActiveSoftBodies(rbConnections);
         }
     } 
 
@@ -1357,4 +1576,3 @@ void dSolverNode::dumpRigidBodyArray(MObject &node)
     std::ofstream out(file_name.c_str());
     pdb_io.write(out);
 }
-

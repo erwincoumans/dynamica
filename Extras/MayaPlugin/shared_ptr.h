@@ -18,6 +18,9 @@ not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
  
 Written by: Nicola Candussi <nicola@fluidinteractive.com>
+
+Modified by Francisco Gochez
+Dec 2011 - Added deferencing operator
 */
 
 //shared_ptr.h
@@ -152,6 +155,11 @@ public:
     T* operator->() {   return m_ptr; }
     T const* operator->() const { return m_ptr; }
     operator bool() { return m_ptr != NULL; }
+	T& operator*() const
+	{ 
+		assert(m_ptr != 0);
+		return *m_ptr;
+	}
 
     bool operator<(shared_ptr<T> const& rhs) const { return m_ptr < rhs.m_ptr; }
 

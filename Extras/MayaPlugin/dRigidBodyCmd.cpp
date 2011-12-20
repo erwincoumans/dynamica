@@ -26,6 +26,8 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MSyntax.h>
 
+#include <iostream>
+
 #include "rigidBodyNode.h"
 #include "dRigidBodyCmd.h"
 
@@ -134,9 +136,9 @@ dRigidBodyCmd::redoIt()
     MObject solverObj;
     if(slist.length() != 0) {
         slist.getDependNode(0, solverObj);
-	MPlug plgRigidBodies = MFnDependencyNode(solverObj).findPlug("rigidBodies", false);
-	m_dagModifier->connect(plgRigidBodies, plgSolver);
-	m_dagModifier->doIt();
+		MPlug plgRigidBodies = MFnDependencyNode(solverObj).findPlug("rigidBodies", false);		
+		m_dagModifier->connect(plgRigidBodies, plgSolver);
+		m_dagModifier->doIt();
     }
 
   //  MGlobal::select(parentObj, MGlobal::kReplaceList);

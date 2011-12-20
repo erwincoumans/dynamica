@@ -22,6 +22,10 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added logic for soft bodies
+
 */
 
 //solver_impl.h
@@ -30,6 +34,9 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #define DYN_SOLVER_IMPL_H
 
 #include "rigid_body_impl.h"
+#include "soft_body_t.h"
+#include "soft_body_impl_t.h"
+#include <vector>
 #include "constraint/nail_constraint_impl.h"
 #include "collision_shape_impl.h"
 
@@ -63,6 +70,7 @@ public:
                                                              unsigned int const *indices, size_t num_indices) = 0; 
 
     virtual rigid_body_impl_t* create_rigid_body(collision_shape_impl_t* cs) = 0;
+	virtual soft_body_t::pointer create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices  ) = 0;
 
     virtual nail_constraint_impl_t* create_nail_constraint(rigid_body_impl_t* rb, vec3f const& pivot) = 0;
     virtual nail_constraint_impl_t* create_nail_constraint(rigid_body_impl_t* rbA, rigid_body_impl_t* rbB, vec3f const& pivotInA, vec3f const& pivotInB) = 0;
@@ -75,9 +83,11 @@ public:
 
     virtual void add_rigid_body(rigid_body_impl_t* rb, const char* name) = 0;
 
-    virtual void remove_rigid_body(rigid_body_impl_t* rb) = 0;
+    virtual void remove_rigid_body(rigid_body_impl_t* rb) = 0;	
+    virtual void add_soft_body(soft_body_impl_t *sb, const char* name) = 0;
+	virtual void remove_soft_body(soft_body_impl_t *sb) = 0;
 
-    virtual void add_constraint(constraint_impl_t* rb, bool disableCollide) = 0;
+	virtual void add_constraint(constraint_impl_t* rb, bool disableCollide) = 0;
 
     virtual void remove_constraint(constraint_impl_t* rb) = 0;
 

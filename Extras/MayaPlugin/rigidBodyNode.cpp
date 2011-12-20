@@ -182,7 +182,6 @@ MStatus rigidBodyNode::initialize()
     status = attributeAffects(ia_initialPosition, ca_rigidBodyParam);
     MCHECKSTATUS(status, "adding attributeAffects(ia_initialPosition, ca_rigidBodyParam)")
 
-
     status = attributeAffects(ia_solver, ca_solver);
     MCHECKSTATUS(status, "adding attributeAffects(ia_solver, ca_solver)")
 
@@ -275,7 +274,7 @@ MStatus rigidBodyNode::setDependentsDirty( const  MPlug & plug,  MPlugArray & pl
 
 MStatus rigidBodyNode::compute(const MPlug& plug, MDataBlock& data)
 {
-    //std::cout << "rigidBodyNode::compute: " << plug.name() << std::endl;
+    // std::cout << "rigidBodyNode::compute | plug " << plug.name() << std::endl;
     //MTime time = data.inputValue( rigidBodyNode::inTime ).asTime();
     if(plug == ca_rigidBody) {
         computeRigidBody(plug, data);
@@ -364,16 +363,19 @@ MBoundingBox rigidBodyNode::boundingBox() const
 }
 
 //standard attributes
+/*
+Rigid bodies are added to the solver here
+*/
 void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
 {
-    //std::cout << "rigidBodyNode::computeRigidBody" << std::endl;
 
     MObject thisObject(thisMObject());
     MPlug plgCollisionShape(thisObject, ia_collisionShape);
     MObject update;
     //force evaluation of the shape
     plgCollisionShape.getValue(update);
-
+	
+	// The following two variables are not actually used!
     vec3f prevCenter(0, 0, 0);
     quatf prevRotation(qidentity<float>());
     if(m_rigid_body) {
@@ -400,18 +402,21 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
     if(!collision_shape) {
         //not connected to a collision shape, put a default one
         collision_shape = solver_t::create_sphere_shape();
-    }
-    solver_t::remove_rigid_body(m_rigid_body);
+    }	
+	solver_t::remove_rigid_body(m_rigid_body);
     m_rigid_body = solver_t::create_rigid_body(collision_shape);
     solver_t::add_rigid_body(m_rigid_body,name().asChar());
 // once at creation/load time : get transform from Maya transform node
-    MFnDagNode fnDagNode(thisObject);
+    
+	MFnDagNode fnDagNode(thisObject);
     MFnTransform fnTransform(fnDagNode.parent(0));
     MVector mtranslation = fnTransform.getTranslation(MSpace::kTransform);
+
     MQuaternion mrotation;
     fnTransform.getRotation(mrotation, MSpace::kTransform);
 	double mscale[3];
     fnTransform.getScale(mscale);
+	
 	m_rigid_body->set_transform(vec3f((float)mtranslation.x, (float)mtranslation.y, (float)mtranslation.z),
 								quatf((float)mrotation.w, (float)mrotation.x, (float)mrotation.y, (float)mrotation.z));
     m_rigid_body->collision_shape()->set_scale(vec3f((float)mscale[0], (float)mscale[1], (float)mscale[2]));
@@ -494,7 +499,7 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 
 void rigidBodyNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& data)
 {
-   // std::cout << "rigidBodyNode::computeRigidBodyParam" << std::endl;
+	// std::cout << "(rigidBodyNode::computeRigidBodyParam) | " << std::endl;
 
     MObject thisObject(thisMObject());
     MObject update;

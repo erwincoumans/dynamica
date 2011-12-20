@@ -27,6 +27,7 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
+#include "collision_shape_impl.h"
 
 class bt_collision_shape_t  : public collision_shape_impl_t
 {

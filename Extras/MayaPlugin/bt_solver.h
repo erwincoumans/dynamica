@@ -22,6 +22,10 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added soft body logic, and changed solvers used to
+btSoftRigidBodyWorld.
 */
 
 //bt_solver.h
@@ -31,23 +35,31 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
+#include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 #include "LinearMath/btHashMap.h"
 
 #include "solver_impl.h"
 #include "bt_rigid_body.h"
+#include "soft_body_t.h"
 #include "bt_sphere_shape.h"
 #include "bt_plane_shape.h"
 #include "bt_box_shape.h"
 #include "bt_convex_hull_shape.h"
 #include "bt_mesh_shape.h"
 #include "bt_hacd_shape.h"
+#include <vector>
 
 #include "constraint/bt_nail_constraint.h"
 #include "constraint/bt_hinge_constraint.h"
 #include "constraint/bt_slider_constraint.h"
 #include "constraint/bt_sixdof_constraint.h"
+
+/** \brief	This class is an implementation of the pure virtual class solver_impl_t.
+			It is based on the Bullet library solver for rigid and soft bodies.
+
+*/
 
 class bt_solver_t: public solver_impl_t
 {
@@ -55,6 +67,22 @@ public:
     virtual rigid_body_impl_t* create_rigid_body(collision_shape_impl_t* cs) {
         return new bt_rigid_body_t(cs);
     }
+
+	/** \brief Generate a soft body object from a given mesh.
+
+		This function will construct a soft_body_t object from a mesh using the btSoftBodyHelpers::CreateFromTriMesh
+		from Bullet.  The mesh should be passed in as a vector of (integer) indices and and a float vector of coordinates in the form
+		{x1, y1, z1, x2, y2, ..., x_n, y_n, z_n}, where n is the number of vertices (so this array will have 3 * num_vertices elements)
+		The indices will thus index these coordinates to form triangles, so the index vector should have length equal to the number of triangles
+		in the mesh * 3.
+
+		\param triVertexCoords constant std::vector<float> reference to the "unrolled" vertex coordinates as described above
+		\param triVertexIndices constant std::vector<int> reference to the triangle vertex indices
+
+		\return soft_body_t object with the new soft body
+
+	*/
+	virtual soft_body_t::pointer create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices );
 
     virtual collision_shape_impl_t* create_sphere_shape(float radius) {
         return new bt_sphere_shape_t(radius);
@@ -145,6 +173,36 @@ public:
 		
     }
 
+	/** \brief	Add a soft body to the existing "physics world" of this solver.
+		
+		\param sb Pointer to an object of class soft_body_impl_t, which must also be
+				of class bt_soft_body_t.  If sb is 0, nothing will happen.
+		\para name Character pointer.  Does nothing at the moment.
+	*/
+
+	virtual void add_soft_body(soft_body_impl_t* sb, const char* name)
+	{
+		if(sb == 0)
+		{
+			return;
+		}
+		bt_soft_body* bt_body = static_cast<bt_soft_body*>(sb);
+		bt_body->body()->setActivationState(DISABLE_DEACTIVATION);
+		m_dynamicsWorld->addSoftBody(bt_body->body());		
+
+	}
+	
+	/** \brief Remove a soft body from the physics world.
+		
+		\param sb Pointer to a soft_body_impl_t object.  Must be of class bt_soft_body.
+
+	*/
+	virtual void remove_soft_body(soft_body_impl_t* sb)
+	{
+		bt_soft_body* bt_body = static_cast<bt_soft_body*>(sb);
+		m_dynamicsWorld->removeSoftBody(bt_body->body());
+	}
+
     virtual void remove_rigid_body(rigid_body_impl_t* rb)
     {
         bt_rigid_body_t* bt_body = static_cast<bt_rigid_body_t*>(rb);
@@ -162,10 +220,20 @@ public:
         bt_constraint_t* btc = dynamic_cast<bt_constraint_t*>(c);
         m_dynamicsWorld->removeConstraint(btc->constraint());
     }
+	
+	/** \brief Modify the solver's global gravity level.
 
+		\param g 3 element vector with the gravitational force in the 3 spacial
+			directions.
+	*/
     virtual void set_gravity(vec3f const& g)
     {
-        m_dynamicsWorld->setGravity(btVector3(g[0], g[1], g[2]));
+		btVector3 btG(g[0], g[1], g[2]);
+		this->m_worldInfo->m_gravity = btG;
+		
+		// we must modify the m_dynamicsWorld descriptor for soft-bodies as well
+		m_dynamicsWorld->setGravity(btG);
+		
     }
 
     virtual void set_split_impulse(bool enabled)
@@ -191,18 +259,20 @@ public:
     virtual void import_collada_file(const char* filename);
 
 
+
+
 protected:
     friend class solver_t;
     bt_solver_t();
 
 
 private:
-
+	shared_ptr<btSoftBodyWorldInfo> m_worldInfo;
     shared_ptr<btBroadphaseInterface>            m_broadphase;
     shared_ptr<btConstraintSolver>               m_solver;
     shared_ptr<btDefaultCollisionConfiguration>  m_collisionConfiguration;
     shared_ptr<btCollisionDispatcher>            m_dispatcher;
-    shared_ptr<btDiscreteDynamicsWorld>          m_dynamicsWorld;
+    shared_ptr<btSoftRigidDynamicsWorld>          m_dynamicsWorld;
 public:
 	btHashMap<btHashPtr,const char*>	m_nameMap;
 };

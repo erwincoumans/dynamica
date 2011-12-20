@@ -21,6 +21,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added soft body logic
 */
 
 //dSolverNode.h
@@ -85,6 +88,7 @@ virtual MBoundingBox boundingBox() const
     static  MObject     ia_substeps;
 	static  MObject		ia_fixedPhysicsRate;
     static  MObject     oa_rigidBodies;
+	static  MObject		oa_softBodies;
 
     //Solver Settings
     static  MObject     ssSolverType;
@@ -126,13 +130,17 @@ protected:
     };
 
     void computeRigidBodies(const MPlug& plug, MDataBlock& data);
+	void computeSoftBodies(const MPlug& plug, MDataBlock& data);
+	void initSoftBody(const MPlug& plug, MObject& node, MDataBlock& data);
     void dumpRigidBodyArray(MObject &node);
     bool expandFileExpression(std::string const& expr, std::string &base_name, std::string &extension);
 
     void initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data);
+	void initSoftBodies(const MPlug& plug, MPlugArray &sbConnections, MDataBlock& data);
     void gatherPassiveTransforms(MPlugArray &rbConnections, std::vector<xforms_t> &xforms);
     void updatePassiveRigidBodies(MPlugArray &rbConnections, std::vector<xforms_t> &xforms, float t);
     void updateActiveRigidBodies(MPlugArray &rbConnections);
+	void updateActiveSoftBodies(MPlugArray &sbConnections);
     void applyFields(MPlugArray &rbConnections, float dt);
 	void updateConstraint(MObject& bodyNode);
 protected:

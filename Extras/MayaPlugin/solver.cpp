@@ -22,15 +22,20 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
 //solver.cpp
 
 #include "solver.h"
 #include "bt_solver.h"
+#include "soft_body_t.h"
 
 shared_ptr<solver_impl_t> solver_t::m_impl;
 std::set<rigid_body_t::pointer> solver_t::m_rigid_bodies;
+std::set<soft_body_t::pointer> solver_t::m_soft_bodies;
 std::set<constraint_t::pointer> solver_t::m_constraints;
 
 shared_ptr<solver_impl_t> solver_t::get_solver()
@@ -108,6 +113,11 @@ rigid_body_t::pointer solver_t::create_rigid_body(collision_shape_t::pointer& cs
     return rigid_body_t::pointer(new rigid_body_t(m_impl->create_rigid_body(cs->impl()), cs));
 }
 
+soft_body_t::pointer solver_t::create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices  )
+{
+	return m_impl->create_soft_body(triVertexCoords, triVertexIndices  );
+}
+
 nail_constraint_t::pointer  solver_t::create_nail_constraint(rigid_body_t::pointer& rb, vec3f const& pivot)
 {
     return nail_constraint_t::pointer(new nail_constraint_t(m_impl->create_nail_constraint(rb->impl(), pivot), rb));
@@ -152,6 +162,19 @@ void solver_t::add_rigid_body(rigid_body_t::pointer& rb,const char* name)
     }
 }
 
+void solver_t::add_soft_body(soft_body_t::pointer &sb, const char *name)
+{
+	if(sb)
+	{
+		if(m_soft_bodies.find(sb) == m_soft_bodies.end())
+		{
+			m_soft_bodies.insert(sb);
+			m_impl->add_soft_body(sb->impl(), name);
+		}
+	}
+}
+
+
 void solver_t::remove_rigid_body(rigid_body_t::pointer& rb)
 {
     if(rb) {
@@ -162,6 +185,18 @@ void solver_t::remove_rigid_body(rigid_body_t::pointer& rb)
     }
 }
 
+void solver_t::remove_soft_body(soft_body_t::pointer &sb)
+{
+	if(sb)
+	{
+		if(m_soft_bodies.find(sb) != m_soft_bodies.end())
+		{
+			m_impl->remove_soft_body(sb->impl());
+			m_soft_bodies.erase(sb);
+		}
+	}
+}
+
 void solver_t::remove_all_rigid_bodies()
 {
     std::set<rigid_body_t::pointer>::iterator it;
@@ -169,6 +204,15 @@ void solver_t::remove_all_rigid_bodies()
         m_impl->remove_rigid_body(const_cast<rigid_body_t*>((*it).get())->impl());
     }
     m_rigid_bodies.clear();
+}
+
+void solver_t::remove_all_soft_bodies()
+{
+	std::set<soft_body_t::pointer>::iterator it;
+    for(it = m_soft_bodies.begin(); it != m_soft_bodies.end(); ++it) {
+		m_impl->remove_soft_body( const_cast<soft_body_t*> ((*it).get())->impl() );
+    }
+    m_soft_bodies.clear();	
 }
 
 void solver_t::add_constraint(constraint_t::pointer& c, bool disableCollide)
@@ -203,6 +247,7 @@ void solver_t::remove_all_constraints()
 void solver_t::set_gravity(vec3f const& g)
 {
     m_impl->set_gravity(g);
+
 }
 
 void solver_t::set_split_impulse(bool enabled)

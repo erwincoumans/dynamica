@@ -108,6 +108,10 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createSlider" -ann "Create a breakable slider constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreate6dofConstraint.xpm" 
 		-c "dynamicaUI_create6Dof" -ann "Create a breakable 6dof constraint" -p $dynamicaShelf;
+		
+	shelfButton -i "dynamicaSoftMesh.xpm"
+		-c "dynamicaUI_createSoftBody()" -ann "Create a softbody" -p $dynamicaShelf;
+		
 	// shelfButton -i "dynamicaCreateConetwistConstraint.xpm" 
 		// -c "dynamicaUI_createConstraint(3)" -ann "Create a breakable cone twist constraint" -p $dynamicaShelf;
 		
@@ -318,6 +322,14 @@ global proc string dynamicaUI_createMainTab()
 	
 				// iconTextButton -st "iconAndTextVertical" -l "ConeTwist" -w 75 -i "dynamicaCreateConeTwistConstraint.xpm" 
 					// -c "dynamicaUI_createConeTwistConstraint" -ann "Create a cone twist constraint";
+			setParent ..;
+		setParent ..;
+	
+		dynamicaUI_createFrame("Soft Bodies", "Soft bodies include cloth and ropes .", 0, 0);
+			rowLayout -nc 1;
+				iconTextButton -st "iconAndTextVertical" -l "Soft Mesh" -w 75 -i "dynamicaSoftMesh.xpm"
+					-c "dynamicaUI_createSoftBody()" -ann "Convert mesh to soft body";
+				
 			setParent ..;
 		setParent ..;
 	setParent ..;
@@ -677,6 +689,150 @@ global proc dynamicaUI_createSlider() { dynamicaUI_createConstraint(2); }
 
 global proc dynamicaUI_create6Dof() { dynamicaUI_createConstraint(3); }
 //end commands
+
+
+
+global proc dynamicaUI_createSoftBody()
+{
+	
+	global float $dynamicaUI_startFrame;
+	global float $dynamicaUI_collisionMargin;
+	dSolver;
+	$dynamicaUI_collisionMargin = `getAttr dSolver1.collisionMargin`; 
+	string $meshLayer = "DynamicaInputMeshes";
+	string $sbLayer = "DynamicaSoftBodies";
+	string $obSelection[] = `ls -sl`;
+	string $selection[];
+	string $newBodies[];
+	string $sbGroup;
+	string $meshGroup;
+	string $margin;
+	int $bodyCount = 0;
+	int $makeCollisionShape = 1;
+	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //compensate for descrepancy between Maya vertex shift and Bullet planar shift
+	
+	for ($o in $obSelection) mbDeleteShapeHistory($o); //clean shape history
+	$selection = `ls -selection -dag -leaf -showType -type "geometry"`;
+	
+	
+	string $softBodyNode;
+	// if there is actually a selection
+	if (size($selection) > 0)
+	{
+		dynamicaUI_print("Creating Dynamica soft bodies...", 0);
+		refresh;
+		// //create groups and layers if necessary
+		// $sbGroup = `group -em -n dSoftBodies`;
+		$meshGroup = `group -em -n dMeshes`;
+		
+		// mbHideAndLockTransform($sbGroup);
+		mbHideAndLockTransform($meshGroup);
+		mbCreateLayer($meshLayer, 1);
+		mbCreateLayer($sbLayer, 0);
+		setAttr ($sbLayer + ".shading") 0; //disable shading
+	
+		for ($i = 0; $i < size($selection) / 2; $i++)
+		{
+			string $marginShape = mbGetShape($obSelection[$i]);			
+			
+			if (mbIsMesh($obSelection[$i]))
+			{
+				
+					
+				if(mbIsKeyed($obSelection[$i]))
+				{
+					warning($obSelection[$i] + "'s transform is keyed, unable to convert to soft-body...");					
+					return;
+				}
+								
+				
+				
+				string $shapeTransforms[] = `listRelatives -p -f -pa $selection[$i * 2]`;
+				$softBodyNode = `dSoftBody`;
+				float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
+				float $rot[]= `getAttr ($shapeTransforms[0] + ".rotate")`;
+				
+				// freeze transformations on selected object
+				makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 $obSelection[$i];
+				delete -ch $obSelection[$i];				
+			
+				// duplicate input object for output mesh.  Input object should be unchangeable so that soft body can be returned to original shape
+				// also add attribute to connect input mesh to soft body
+				addAttr -ln "outSoftBody" -at message $marginShape;
+				connectAttr ($marginShape + ".outSoftBody") ($softBodyNode + ".inMesh");
+				$dup = `duplicate $obSelection[$i]`;
+				$outShape = mbGetShape($dup[0]);
+				string $outTransform[] =  `listRelatives -p -f -pa $outShape`;
+								
+				// hide and lock the output mesh transforms;
+				mbHideAndLockTransform($dup[0]);
+				
+				// hide input mesh 
+				setAttr($obSelection[$i] + ".visibility") 0;
+
+				// create attribute in duplicate mesh to connect soft body node to out mesh
+				addAttr -ln "inSoftBody" -at message $outShape;
+				connectAttr($softBodyNode + ".outMesh") ($outShape + ".inSoftBody");	
+				// set collision margin.
+				// is this the correct way to do it?
+				setAttr($softBodyNode + ".collisionmargin") $collisionMargin;
+				
+				// mbHideAndLockTransform($dup[0]);
+				string $softBodyTransforms[] = `listRelatives -p $softBodyNode`;
+				if ($selection[$i * 2 + 1] == "mesh") {
+					setAttr ($softBodyTransforms[0] + ".overrideEnabled") 1;
+					setAttr ($softBodyTransforms[0] + ".overrideShading") 0;
+				}			
+								
+				setAttr ($softBodyTransforms[0] + ".translate") -typ double3 $pos[0] $pos[1] $pos[2];
+				setAttr ($softBodyNode + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
+				setAttr ($softBodyTransforms[0] + ".rotate") -typ double3 $rot[0] $rot[1] $rot[2];
+				setAttr ($softBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
+				
+				//store original position and rotation
+				addAttr -ln "originalPosition" -at double3 -k 0 $softBodyTransforms[0];
+				addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $softBodyTransforms[0];
+				addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $softBodyTransforms[0];
+				addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $softBodyTransforms[0];
+				
+				addAttr -ln "originalRotation" -at double3 -k 0 $softBodyTransforms[0];
+				addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $softBodyTransforms[0];
+				addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $softBodyTransforms[0];
+				addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $softBodyTransforms[0];
+				
+				// connect original mesh transform to rigid body transform
+				// connectAttr ($softBodyTransforms[0] + ".translate") ($outTransform[0] + ".translate");
+				// connectAttr ($softBodyTransforms[0] + ".rotate") ($outTransform[0] + ".rotate");
+				// connectAttr ($softBodyTransforms[0] + ".scale") ($outTransform[0] + ".scale");
+				
+				$newBodies[$i] = $softBodyNode;
+				//add to groups and layers
+				mbAddToLayer($obSelection[$i], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
+				// mbAddToLayer($softBodyTransforms[0], $sbLayer);
+								
+				parent $obSelection[$i] $meshGroup;
+				// parent $softBodyTransforms[0] $sbGroup;
+				// parent $softBodyNode $outShape;
+				$bodyCount++;
+				refresh;
+			}
+			else {
+				dynamicaUI_print($obSelection[$i] + " is not a Polymesh, soft body not created!", 1);
+			}
+		}
+		//else {
+				//dynamicaUI_print($shapeTransforms[0] + " is already a soft body", 1);			
+			// $makeCollisionShape = 1;
+		//  }
+		// if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies. Find rigid bodies and source meshes in Outliner and Display Layers.", 0);
+	}
+	else
+	{
+		dynamicaUI_print("Unable to create soft body(s), select Polymesh objects first...", 1);
+	}
+	currentTime $dynamicaUI_startFrame;
+	select -r $newBodies;
+}
 
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 {	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane

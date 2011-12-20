@@ -22,6 +22,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
 //pluginMain.cpp
@@ -48,6 +51,8 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "mvl/util.h"
 #include "bulletExport.h"
 #include "colladaExport.h"
+#include "softBodyNode.h"
+#include "dsoftBodyCmd.h"
 
 const char *const bulletOptionScript = "bulletExportOptions";
 const char *const bulletDefaultOptions =    "groups=1;"    "ptgroups=1;"    "materials=1;"    "smoothing=1;"    "normals=1;"    ;
@@ -187,6 +192,17 @@ MStatus initializePlugin( MObject obj )
                                      dSixdofConstraintCmd::syntax);
     MCHECKSTATUS(status, "registering dSixdofConstraintCmd")
 
+	status = plugin.registerCommand( dSoftBodyCmd::typeName,
+		dSoftBodyCmd::creator, dSoftBodyCmd::syntax);
+	MCHECKSTATUS(status, "registering dSoftBodyCmd")
+
+	status = plugin.registerNode( SoftBodyNode::typeName, SoftBodyNode::typeId,
+                                  SoftBodyNode::creator,
+                                  SoftBodyNode::initialize,
+                                  MPxNode::kLocatorNode );
+	MDGMessage::addNodeRemovedCallback(SoftBodyNode::nodeRemoved, SoftBodyNode::typeName);
+    MCHECKSTATUS(status, "registering SoftBodyNode")
+
 	MGlobal::executeCommand( "source dynamicaUI.mel" );
     MGlobal::executeCommand( "dynamicaUI_initialize" );
     
@@ -220,6 +236,9 @@ MStatus uninitializePlugin( MObject obj )
     status = plugin.deregisterCommand(dSolverCmd::typeName);
     MCHECKSTATUS(status, "deregistering dSolverCmd")
 
+	status = plugin.deregisterCommand(dSoftBodyCmd::typeName);
+	MCHECKSTATUS(status, "deregistering dSoftBodyCmd")
+
 
     status = plugin.deregisterNode(nailConstraintNode::typeId);
     MCHECKSTATUS(status, "deregistering nailConstraintNode")
@@ -245,8 +264,12 @@ MStatus uninitializePlugin( MObject obj )
 	status = plugin.deregisterNode(dSolverNode::typeId);
     MCHECKSTATUS(status, "deregistering dSolverNode")
 
+	status = plugin.deregisterNode(SoftBodyNode::typeId);
+	MCHECKSTATUS(status, "deregistering SoftBodyNode")
+
     status =  plugin.deregisterFileTranslator( "Bullet Physics export" );
     MCHECKSTATUS(status,"deregistering Bullet Physics export" )
+
 
 #ifdef BT_USE_COLLADA
 	status =  plugin.deregisterFileTranslator( "COLLADA Physics export" );

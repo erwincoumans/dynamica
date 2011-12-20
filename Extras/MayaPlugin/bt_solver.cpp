@@ -23,12 +23,17 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
 01/27/2010 : Replaced COLLADA export with Bullet binary export
 02/18/2010 : Re-enabled COLLADA export as option (next to Bullet binary export)
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added soft body logic
 */
 
 //bt_solver.cpp
 
 #include "LinearMath/btSerializer.h"
 #include "bt_solver.h"
+#include "soft_body_t.h"
+#include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
 #include "../BulletColladaConverter/ColladaConverter.h"
 #include <string.h>
 #include <stdio.h>
@@ -143,35 +148,63 @@ public:
 
 
 
-bt_solver_t::bt_solver_t():
-	m_broadphase(new btDbvtBroadphase()),  
-          m_solver(new btSequentialImpulseConstraintSolver),
-            m_collisionConfiguration(new btDefaultCollisionConfiguration),
-            m_dispatcher(new btCollisionDispatcher(m_collisionConfiguration.get())),
-            m_dynamicsWorld(new btDiscreteDynamicsWorld(m_dispatcher.get(),
+bt_solver_t::bt_solver_t():	
+	m_broadphase(0),
+          m_solver(0),
+            m_collisionConfiguration(0),
+            m_dispatcher(0),
+			m_dynamicsWorld(0),
+			m_worldInfo(0)
+{
+	// use soft-body and rigid body collisions
+	m_collisionConfiguration.reset(new btSoftBodyRigidBodyCollisionConfiguration());
+	m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfiguration.get()));
+	
+	const btScalar WORLD_BOUND = 10000;
+	const size_t MAX_PROXIES = 8192;
+
+	// use btAxisSweep for broadphase collison
+	btVector3 worldAabbMin(-WORLD_BOUND,-WORLD_BOUND,-WORLD_BOUND);
+	btVector3 worldAabbMax(WORLD_BOUND,WORLD_BOUND,WORLD_BOUND);
+
+
+	m_broadphase.reset(new btAxisSweep3(worldAabbMin,worldAabbMax,MAX_PROXIES));
+	m_solver.reset(new btSequentialImpulseConstraintSolver());
+
+	m_dynamicsWorld.reset( new btSoftRigidDynamicsWorld(m_dispatcher.get(),
                                                         m_broadphase.get(),
                                                         m_solver.get(),
-                                                        m_collisionConfiguration.get()))
-{
-
-    //register algorithm for concave meshes
+                                                        m_collisionConfiguration.get())
+														
+														);
+	//register algorithm for concave meshes
     btGImpactCollisionAlgorithm::registerAlgorithm(m_dispatcher.get());
 
+	// set default gravity
     m_dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-
-  //  m_dynamicsWorld->getSolverInfo().m_splitImpulse = true;
+	
+	m_dynamicsWorld->getDispatchInfo().m_enableSPU = true;
+	
+	m_worldInfo.reset(new btSoftBodyWorldInfo);
+	m_worldInfo->m_broadphase = m_broadphase.get();
+	m_worldInfo->m_dispatcher = m_dispatcher.get();
+	m_worldInfo->m_gravity = m_dynamicsWorld->getGravity();
+	m_worldInfo->m_sparsesdf.Initialize();
 
 	bt_debug_draw* dbgDraw = new bt_debug_draw();
 	m_dynamicsWorld->setDebugDrawer(dbgDraw);
-
-	//for now, allocated 15MB for serialization structures. todo: compute this memory
-	
 }
 
 
 void bt_solver_t::debug_draw(int dbgMode)
 {
-	m_dynamicsWorld->getDebugDrawer()->setDebugMode(dbgMode);
+	m_dynamicsWorld->getDebugDrawer()->setDebugMode(dbgMode);	
 	m_dynamicsWorld->debugDrawWorld();
 }
 
+soft_body_t::pointer bt_solver_t::create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices )
+{
+	// we simply invoke the soft body constructor together with this solver's world info
+	soft_body_t::pointer sptr(new soft_body_t( *m_worldInfo, triVertexCoords, triVertexIndices ));
+	return sptr;
+}

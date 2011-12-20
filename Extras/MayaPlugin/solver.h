@@ -21,6 +21,9 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
+
+Modified by Francisco Gochez <fjgochez@gmail.com>
+Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
 //solver.h
@@ -31,6 +34,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #define DYN_SOLVER_H
 
 #include <set>
+#include <vector>
 
 #include "mathUtils.h"
 #include "shared_ptr.h"
@@ -42,6 +46,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include "convex_hull_shape.h"
 #include "mesh_shape.h"
 #include "solver_impl.h"
+#include "soft_body_t.h"
 
 #include "constraint/nail_constraint.h"
 #include "constraint/hinge_constraint.h"
@@ -73,6 +78,8 @@ public:
                                                    unsigned int const *indices, size_t num_indices, bool dynamicMesh); 
 
     static rigid_body_t::pointer create_rigid_body(collision_shape_t::pointer& cs);
+	
+	static soft_body_t::pointer create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices  );
 
     static nail_constraint_t::pointer create_nail_constraint(rigid_body_t::pointer& rb, vec3f const& pivot);
     static nail_constraint_t::pointer create_nail_constraint(rigid_body_t::pointer& rbA, rigid_body_t::pointer& rbB, vec3f const& pivotInA, vec3f const& pivotInB);
@@ -84,9 +91,12 @@ public:
     static sixdof_constraint_t::pointer create_sixdof_constraint(rigid_body_t::pointer& rbA, vec3f const& pivotA, quatf const& rotA, rigid_body_t::pointer& rbB, vec3f const& pivotB, quatf const& rotB);
 
     //add/remove from world
-    static void add_rigid_body(rigid_body_t::pointer& rb,const char* name);
+	static void add_rigid_body(rigid_body_t::pointer& rb,const char* name);
+	static void add_soft_body(soft_body_t::pointer& sb, const char* name);
     static void remove_rigid_body(rigid_body_t::pointer& rb);
+	static void remove_soft_body(soft_body_t::pointer &sb);
     static void remove_all_rigid_bodies();
+	static void remove_all_soft_bodies();
 
     //add/remove from world
     static void add_constraint(constraint_t::pointer& c, bool disableCollide = false);
@@ -111,6 +121,7 @@ public:
 private:
     static shared_ptr<solver_impl_t> m_impl;
     static std::set<rigid_body_t::pointer> m_rigid_bodies;
+	static std::set<soft_body_t::pointer> m_soft_bodies;
     static std::set<constraint_t::pointer> m_constraints;
 };
 
