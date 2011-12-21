@@ -7,12 +7,13 @@
 
 ;--------------------------------
 
-
-
 ; The location of the module file
 Var MODULE_FILE_LOCATION
 !define MAYA_VERSION "2011-x64"
 !define DYNAMICA_VERSION "2.80"
+;Remember to change PROGRAMFILES64 to PROGRAMFILES for 32bit installers!
+;And choose the appropriate amd64 or x86 msvcp*.dll and msvcr*.dll version
+
 
 Function .onInit	
 	Push $R0
@@ -68,8 +69,14 @@ File "..\..\lib\release\plug-ins\BulletMayaPlugin.mll"
 ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcp80.dll"
 ;File "C:\Program Files\Microsoft Visual Studio 8\VC\redist\x86\Microsoft.VC80.CRT\msvcr80.dll"
 
-File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
-File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcr90.dll"
+;File "F:\sdks\Microsoft Visual Studio 10.0\VC\redist\x64\Microsoft.VC100.CRT\msvcp100.dll"
+;File "F:\sdks\Microsoft Visual Studio 10.0\VC\redist\x64\Microsoft.VC100.CRT\msvcr100.dll"
+
+;File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcp90.dll"
+;File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\msvcr90.dll"
+
+File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\amd64\Microsoft.VC90.CRT\msvcp90.dll"
+File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\amd64\Microsoft.VC90.CRT\msvcr90.dll"
 
 SetOutPath "$INSTDIR\scripts"
 File "scripts\*.*"
