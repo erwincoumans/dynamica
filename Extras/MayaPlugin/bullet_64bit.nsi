@@ -7,15 +7,32 @@
 
 ;--------------------------------
 
+
+
+; The location of the module file
+Var MODULE_FILE_LOCATION
+!define MAYA_VERSION "2011-x64"
+!define DYNAMICA_VERSION "2.80"
+
+Function .onInit	
+	Push $R0
+	StrCpy $MODULE_FILE_LOCATION "$DOCUMENTS\maya\${MAYA_VERSION}\modules"
+  ReadEnvStr $R0 "MAYA_APP_DIR"
+   StrCmp $R0 "" done
+   	StrCpy $MODULE_FILE_LOCATION "$R0\maya\${MAYA_VERSION}\modules"
+   done:
+   Pop $R0   
+   StrCpy $INSTDIR "$PROGRAMFILES64\DynamicaBullet${DYNAMICA_VERSION}ForMaya${MAYA_VERSION}\"
+FunctionEnd
+
 ; The name of the installer
-Name "Dynamica Bullet 2.78 physics plugin for Maya 2011"
+Name "Dynamica Bullet ${DYNAMICA_VERSION} physics plugin for ${MAYA_VERSION}"
 
 ; The file to write
-OutFile "DynamicaForMaya2011_64bit.exe"
-
+OutFile "DynamicaBullet${DYNAMICA_VERSION}ForMaya${MAYA_VERSION}.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES64\DynamicaBullet2.78\
+InstallDir "$PROGRAMFILES64\DynamicaBullet${MAYA_VERSION}\"
 
 UninstPage uninstConfirm
 UninstPage instfiles
@@ -56,12 +73,12 @@ File "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft
 
 SetOutPath "$INSTDIR\scripts"
 File "scripts\*.*"
-SetOutPath	"$DOCUMENTS\maya\modules\"
+SetOutPath	$MODULE_FILE_LOCATION
 File "BulletDynamica.6_module"
-	
-FileOpen $0 $DOCUMENTS\maya\modules\BulletDynamica.6_module a
+
+FileOpen $0 $MODULE_FILE_LOCATION\BulletDynamica.6_module a
 FileSeek $0 0 END
-FileWrite $0 "$INSTDIR$\n"
+FileWrite $0 "${DYNAMICA_VERSION} $INSTDIR$\n"
 FileClose $0
 
 CreateDirectory "$SMPROGRAMS\Dynamica Bullet"
@@ -72,12 +89,12 @@ ExecShell "open" "$INSTDIR\doc\index.html"
 
 WriteUninstaller $INSTDIR\Uninstall.exe
 SectionEnd ; end the section
-
+ 
 Section "Uninstall"
 	ClearErrors
 	MessageBox MB_YESNO "Uninstall Bullet for MAYA?" IDNO end
 	
-	Delete "$DOCUMENTS\maya\modules\DynamicaBullet.6_module"
+	Delete "$MODULE_FILE_LOCATION\DynamicaBullet.6_module"
 	RMDir /r "$SMPROGRAMS\Dynamica Bullet\"
 	RMDir /r "$INSTDIR"
 	end:
