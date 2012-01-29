@@ -67,11 +67,14 @@ const char *const colladaDefaultOptions =    "groups=1;"    "ptgroups=1;"    "ma
 MStatus initializePlugin( MObject obj )
 {
     MStatus   status;
+	char version[1024];
+	sprintf(version,"Bullet %d, build %s",BT_BULLET_VERSION,__DATE__);
 #ifdef BT_DEBUG
-	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.78 (Debug Build)", "Any");
+	 sprintf(version,"Bullet %d, debug build %s",BT_BULLET_VERSION,__DATE__);
 #else
-	MFnPlugin plugin( obj, "Walt Disney Feature Animation", "2.78", "Any");
+	 sprintf(version,"Bullet %d, release build %s",BT_BULLET_VERSION,__DATE__);
 #endif
+	  MFnPlugin plugin( obj, "Walt Disney Feature Animation", version, "Any");
 
     solver_t::initialize();
 
