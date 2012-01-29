@@ -1,6 +1,6 @@
 #MayaPlugin Makefile
 
-MAYA_LOCATION?=/Applications/Autodesk/maya2010/devkit
+MAYA_LOCATION=/Applications/Autodesk/maya2011/devkit
 
 ## MAYA_LOCATION is the Maya installation directory. It should be already defined in your
 # environment variables. If not, please change it to the appropriate directory
@@ -15,11 +15,11 @@ LIBRARY=dynamicaMayaPlugin.bundle
 ##################################
 
 BULLET=../..
-
+HACD=../HACD
 CPP = g++
 LD = ld
 
-CPPFLAGS = -DMAC_PLUGIN -DOSMac_MachO_ -DBits32_ -m32 -DUNIX -D_BOOL -DOSMac_ -DFUNCPROTO -D_GNU_SOURCE  -fPIC \
+CPPFLAGS = -arch x86_64 -DMAC_PLUGIN -DOSMac_MachO_ -DBits32_ -m32 -DUNIX -D_BOOL -DOSMac_ -DFUNCPROTO -D_GNU_SOURCE  -fPIC \
 		-fno-strict-aliasing -DREQUIRE_IOSTREAM -Wno-deprecated -Wall \
 		-Wno-multichar -Wno-comment -Wno-sign-compare -funsigned-char \
 		-Wno-reorder -fno-gnu-keywords -ftemplate-depth-25 -pthread \
@@ -29,24 +29,30 @@ CPPFLAGS = -DMAC_PLUGIN -DOSMac_MachO_ -DBits32_ -m32 -DUNIX -D_BOOL -DOSMac_ -D
 LDFLAGS = -ldl -shared
 
 BULLET_INCLUDE=-I$(BULLET)/src -I.
-
+HACD_INCLUDE=-I$(HACD)
 
 
 GL_LIB=-framework OpenGL
 
 MAYA_INCLUDE=-I$(MAYA)/include
-MAYA_LIB=-L/Applications/Autodesk/maya2010/Maya.app/Contents/MacOS -lOpenMaya -lFoundation -Wl,-executable_path,/Applications/Autodesk/maya2010/Maya.app/Contents/MacOS  -lOpenMayaUI -lOpenMayaFX -lOpenMaya -lFoundation
+MAYA_LIB=-L/Applications/Autodesk/maya2011/Maya.app/Contents/MacOS -lOpenMaya -lFoundation -Wl,-executable_path,/Applications/Autodesk/maya2011/Maya.app/Contents/MacOS  -lOpenMayaUI -lOpenMayaFX -lOpenMaya -lFoundation
 
-SOURCES = pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigidBodyArrayNode.cpp collisionShapeNode.cpp \
-	  solver.cpp bt_solver.cpp dSolverNode.cpp dSolverCmd.cpp dRigidBodyCmd.cpp dRigidBodyArrayCmd.cpp \
-	  pdbIO.cpp drawUtils.cpp  constraint/dHingeConstraintCmd.cpp	constraint/dSliderConstraintCmd.cpp \
+SOURCES = bt_solver.cpp pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigidBodyArrayNode.cpp collisionShapeNode.cpp \
+	  convex_decomposition_hacd.cpp solver.cpp bt_rigid_body.cpp dSolverNode.cpp dSolverCmd.cpp dRigidBodyCmd.cpp dRigidBodyArrayCmd.cpp \
+	  pdbIO.cpp drawUtils.cpp dSoftBodyCmd.cpp softBodyNode.cpp soft_body_impl_t.cpp soft_body_t.cpp bt_soft_body.cpp constraint/dHingeConstraintCmd.cpp	constraint/dSliderConstraintCmd.cpp \
 	constraint/hingeConstraintNode.cpp	constraint/sixdofConstraintNode.cpp constraint/dNailConstraintCmd.cpp \
 	constraint/dsixdofConstraintCmd.cpp	constraint/nailConstraintNode.cpp	constraint/sliderConstraintNode.cpp \
+	$(HACD)/hacdHACD.cpp \
+	$(HACD)/hacdGraph.cpp \
+	$(HACD)/hacdICHull.cpp \
+	$(HACD)/hacdManifoldMesh.cpp \
 	$(BULLET)/src/LinearMath/btQuickprof.cpp \
-$(BULLET)/src/LinearMath/btGeometryUtil.cpp \
+	$(BULLET)/src/LinearMath/btGeometryUtil.cpp \
 	$(BULLET)/src/LinearMath/btAlignedAllocator.cpp \
 	$(BULLET)/src/LinearMath/btSerializer.cpp \
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
+	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
+	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp \
@@ -86,6 +92,7 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btCompoundShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConeShape.cpp \
+	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btUniformScalingShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btSphereShape.cpp \
@@ -127,19 +134,26 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	$(BULLET)/src/BulletCollision/BroadphaseCollision/btDbvt.cpp \
 	$(BULLET)/src/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp \
 	$(BULLET)/src/BulletCollision/Gimpact/btGImpactBvh.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/btGImpactQuantizedBvh.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/btTriangleShapeEx.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/btGImpactShape.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/gim_box_set.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/gim_contact.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/gim_memory.cpp \
-        $(BULLET)/src/BulletCollision/Gimpact/gim_tri_collision.cpp \
-	$(BULLET)/src/BulletDynamics/Dynamics/btContinuousDynamicsWorld.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/btGImpactQuantizedBvh.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/btTriangleShapeEx.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/btGImpactShape.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/gim_box_set.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/gim_contact.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/gim_memory.cpp \
+	$(BULLET)/src/BulletCollision/Gimpact/gim_tri_collision.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/btRigidBody.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/Bullet-C-API.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp \
+	$(BULLET)/src/BulletSoftBody/btDefaultSoftBodySolver.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBody.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyHelpers.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidDynamicsWorld.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftSoftCollisionAlgorithm.cpp \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp \
@@ -165,9 +179,27 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 	bt_mesh_shape.h         convex_hull_shape_impl.h  plane_shape.h         sphere_shape_impl.h \
 	bt_plane_shape.h        dRigidBodyArrayCmd.h      plane_shape_impl.h \
 	bt_rigid_body.h         dRigidBodyCmd.h           rigidBodyArrayNode.h \
+	dSoftBodyCmd.h \
+	softBodyNode.h			soft_body_impl_t.h		  soft_body_t.h bt_soft_body.h \
 	bt_solver.h             dSolverCmd.h              rigid_body.h 		pdbIO.h \
-	shared_ptr.h		drawUtils.h \
+	shared_ptr.h		drawUtils.h 				  convex_decomposition_hacd.h \
+	$(HACD)/hacdCircularList.h \
+	$(HACD)/hacdVector.h \
+	$(HACD)/hacdICHull.h \
+	$(HACD)/hacdGraph.h \
+	$(HACD)/hacdHACD.h \
+	$(HACD)/hacdManifoldMesh.h \
+	$(BULLET)/src/LinearMath/btAlignedObjectArray.h \
+	$(BULLET)/src/LinearMath/btTransform.h \
+	$(BULLET)/src/LinearMath/btVector3.h \
+	$(BULLET)/src/LinearMath/btQuickprof.h \
+	$(BULLET)/src/LinearMath/btGeometryUtil.h \
+	$(BULLET)/src/LinearMath/btAlignedAllocator.h \
+	$(BULLET)/src/LinearMath/btSerializer.h \
+	$(BULLET)/src/LinearMath/btConvexHull.h \
+	$(BULLET)/src/LinearMath/btConvexHullComputer.h \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h \
+	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.h \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btConvexCast.h \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btGjkEpa2.h \
@@ -244,6 +276,7 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 	$(BULLET)/src/BulletCollision/CollisionShapes/btTetrahedronShape.h \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexInternalShape.h \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConeShape.h \
+	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexPolyhedron.h \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexHullShape.h \
 	$(BULLET)/src/BulletCollision/BroadphaseCollision/btAxisSweep3.h \
 	$(BULLET)/src/BulletCollision/BroadphaseCollision/btDbvtBroadphase.h \
@@ -260,11 +293,19 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 	$(BULLET)/src/BulletDynamics/Character/btKinematicCharacterController.h \
 	$(BULLET)/src/BulletDynamics/Character/btCharacterControllerInterface.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btActionInterface.h \
-	$(BULLET)/src/BulletDynamics/Dynamics/btContinuousDynamicsWorld.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btRigidBody.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btDynamicsWorld.h \
+	$(BULLET)/src/BulletSoftBody/btDefaultSoftBodySolver.h \
+	$(BULLET)/src/BulletSoftBody/btSoftBody.h \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.h \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyHelpers.h \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyInternals.h \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidCollisionAlgorithm.h \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidDynamicsWorld.h \
+	$(BULLET)/src/BulletSoftBody/btSoftSoftCollisionAlgorithm.h \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btSolverBody.h \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btConstraintSolver.h \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h \
@@ -284,10 +325,9 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h \
 	$(BULLET)/src/BulletDynamics/Vehicle/btVehicleRaycaster.h \
 	$(BULLET)/src/BulletDynamics/Vehicle/btRaycastVehicle.h \
-	$(BULLET)/src/BulletDynamics/Vehicle/btWheelInfo.h
+	$(BULLET)/src/BulletDynamics/Vehicle/btWheelInfo.h 
 	
-
-INCLUDE_FLAGS= $(GL_INCLUDE) $(BULLET_INCLUDE) $(MAYA_INCLUDE)
+INCLUDE_FLAGS= $(GL_INCLUDE) $(BULLET_INCLUDE) $(MAYA_INCLUDE) $(HACD_INCLUDE)
 LIB_FLAGS= $(MAYA_LIB) $(GL_LIB)
 
 OBJECTS=$(SOURCES:.cpp=.o)
@@ -309,4 +349,6 @@ install: $(LIBRARY)
 
 clean:
 	rm -f *.o *.bundle
+	find ../../src -name "*.o" -delete
+	find ../HACD -name "*.o" -delete
 
