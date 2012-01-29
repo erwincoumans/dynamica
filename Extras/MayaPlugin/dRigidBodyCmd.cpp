@@ -21,7 +21,7 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 */
 
 //dRigidBodyCmd.cpp
-
+#include "BulletSoftBody/btSoftBody.h"^M
 #include <maya/MGlobal.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MSyntax.h>

@@ -27,6 +27,8 @@ Modified by Francisco Gochez <fjgochez@gmail.com>
 Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
+#include "BulletSoftBody/btSoftBody.h"^M
+
 //pluginMain.cpp
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
@@ -52,7 +54,7 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include "bulletExport.h"
 #include "colladaExport.h"
 #include "softBodyNode.h"
-#include "dsoftBodyCmd.h"
+#include "dSoftBodyCmd.h"
 
 const char *const bulletOptionScript = "bulletExportOptions";
 const char *const bulletDefaultOptions =    "groups=1;"    "ptgroups=1;"    "materials=1;"    "smoothing=1;"    "normals=1;"    ;

@@ -25,6 +25,8 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 //rigidBodyNode.cpp
 
+#include "BulletSoftBody/btSoftBody.h"^M
+
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnMessageAttribute.h>

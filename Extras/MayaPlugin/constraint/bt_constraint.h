@@ -30,7 +30,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
-#include "shared_ptr.h"
+#include "../shared_ptr.h"
 
 class rigid_body_impl_t;
 

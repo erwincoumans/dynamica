@@ -1,3 +1,5 @@
+#include "BulletSoftBody/btSoftBody.h"
+
 #include "dSoftBodyCmd.h"
 #include "softBodyNode.h"
 

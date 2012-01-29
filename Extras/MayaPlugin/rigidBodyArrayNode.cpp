@@ -22,6 +22,8 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 //rigidBodyArrayNode.cpp
 
+#include "BulletSoftBody/btSoftBody.h"
+
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnMessageAttribute.h>

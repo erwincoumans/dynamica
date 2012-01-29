@@ -22,8 +22,9 @@ It is based in large part on rigidBodyNode.cpp
 
 */
 
+#include "BulletSoftBody/btSoftBody.h"
 
-#include "SoftBodyNode.h"
+#include "softBodyNode.h"
 #include <iostream>
 #include <maya/MFnMessageAttribute.h>
 #include <maya/MFnNumericAttribute.h>

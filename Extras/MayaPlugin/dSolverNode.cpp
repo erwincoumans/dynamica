@@ -28,6 +28,8 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 
 //dSolverNode.cpp
 
+#include "BulletSoftBody/btSoftBody.h"^M
+
 #include <maya/MFnNumericAttribute.h>           
 #include <maya/MFnEnumAttribute.h>           
 #include <maya/MFnTypedAttribute.h>           
@@ -71,7 +73,7 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include "LinearMath/btGeometryUtil.h"
 #include "pdbIO.h"
 #include "collisionShapeNode.h"
-#include "SoftBodyNode.h"
+#include "softBodyNode.h"
 #include "soft_body_t.h"
 
 

@@ -1,20 +1,22 @@
 #MayaPlugin Makefile
 
+MAYA_LOCATION?=/usr/autodesk/maya2012-x64
+
 ## MAYA_LOCATION is the Maya installation directory. It should be already defined in your
 # environment variables. If not, please change it to the appropriate directory
 MAYA=$(MAYA_LOCATION)
 
 ## Change this if you want to change the installation directory
-MAYA_PLUG_IN_PATH=/usr/maya-plugins
+MAYA_PLUG_IN_PATH=/usr/autodesk/maya2012-x64
 
 ## Change this if you want to change the name of the final plugin 
-LIBRARY=mayaplugin.so
+LIBRARY=DynamicaMayaPlugin.so
 
 ##################################
 
 BULLET=../..
 
-CPP = g++412
+CPP = g++
 LD = ld
 
 CPPFLAGS = -DBits64_ -m64 -DUNIX -D_BOOL -DLINUX -DFUNCPROTO -D_GNU_SOURCE -DLINUX_64 -fPIC \
@@ -43,12 +45,16 @@ SOURCES = pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigidBodyArrayNode.
 	  solver.cpp bt_solver.cpp dSolverNode.cpp dSolverCmd.cpp dRigidBodyCmd.cpp dRigidBodyArrayCmd.cpp \
 	  pdbIO.cpp drawUtils.cpp  constraint/dHingeConstraintCmd.cpp	constraint/dSliderConstraintCmd.cpp \
 	constraint/hingeConstraintNode.cpp	constraint/sixdofConstraintNode.cpp constraint/dNailConstraintCmd.cpp \
+	softBodyNode.cpp dSoftBodyCmd.cpp soft_body_t.cpp bt_soft_body.cpp bt_rigid_body.cpp \
+	convex_decomposition_hacd.cpp \
 	constraint/dsixdofConstraintCmd.cpp	constraint/nailConstraintNode.cpp	constraint/sliderConstraintNode.cpp \
 	$(BULLET)/src/LinearMath/btQuickprof.cpp \
 $(BULLET)/src/LinearMath/btGeometryUtil.cpp \
-	$(BULLET)/src/LinearMath/btAlignedAllocator.cpp \
 	$(BULLET)/src/LinearMath/btSerializer.cpp \
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
+	$(BULLET)/src/LinearMath/btAlignedAllocator.cpp \
+	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
+../HACD/hacdGraph.cpp  ../HACD/hacdHACD.cpp  ../HACD/hacdICHull.cpp  ../HACD/hacdManifoldMesh.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp \
@@ -57,6 +63,7 @@ $(BULLET)/src/LinearMath/btGeometryUtil.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp \
+	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp \
 $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
@@ -108,6 +115,7 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConcaveShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp \
+	$(BULLET)/src/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btBoxShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btBox2dShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btOptimizedBvh.cpp \
@@ -137,7 +145,6 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
         $(BULLET)/src/BulletCollision/Gimpact/gim_contact.cpp \
         $(BULLET)/src/BulletCollision/Gimpact/gim_memory.cpp \
         $(BULLET)/src/BulletCollision/Gimpact/gim_tri_collision.cpp \
-	$(BULLET)/src/BulletDynamics/Dynamics/btContinuousDynamicsWorld.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/btRigidBody.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp \
 	$(BULLET)/src/BulletDynamics/Dynamics/Bullet-C-API.cpp \
@@ -156,8 +163,15 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	$(BULLET)/src/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp \
 	$(BULLET)/src/BulletDynamics/Vehicle/btWheelInfo.cpp \
 	$(BULLET)/src/BulletDynamics/Vehicle/btRaycastVehicle.cpp \
-	$(BULLET)/src/BulletDynamics/Character/btKinematicCharacterController.cpp
-
+	$(BULLET)/src/BulletDynamics/Character/btKinematicCharacterController.cpp \
+	$(BULLET)/src/BulletSoftBody/btDefaultSoftBodySolver.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBody.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyHelpers.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftRigidDynamicsWorld.cpp \
+	$(BULLET)/src/BulletSoftBody/btSoftSoftCollisionAlgorithm.cpp
 
 
 HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h         rigid_body_impl.h \
@@ -263,7 +277,6 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 	$(BULLET)/src/BulletDynamics/Character/btKinematicCharacterController.h \
 	$(BULLET)/src/BulletDynamics/Character/btCharacterControllerInterface.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btActionInterface.h \
-	$(BULLET)/src/BulletDynamics/Dynamics/btContinuousDynamicsWorld.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btRigidBody.h \
 	$(BULLET)/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h \
@@ -292,7 +305,7 @@ HEADERS = box_shape.h             bt_sphere_shape.h         dSolverNode.h       
 
 
 
-INCLUDE_FLAGS= $(GL_INCLUDE) $(BULLET_INCLUDE) $(MAYA_INCLUDE)
+INCLUDE_FLAGS= -I. -I../HACD $(GL_INCLUDE) $(BULLET_INCLUDE) $(MAYA_INCLUDE)
 #LIB_FLAGS=$(BULLET_LIB) $(MAYA_LIB) $(GL_LIB)
 LIB_FLAGS= $(MAYA_LIB) $(GL_LIB)
 
@@ -309,9 +322,9 @@ $(LIBRARY): $(OBJECTS)
 	$(CPP) $(OBJECTS) $(LDFLAGS) $(LIB_FLAGS) -o $@
 
 install: $(LIBRARY)
-	cp -f $(LIBRARY) $(MAYA_PLUG_IN_PATH)	
-	cp -f scripts/*.mel $(MAYA_PLUG_IN_PATH)	
-	cp -f icons/*.xpm $(MAYA_PLUG_IN_PATH)	
+	cp -f $(LIBRARY) $(MAYA_PLUG_IN_PATH)/bin/plug-ins	
+	cp -f scripts/*.mel $(MAYA_PLUG_IN_PATH)/scripts	
+	cp -f icons/*.xpm $(MAYA_PLUG_IN_PATH)/icons	
 
 clean:
 	rm -f *.o *.so
