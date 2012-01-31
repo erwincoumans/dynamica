@@ -162,34 +162,10 @@ public:
 			convex_decomposition_hacd hacdTest;
 			btCompoundShape* compound_shape = hacdTest.ConvexDecomp(numHacdVertices, hacdVertices, num_indices, indices);
 
-			/*int numHacdResultVertices = hacdTest.GetNumMergedVertices();
-			int numHacdResultIndices = hacdTest.GetNumMergedIndices();
-
-			float* hacdResultVertices = new float[numHacdResultVertices*3];
-			int* hacdResultIndices = new int[numHacdResultIndices];
-			assert(hacdResultVertices != NULL);
-			assert(hacdResultIndices != NULL);
-
-			hacdTest.GetMergedVertices(hacdResultVertices);
-			hacdTest.GetMergedIndices(hacdResultIndices);
-
-			//reset vertices, normals, indices
-			vertices.resize(numHacdVertices);
-			normals.resize(numHacdVertices);
-			indices.resize(numHacdIndices);
-
-			for(size_t i = 0; i < numHacdResultVertices; ++i) {
-				int ii = i*3;
-				vertices[i] = vec3f(hacdResultVertices[ii], hacdResultVertices[ii+1], hacdResultVertices[ii+2]);
-				normals[i] = vec3f(0, 0, 0);
+			if (compound_shape->getNumChildShapes()>0)
+			{
+				set_shape(compound_shape);
 			}
-			for(size_t i = 0; i < numHacdResultIndices; ++i) {
-				indices[i] = hacdResultIndices[i];
-			}
-		}
-		*/
-		
-			set_shape(compound_shape);
 		
 	
 ////////////////////////////////////////////

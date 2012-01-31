@@ -85,9 +85,13 @@ hacd_shape_t::pointer solver_t::create_hacd_shape(vec3f const* vertices, size_t 
                                                   vec3f const* normals,
                                                   unsigned int const *indices, size_t num_indices, bool dynamicMesh)
 {
-	return hacd_shape_t::pointer(new hacd_shape_t(m_impl->create_hacd_shape(vertices, num_vertices,
-                                                                            normals,
-                                                                            indices, num_indices)));
+	collision_shape_impl_t* sh = m_impl->create_hacd_shape(vertices, num_vertices,normals,indices, num_indices);
+	if (sh)
+	{
+		return hacd_shape_t::pointer(new hacd_shape_t(sh));
+	}
+	return 0;
+	
 }
 
 

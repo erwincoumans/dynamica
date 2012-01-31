@@ -9,7 +9,7 @@
 
 ; The location of the module file
 Var MODULE_FILE_LOCATION
-!define MAYA_VERSION "2011-x64"
+!define MAYA_VERSION "2012-x64"
 !define DYNAMICA_VERSION "2.80"
 ;Remember to change PROGRAMFILES64 to PROGRAMFILES for 32bit installers!
 ;And choose the appropriate amd64 or x86 msvcp*.dll and msvcr*.dll version

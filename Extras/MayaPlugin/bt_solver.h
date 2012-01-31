@@ -118,7 +118,14 @@ public:
                                                       unsigned int const *indices, size_t num_indices)
     {
 		bool dynamicMesh = true;
-        return new bt_hacd_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
+		bt_hacd_shape_t* tmpShape = new bt_hacd_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
+		btCollisionShape* shape = tmpShape->shape();
+		if (shape)
+		{
+			return new bt_hacd_shape_t(vertices, num_vertices, normals, indices, num_indices, dynamicMesh);
+		}
+
+		return 0;
     }
 
 

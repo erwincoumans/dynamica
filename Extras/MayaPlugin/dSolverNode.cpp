@@ -458,7 +458,7 @@ MStatus dSolverNode::initialize()
     status = addAttribute(ia_splitImpulse);
     MCHECKSTATUS(status, "adding ia_splitImpulse attribute")
 
-	ia_DBG_DrawWireframe = fnNumericAttr.create("drawWireframe", "dwfr", MFnNumericData::kBoolean, false, &status);
+	ia_DBG_DrawWireframe = fnNumericAttr.create("drawWireframe", "dwfr", MFnNumericData::kBoolean, true, &status);
     MCHECKSTATUS(status, "creating ia_DBG_DrawWireframe attribute")
     status = addAttribute(ia_DBG_DrawWireframe);
     MCHECKSTATUS(status, "adding ia_DBG_DrawWireframe attribute")

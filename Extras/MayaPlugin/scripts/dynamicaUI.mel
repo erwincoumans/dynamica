@@ -86,8 +86,8 @@ global proc dynamicaUI_createShelf()
 		-c "dynamicaUI_createActiveHull" -ann "Create active hull rigid bodies" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateActiveMesh.xpm"
 		-c "dynamicaUI_createActiveMesh" -ann "Create active mesh rigid bodies" -p $dynamicaShelf;
-//	shelfButton -i "dynamicaCreateHACD.xpm"
-	//	-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
+	shelfButton -i "dynamicaCreateActiveMesh.xpm"
+		-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies" -p $dynamicaShelf;
 		
 	shelfButton -i "dynamicaCreatePassiveSphere.xpm" 
 		-c "dynamicaUI_createPassiveSphere" -ann "Create passive sphere rigid body" -p $dynamicaShelf;
@@ -100,6 +100,11 @@ global proc dynamicaUI_createShelf()
 	shelfButton -i "dynamicaCreatePassivePlane.xpm" 
 		-c "dynamicaUI_createPassivePlane" -ann "Create passive plane rigid body" -p $dynamicaShelf;
 
+	shelfButton -i "dynamicaCreateActiveMesh.xpm"
+		-c "dynamicaUI_createPassiveHACD(true, 8)" -ann "Create passive HACD rigid body" -p $dynamicaShelf;
+	
+	
+	
 	shelfButton -i "dynamicaCreateNailConstraint.xpm" 
 		-c "dynamicaUI_createNail" -ann "Create a breakable nail constraint" -p $dynamicaShelf;
 	shelfButton -i "dynamicaCreateHingeConstraint.xpm" 
@@ -241,8 +246,8 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreateActiveMesh.xpm"
 					-c "dynamicaUI_createActiveMesh" -ann "Create active mesh rigid bodies from selection";
 				
-//				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateHACD.xpm"
-	//				-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
+				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateActiveMesh.xpm"
+					-c "dynamicaUI_createRigidBody(true, 8)" -ann "Create HACD rigid bodies from selection";
 			setParent ..;
 		setParent ..;
 
@@ -265,6 +270,10 @@ global proc string dynamicaUI_createMainTab()
 
 				iconTextButton -st "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlane.xpm" 
 					-c "dynamicaUI_createPassivePlane" -ann "Create a passive plane rigid body";
+					
+				iconTextButton -st "iconAndTextVertical" -l "HACD" -w 75 -i "dynamicaCreateActiveMesh.xpm"
+					-c "dynamicaUI_createRigidBody(false, 8)" -ann "Create passive HACD rigid bodies from selection";
+					
 			setParent ..;
 		setParent ..;
 
@@ -679,6 +688,8 @@ global proc dynamicaUI_createPassiveHull() { dynamicaUI_createRigidBody(false, 0
 
 global proc dynamicaUI_createPassiveMesh()  { dynamicaUI_createRigidBody(false, 1); }
 
+global proc dynamicaUI_createPassiveHACD()  { dynamicaUI_createRigidBody(false, 8); }
+
 global proc dynamicaUI_createPassivePlane()  { dynamicaUI_createRigidBody(false, 6); }
 
 global proc dynamicaUI_createNail() { dynamicaUI_createConstraint(0); }
@@ -862,7 +873,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	
 	
 	//pick the selected object's transform only if we are creating a hull or a mesh
-	if ($collisionShapeType == 0 || $collisionShapeType == 1) 
+	if ($collisionShapeType == 0 || $collisionShapeType == 1 || $collisionShapeType == 8) 
 	{
 		string $rigidBodyNode;
 		

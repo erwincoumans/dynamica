@@ -300,10 +300,11 @@ void rigidBodyNode::draw( M3dView & view, const MDagPath &path,
                              M3dView::DisplayStyle style,
                              M3dView::DisplayStatus status )
 {
+	
   //  std::cout << "rigidBodyNode::draw" << std::endl;
 	MObject thisObject(thisMObject());
     update();
-
+	
     view.beginGL();
     glPushAttrib( GL_ALL_ATTRIB_BITS );
 
@@ -498,6 +499,7 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
     //set the scale to the collision shape
     m_rigid_body->collision_shape()->set_scale(vec3f((float)mscale[0], (float)mscale[1], (float)mscale[2]));
 }
+
 
 void rigidBodyNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& data)
 {

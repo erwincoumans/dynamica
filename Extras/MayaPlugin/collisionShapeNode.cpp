@@ -208,7 +208,9 @@ void collisionShapeNode::computeCollisionShape(const MPlug& plug, MDataBlock& da
         //convex hull
         MPlugArray plgaConnectedTo;
         plgInShape.connectedTo(plgaConnectedTo, true, true);
-        if(plgaConnectedTo.length() > 0) {
+        int numSelectedShapes = plgaConnectedTo.length();
+
+		if(numSelectedShapes > 0) {
             MObject node = plgaConnectedTo[0].node();
             if(node.hasFn(MFn::kMesh)) {
                 MDagPath dagPath;
@@ -430,7 +432,8 @@ void collisionShapeNode::computeCollisionShapeParam(const MPlug& plug, MDataBloc
 
     float3& scale = data.inputValue(ia_scale).asFloat3();
 
-    m_collision_shape->set_scale(vec3f(scale[0], scale[1], scale[2]));
+	if (m_collision_shape)
+		m_collision_shape->set_scale(vec3f(scale[0], scale[1], scale[2]));
 
     data.setClean(plug);
 }

@@ -19,6 +19,8 @@ subject to the following restrictions:
 #include "hacdGraph.h"
 #include "hacdHACD.h"
 
+#include <maya/MProgressWindow.h>
+#include <maya/MGlobal.h>
 
 //#include "ConvexBuilder.h"
 
@@ -116,6 +118,34 @@ void convex_decomposition_hacd::ConvexDecompResult(unsigned int hvcount,const fl
 	m_convexCentroids.push_back(centroid);
 	mBaseCount+=hvcount; // advance the 'base index' counter.
 };
+extern bool gCancelRequest;
+
+bool mayaCallback(const char * msg, double v0, double v1, size_t s1)
+{
+	if (v1>0.1f)
+	{
+		CHECK_MSTATUS(MProgressWindow::setProgress((v0/v1)*1000.f));
+	} else
+	{
+		CHECK_MSTATUS(MProgressWindow::setProgress(0.f));
+	}
+
+	MString str(msg);
+	CHECK_MSTATUS(MProgressWindow::setProgressStatus(str));
+
+
+	if (MProgressWindow::isCancelled()) 
+	{
+			MGlobal::displayInfo("Progress interrupted!");
+          
+		gCancelRequest = true;
+		return true;
+	}
+
+	return false;
+
+}
+
 
 btCompoundShape* convex_decomposition_hacd::ConvexDecomp(int numVertices, float* vertices, int numIndices,const unsigned int* indices)
 {
@@ -167,8 +197,95 @@ btCompoundShape* convex_decomposition_hacd::ConvexDecomp(int numVertices, float*
 	myHACD.SetAddExtraDistPoints(true);   
 	myHACD.SetAddFacesPoints(true); 
 
-	myHACD.Compute();
-	nClusters = myHACD.GetNClusters();
+
+	
+        MStatus stat = MS::kSuccess;
+        MString title = "Esc to stop";
+        MString sleeping = "Esc to stop";
+        
+        int amount = 0;
+        int maxProgress = 1000;
+        
+        // First reserve the progress window.  If a progress window is already
+        // active (eg. through the mel "progressWindow" command), this command
+        // fails.
+        //
+        if (!MProgressWindow::reserve())
+        {
+                MGlobal::displayError("Progress window already in use.");
+                stat = MS::kFailure;
+        }
+
+        //
+        // Set up and print progress window state
+        //
+
+
+        CHECK_MSTATUS(MProgressWindow::setProgressRange(amount, maxProgress));
+        CHECK_MSTATUS(MProgressWindow::setTitle(title));
+        CHECK_MSTATUS(MProgressWindow::setInterruptable(true));
+        CHECK_MSTATUS(MProgressWindow::setProgress(amount));
+
+        MString progressWindowState = MString("Progress Window Info:") +
+                MString("\nMin: ") + MProgressWindow::progressMin() +
+                MString("\nMax: ") + MProgressWindow::progressMax() + 
+                MString("\nTitle: ") + MProgressWindow::title() + 
+                MString("\nInterruptible: ") + MProgressWindow::isInterruptable();
+
+        MGlobal::displayInfo(progressWindowState);
+        
+        CHECK_MSTATUS(MProgressWindow::startProgress());
+        
+		int i=1;
+		MString statusStr = sleeping;
+        statusStr += i;
+
+		 CHECK_MSTATUS(MProgressWindow::setProgressStatus(statusStr));
+          CHECK_MSTATUS(MProgressWindow::advanceProgress(1));
+		   MGlobal::displayInfo(MString("Current progress: ") + MProgressWindow::progress());
+		    
+		   MGlobal::executeCommand("pause -sec 1", false,false);
+		   
+        // Count 10 seconds
+        //
+/*        for (int i = amount; i < maxProgress; i++)
+        {
+                if (i != 0 && MProgressWindow::isCancelled()) {
+                        MGlobal::displayInfo("Progress interrupted!");
+                        break;
+                }
+
+                MString statusStr = sleeping;
+                statusStr += i;
+                CHECK_MSTATUS(MProgressWindow::setProgressStatus(statusStr));
+                CHECK_MSTATUS(MProgressWindow::advanceProgress(1));
+
+                MGlobal::displayInfo(MString("Current progress: ") + MProgressWindow::progress());
+
+                MGlobal::executeCommand("pause -sec 1", false, false);
+        }
+		*/
+
+        
+        // End the progress, unreserving the progress window so it can be used
+        // elsewhere.
+        //
+     
+	myHACD.SetCallBack(mayaCallback);
+
+	bool result = myHACD.Compute();
+	if (!result)
+	{
+		nClusters = 0;
+	} else
+	{
+		nClusters = myHACD.GetNClusters();
+	}
+	   
+	CHECK_MSTATUS(MProgressWindow::endProgress());
+
+	
+	
 
 //	myHACD.Save("output.wrl", false);
 
