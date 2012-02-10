@@ -624,9 +624,9 @@ global proc string dynamicaUI_createHelpTab()
 	return $mainForm;
 }
 
-global proc string dynamicaUI_createFrame(string $label, string $annotation, int $collapsable, int $collapsed) 
+global proc string dynamicaUI_createFrame(string $label, string $annotation, int $collapsable, int $collapsed)
 {
-	return `frameLayout -cll $collapsable -cl $collapsed -mh 3 -mw 6 -w 486 -bs "etchedIn" -l $label -ann $annotation`;
+	return `frameLayout -cll $collapsable -cl $collapsed -mh 3 -mw 6 -w 486 -h 100 -bs "etchedIn" -l $label -ann $annotation`;
 }
 
 global proc string dynamicaUI_loadHelp()
