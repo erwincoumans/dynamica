@@ -822,7 +822,7 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 		{
 			sliderConstraintNode* sliderNode = static_cast<sliderConstraintNode*>(msgDagNode.userNode());
 
-			sliderNode->computeConstraint(plug,data);
+			sliderNode->reComputeConstraint();
 
 			if(msgDagNode.parentCount() == 0) 
 			{
@@ -837,6 +837,7 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 			slider->set_enabled(true); //re-enables constraint if broken dynamically
 			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
             msgTransform.setRotation(MQuaternion(constrRot[1], constrRot[2], constrRot[3], constrRot[0]));
+
 		}
 		if(msgDagNode.typeId() == sixdofConstraintNode::typeId) 
 		{

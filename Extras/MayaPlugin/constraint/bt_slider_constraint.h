@@ -121,7 +121,37 @@ public:
 		w = vec3f(bw[0], bw[1], bw[2]);
 	}
 
-	virtual void set_world(vec3f const &p, quatf const& r) {
+	virtual void get_local_frameA(vec3f& p, quatf& r)const
+	{
+		const btSliderConstraint* sc = static_cast<const btSliderConstraint*>(m_constraint.get());
+		p[0] = sc->getFrameOffsetA().getOrigin().x();
+		p[1] = sc->getFrameOffsetA().getOrigin().y();
+		p[2] = sc->getFrameOffsetA().getOrigin().z();
+
+		btQuaternion orn = sc->getFrameOffsetA().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+
+	virtual void get_local_frameB(vec3f& p, quatf& r) const
+	{
+		const btSliderConstraint* sc = static_cast<const btSliderConstraint*>(m_constraint.get());
+		p[0] = sc->getFrameOffsetB().getOrigin().x();
+		p[1] = sc->getFrameOffsetB().getOrigin().y();
+		p[2] = sc->getFrameOffsetB().getOrigin().z();
+
+		btQuaternion orn = sc->getFrameOffsetB().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+
+
+	virtual void set_world(vec3f const &p, quatf const& r) 
+	{
         btSliderConstraint* sc = static_cast<btSliderConstraint*>(m_constraint.get());
         btVector3 worldP(p[0], p[1], p[2]);
 		btQuaternion worldR(r[1], r[2], r[3], r[0]);

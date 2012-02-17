@@ -217,13 +217,14 @@ MStatus sliderConstraintNode::initialize()
 
 sliderConstraintNode::sliderConstraintNode()
 {
+	m_disableCollision=true;
 
 	for (int i=0;i<3;i++)
 	{
-		mPivInA[i] = 0.f;
-		mPivInB[i] = 0.f;
-		mRotInA[i] = 0.f;
-		mRotInB[i] = 0.f;
+		m_PivInA[i] = 0.f;
+		m_RotInA[i] = 0.f;
+		m_PivInB[i] = 0.f;
+		m_RotInB[i] = 0.f;
 	}
     // std::cout << "sliderConstraintNode::sliderConstraintNode" << std::endl;
 }
@@ -409,11 +410,11 @@ void sliderConstraintNode::destroyConstraint()
 {
 	constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
     solver_t::remove_constraint(constraint);
+	m_constraint = 0;
 }
 
-
 //standard attributes
-void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data1)
+void sliderConstraintNode::reComputeConstraint()
 {
    // std::cout << "sliderConstraintNode::computeConstraint" << std::endl;
 
@@ -455,27 +456,84 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
         }
     }
 
-	vec3f pivInA, pivInB;
 
 	if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
 	{
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
 		
-		for(int i = 0; i < 3; i++)
-		{
-			pivInA[i] = (float)mPivInA[i];
-			pivInB[i] = (float)mPivInB[i];
-		}
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInA, m_RotInA, rigid_bodyB, m_PivInB, m_RotInB);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, m_disableCollision);
+	}
+    else if(rigid_bodyA != NULL) 
+	{
+        //not connected to a rigid body, put a default one
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::remove_constraint(constraint);
+
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInB, m_RotInB);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, m_disableCollision);
+    }
+
+	m_constraint->setPivotChanged(false);
+
+}
+
+
+//standard attributes
+void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data1)
+{
+   // std::cout << "sliderConstraintNode::computeConstraint" << std::endl;
+
+	m_disableCollision = data1.inputValue(ia_disableCollide).asBool();
+
+    MObject thisObject(thisMObject());
+    MPlug plgRigidBodyA(thisObject, ia_rigidBodyA);
+    MPlug plgRigidBodyB(thisObject, ia_rigidBodyB);
+    MObject update;
+    //force evaluation of the rigidBody
+    plgRigidBodyA.getValue(update);
+    plgRigidBodyB.getValue(update);
+
+    rigid_body_t::pointer  rigid_bodyA;
+    if(plgRigidBodyA.isConnected()) {
+        MPlugArray connections;
+        plgRigidBodyA.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNodeA(connections[0].node());
+            if(fnNodeA.typeId() == rigidBodyNode::typeId) {
+                rigidBodyNode *pRigidBodyNodeA = static_cast<rigidBodyNode*>(fnNodeA.userNode());
+                rigid_bodyA = pRigidBodyNodeA->rigid_body();    
+            } else {
+                std::cout << "sliderConstraintNode connected to a non-rigidbody node!" << std::endl;
+            }
+        }
+    }
+
+    rigid_body_t::pointer  rigid_bodyB;
+	if(plgRigidBodyB.isConnected()) {
+        MPlugArray connections;
+        plgRigidBodyB.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNodeB(connections[0].node());
+            if(fnNodeB.typeId() == rigidBodyNode::typeId) {
+                rigidBodyNode *pRigidBodyNodeB = static_cast<rigidBodyNode*>(fnNodeB.userNode());
+                rigid_bodyB = pRigidBodyNodeB->rigid_body();    
+            } else {
+                std::cout << "sliderConstraintNode connected to a non-rigidbody node!" << std::endl;
+            }
+        }
+    }
+
+
+	if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
+	{
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::remove_constraint(constraint);
 		
-        MEulerRotation meulerA(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
-        MQuaternion mquatA = meulerA.asQuaternion();
-		quatf rotA((float)mquatA.w, (float)mquatA.x, (float)mquatA.y, (float)mquatA.z);
-		
-        MEulerRotation meulerB(deg2rad(mRotInB[0]), deg2rad(mRotInB[1]), deg2rad(mRotInB[2]));
-        MQuaternion mquatB = meulerB.asQuaternion();
-		quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
-        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA, rigid_bodyB, pivInB, rotB);
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInA, m_RotInA, rigid_bodyB, m_PivInB, m_RotInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::add_constraint(constraint, data1.inputValue(ia_disableCollide).asBool());
 	}
@@ -484,21 +542,15 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		
-		for(int i = 0; i < 3; i++)
-		{
-			pivInA[i] = (float)mPivInA[i];
-		}
-		
-        MEulerRotation meuler(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
-        MQuaternion mquat = meuler.asQuaternion();
-		quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
-        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA);
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInB, m_RotInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint, data1.inputValue(ia_disableCollide).asBool());
+        solver_t::add_constraint(constraint, m_disableCollision);
     }
-    data1.outputValue(ca_constraint).set(true);
+
+	//m_constraint->setPivotChanged(true);
+	data1.outputValue(ca_constraint).set(true);
     data1.setClean(plug);
+
 }
 
 
@@ -578,10 +630,13 @@ void sliderConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& dat
 			}
 			if(doUpdatePivot)
 			{
-				m_constraint->set_world(vec3f((float) mtranslation[0], (float) mtranslation[1], (float) mtranslation[2]),
-										quatf((float)mrotation.w, (float)mrotation.x, (float)mrotation.y, (float)mrotation.z));
 				vec3f pivInA, pivInB;
 				quatf rotInA, rotInB;
+				m_constraint->get_local_frameA(m_PivInA, m_RotInA);
+				m_constraint->get_local_frameB(m_PivInB, m_RotInB);
+				
+				m_constraint->set_world(vec3f((float) mtranslation[0], (float) mtranslation[1], (float) mtranslation[2]),
+										quatf((float)mrotation.w, (float)mrotation.x, (float)mrotation.y, (float)mrotation.z));
 				m_constraint->get_frameA(pivInA, rotInA);
 				m_constraint->get_frameB(pivInB, rotInB);
 				MDataHandle hPivInA = data.outputValue(ia_pivotInA);
@@ -590,24 +645,29 @@ void sliderConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& dat
 				float3 &ihPivInB = hPivInB.asFloat3();
 				for(int i = 0; i < 3; i++) 
 				{ 
-					ihPivInA[i] = mPivInA[i] = pivInA[i]; 
-					ihPivInB[i] = mPivInB[i] = pivInB[i]; 
+					ihPivInA[i] = pivInA[i]; 
+					ihPivInB[i] = pivInB[i]; 
 				}
 				MDataHandle hRotInA = data.outputValue(ia_rotationInA);
 				float3 &hrotInA = hRotInA.asFloat3();
 				MQuaternion mrotA(rotInA[1], rotInA[2], rotInA[3], rotInA[0]);
 				MEulerRotation newrotA(mrotA.asEulerRotation());
-				hrotInA[0] = mRotInA[0] = rad2deg((float)newrotA.x);
-				hrotInA[1] = mRotInA[1] = rad2deg((float)newrotA.y);
-				hrotInA[2] = mRotInA[2] = rad2deg((float)newrotA.z);
+				hrotInA[0] = rad2deg((float)newrotA.x);
+				hrotInA[1] = rad2deg((float)newrotA.y);
+				hrotInA[2] = rad2deg((float)newrotA.z);
 				MDataHandle hRotInB = data.outputValue(ia_rotationInB);
 				float3 &hrotInB = hRotInB.asFloat3();
 				MQuaternion mrotB(rotInB[1], rotInB[2], rotInB[3], rotInB[0]);
 				MEulerRotation newrotB(mrotB.asEulerRotation());
-				hrotInB[0] = mRotInB[0] = rad2deg((float)newrotB.x);
-				hrotInB[1] = mRotInB[1] = rad2deg((float)newrotB.y);
-				hrotInB[2] = mRotInB[2] = rad2deg((float)newrotB.z);
+				hrotInB[0] = rad2deg((float)newrotB.x);
+				hrotInB[1] = rad2deg((float)newrotB.y);
+				hrotInB[2] = rad2deg((float)newrotB.z);
 				m_constraint->setPivotChanged(false);
+
+				m_constraint->get_local_frameA(m_PivInA, m_RotInA);
+				m_constraint->get_local_frameB(m_PivInB, m_RotInB);
+
+
 			}
 		}
 	}

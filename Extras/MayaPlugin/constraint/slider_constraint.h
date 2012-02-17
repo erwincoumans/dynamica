@@ -101,6 +101,18 @@ public:
         slider_constraint_impl_t const* slider_impl = dynamic_cast<slider_constraint_impl_t const*>(impl());
 		slider_impl->worldFromB(p, w);
 	} 
+	void get_local_frameA(vec3f& p, quatf& r) const
+	{
+		slider_constraint_impl_t const* slider_impl = dynamic_cast<slider_constraint_impl_t const*>(impl());
+		slider_impl ->get_local_frameA(p,r);
+	}
+
+	void get_local_frameB(vec3f& p, quatf& r) const
+	{
+		slider_constraint_impl_t const* slider_impl = dynamic_cast<slider_constraint_impl_t const*>(impl());
+		slider_impl ->get_local_frameB(p,r);
+	}
+
 	void set_world(vec3f const& p, quatf const& r) 
     {
         slider_constraint_impl_t* slider_impl = dynamic_cast<slider_constraint_impl_t*>(impl());
