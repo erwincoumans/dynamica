@@ -259,6 +259,13 @@ MStatus hingeConstraintNode::initialize()
 
 hingeConstraintNode::hingeConstraintNode()
 {
+	for (int i=0;i<3;i++)
+	{
+		mPivInA[i] = 0.f;
+		mPivInB[i] = 0.f;
+		mRotInA[i] = 0.f;
+		mRotInB[i] = 0.f;
+	}
     // std::cout << "hingeConstraintNode::hingeConstraintNode" << std::endl;
 }
 
@@ -444,6 +451,12 @@ MBoundingBox hingeConstraintNode::boundingBox() const
     return MBoundingBox(corner1, corner2);
 }
 
+void hingeConstraintNode::destroyConstraint()
+{
+	constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+	solver_t::remove_constraint(constraint);
+
+}
 //standard attributes
 void hingeConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 {
@@ -492,18 +505,18 @@ void hingeConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 	{
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
-		float3& mPivInB = data.inputValue(ia_pivotInB).asFloat3();
+		//float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+		//float3& mPivInB = data.inputValue(ia_pivotInB).asFloat3();
 		for(int i = 0; i < 3; i++)
 		{
 			pivInA[i] = (float)mPivInA[i];
 			pivInB[i] = (float)mPivInB[i];
 		}
-		float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
+//		float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
         MEulerRotation meulerA(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
         MQuaternion mquatA = meulerA.asQuaternion();
 		quatf rotA((float)mquatA.w, (float)mquatA.x, (float)mquatA.y, (float)mquatA.z);
-		float3& mRotInB = data.inputValue(ia_rotationInB).asFloat3();
+		//float3& mRotInB = data.inputValue(ia_rotationInB).asFloat3();
         MEulerRotation meulerB(deg2rad(mRotInB[0]), deg2rad(mRotInB[1]), deg2rad(mRotInB[2]));
         MQuaternion mquatB = meulerB.asQuaternion();
 		quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
@@ -516,12 +529,12 @@ void hingeConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+		//float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
 		for(int i = 0; i < 3; i++)
 		{
 			pivInA[i] = (float)mPivInA[i];
 		}
-		float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
+		//float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
         MEulerRotation meuler(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
         MQuaternion mquat = meuler.asQuaternion();
 		quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
@@ -622,23 +635,25 @@ void hingeConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data
 				float3 &ihPivInB = hPivInB.asFloat3();
 				for(int i = 0; i < 3; i++) 
 				{ 
-					ihPivInA[i] = pivInA[i]; 
-					ihPivInB[i] = pivInB[i]; 
+					ihPivInA[i] = mPivInA[i] = pivInA[i]; 
+					ihPivInB[i] = mPivInB[i] = pivInB[i]; 
 				}
 				MDataHandle hRotInA = data.outputValue(ia_rotationInA);
 				float3 &hrotInA = hRotInA.asFloat3();
 				MQuaternion mrotA(rotInA[1], rotInA[2], rotInA[3], rotInA[0]);
 				MEulerRotation newrotA(mrotA.asEulerRotation());
-				hrotInA[0] = rad2deg((float)newrotA.x);
-				hrotInA[1] = rad2deg((float)newrotA.y);
-				hrotInA[2] = rad2deg((float)newrotA.z);
+				hrotInA[0] = mRotInA[0] = rad2deg((float)newrotA.x);
+				hrotInA[1] = mRotInA[1] = rad2deg((float)newrotA.y);
+				hrotInA[2] = mRotInA[2] = rad2deg((float)newrotA.z);
+
+
 				MDataHandle hRotInB = data.outputValue(ia_rotationInB);
 				float3 &hrotInB = hRotInB.asFloat3();
 				MQuaternion mrotB(rotInB[1], rotInB[2], rotInB[3], rotInB[0]);
 				MEulerRotation newrotB(mrotB.asEulerRotation());
-				hrotInB[0] = rad2deg((float)newrotB.x);
-				hrotInB[1] = rad2deg((float)newrotB.y);
-				hrotInB[2] = rad2deg((float)newrotB.z);
+				hrotInB[0] = mRotInB[0] = rad2deg((float)newrotB.x);
+				hrotInB[1] = mRotInB[1] = rad2deg((float)newrotB.y);
+				hrotInB[2] = mRotInB[2] = rad2deg((float)newrotB.z);
 				m_constraint->setPivotChanged(false);
 			}
 		}

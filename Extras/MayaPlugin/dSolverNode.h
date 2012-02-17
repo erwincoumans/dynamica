@@ -129,6 +129,7 @@ protected:
         quatf m_q1;
     };
 
+	void deleteRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data);
     void computeRigidBodies(const MPlug& plug, MDataBlock& data);
 	void computeSoftBodies(const MPlug& plug, MDataBlock& data);
 	void initSoftBody(const MPlug& plug, MObject& node, MDataBlock& data);

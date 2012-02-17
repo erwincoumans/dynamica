@@ -266,7 +266,9 @@ public:
     virtual void import_collada_file(const char* filename);
 
 
+	void deleteWorld();
 
+	virtual void createWorld();
 
 protected:
     friend class solver_t;
@@ -274,12 +276,12 @@ protected:
 
 
 private:
-	shared_ptr<btSoftBodyWorldInfo> m_worldInfo;
-    shared_ptr<btBroadphaseInterface>            m_broadphase;
-    shared_ptr<btConstraintSolver>               m_solver;
-    shared_ptr<btDefaultCollisionConfiguration>  m_collisionConfiguration;
-    shared_ptr<btCollisionDispatcher>            m_dispatcher;
-    shared_ptr<btSoftRigidDynamicsWorld>          m_dynamicsWorld;
+	btSoftBodyWorldInfo* m_worldInfo;
+    btBroadphaseInterface*            m_broadphase;
+    btConstraintSolver*               m_solver;
+    btDefaultCollisionConfiguration*  m_collisionConfiguration;
+    btCollisionDispatcher*            m_dispatcher;
+    btSoftRigidDynamicsWorld*          m_dynamicsWorld;
 public:
 	btHashMap<btHashPtr,const char*>	m_nameMap;
 };

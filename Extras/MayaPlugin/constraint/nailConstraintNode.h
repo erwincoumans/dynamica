@@ -88,10 +88,13 @@ public:
     static  MTypeId     typeId;
     static  MString     typeName;
 
-private:
+//private:
+	void destroyConstraint();
     void computeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraintParam(const MPlug& plug, MDataBlock& data);
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
+
+	vec3f m_pivInA, m_pivInB;
 
 public:
     static void nodeRemoved(MObject& node, void *clientData);

@@ -114,6 +114,8 @@ public:
 
     static void step_simulation(float dt,  float fixedPhysicsFrameRate);
 
+	static void createWorld();
+
 	static void debug_draw(int dbgMode);
 
     static shared_ptr<solver_impl_t> get_solver();

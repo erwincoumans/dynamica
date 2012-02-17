@@ -100,8 +100,10 @@ public:
     static  MTypeId     typeId;
     static  MString     typeName;
 
-private:
+//private:
     void update();
+	void destroyRigidBodies();
+	void reComputeRigidBodies(const MPlug& plug, MDataBlock& data);
     void computeRigidBodies(const MPlug& plug, MDataBlock& data);
     void computeRigidBodyParam(const MPlug& plug, MDataBlock& data); 
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
@@ -112,6 +114,11 @@ public:
 private:
     std::vector<rigid_body_t::pointer>  m_rigid_bodies;
     MMatrix                             m_worldMatrix;
+
+	std::vector<vec3f> m_positions;
+    std::vector<quatf> m_rotations;
+	size_t	m_numRigidBodies;
+
 };
 
 

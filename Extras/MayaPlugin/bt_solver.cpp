@@ -42,7 +42,7 @@ Nov 2011 - Dec 2011 : Added soft body logic
 void bt_solver_t::export_collada_file(const char* fileName)
 {
 #ifdef BT_USE_COLLADA
-	ColladaConverter tmpConverter(m_dynamicsWorld.get());
+	ColladaConverter tmpConverter(m_dynamicsWorld);
 	tmpConverter.save(fileName);
 #endif
 }
@@ -156,19 +156,26 @@ bt_solver_t::bt_solver_t():
 			m_dynamicsWorld(0),
 			m_worldInfo(0)
 {
-	// use soft-body and rigid body collisions
+
+	createWorld();
+	
+}
+
+void bt_solver_t::deleteWorld()
+{
+	/*
+	if (!m_dynamicsWorld)
+		return;
+
+	bt_debug_draw* dbgDraw = (bt_debug_draw* ) m_dynamicsWorld->getDebugDrawer();
+	delete dbgDraw;
+
+		// use soft-body and rigid body collisions
 	m_collisionConfiguration.reset(new btSoftBodyRigidBodyCollisionConfiguration());
 	m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfiguration.get()));
 	
-	const btScalar WORLD_BOUND = 10000;
-	const size_t MAX_PROXIES = 8192;
-
-	// use btAxisSweep for broadphase collison
-	btVector3 worldAabbMin(-WORLD_BOUND,-WORLD_BOUND,-WORLD_BOUND);
-	btVector3 worldAabbMax(WORLD_BOUND,WORLD_BOUND,WORLD_BOUND);
-
-
-	m_broadphase.reset(new btAxisSweep3(worldAabbMin,worldAabbMax,MAX_PROXIES));
+	
+	m_broadphase.reset(new btDbvtBroadphase());
 	m_solver.reset(new btSequentialImpulseConstraintSolver());
 
 	m_dynamicsWorld.reset( new btSoftRigidDynamicsWorld(m_dispatcher.get(),
@@ -191,10 +198,45 @@ bt_solver_t::bt_solver_t():
 	m_worldInfo->m_gravity = m_dynamicsWorld->getGravity();
 	m_worldInfo->m_sparsesdf.Initialize();
 
+	m_dispatcher = 0;
+
+	m_collisionConfiguration = 0;
+	*/
+
+
+}
+
+void bt_solver_t::createWorld()
+{
+	// use soft-body and rigid body collisions
+	m_collisionConfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+	
+	
+	m_broadphase = new btDbvtBroadphase();
+	m_solver =new btSequentialImpulseConstraintSolver();
+
+	m_dynamicsWorld = new btSoftRigidDynamicsWorld(m_dispatcher,
+                                                        m_broadphase,
+                                                        m_solver,
+                                                        m_collisionConfiguration);
+	//register algorithm for concave meshes
+    btGImpactCollisionAlgorithm::registerAlgorithm(m_dispatcher);
+
+	// set default gravity
+    m_dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
+	
+	m_dynamicsWorld->getDispatchInfo().m_enableSPU = true;
+	
+	m_worldInfo = new btSoftBodyWorldInfo;
+	m_worldInfo->m_broadphase = m_broadphase;
+	m_worldInfo->m_dispatcher = m_dispatcher;
+	m_worldInfo->m_gravity = m_dynamicsWorld->getGravity();
+	m_worldInfo->m_sparsesdf.Initialize();
+
 	bt_debug_draw* dbgDraw = new bt_debug_draw();
 	m_dynamicsWorld->setDebugDrawer(dbgDraw);
 }
-
 
 void bt_solver_t::debug_draw(int dbgMode)
 {

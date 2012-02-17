@@ -66,7 +66,7 @@ MStatus nailConstraintNode::initialize()
     MFnNumericAttribute fnNumericAttr;
     MFnMatrixAttribute fnMatrixAttr;
 
-    ia_rigidBodyA = fnMsgAttr.create("inRigidBodyA", "inrbA", &status);
+	ia_rigidBodyA = fnMsgAttr.create("inRigidBodyA", "inrbA", &status);
     MCHECKSTATUS(status, "creating inRigidBodyA attribute")
     status = addAttribute(ia_rigidBodyA);
     MCHECKSTATUS(status, "adding inRigidBodyA attribute")
@@ -162,6 +162,8 @@ MStatus nailConstraintNode::initialize()
 
 nailConstraintNode::nailConstraintNode()
 {
+	m_pivInA = vec3f(0.f,0.f,0.f);
+	m_pivInB = vec3f(0.f,0.f,0.f);
     // std::cout << "nailConstraintNode::nailConstraintNode" << std::endl;
 }
 
@@ -321,6 +323,15 @@ MBoundingBox nailConstraintNode::boundingBox() const
     return MBoundingBox(corner1, corner2);
 }
 
+void nailConstraintNode::destroyConstraint()
+{
+	constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+	if (constraint)
+	{
+		 solver_t::remove_constraint(constraint);
+	}
+}
+
 //standard attributes
 void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 {
@@ -371,12 +382,12 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 	{
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
-		float3& mPivInB = data.inputValue(ia_pivotInB).asFloat3();
+
+		
 		for(int i = 0; i < 3; i++)
 		{
-			pivInA[i] = (float)mPivInA[i];
-			pivInB[i] = (float)mPivInB[i];
+			pivInA[i] = (float)m_pivInA[i];
+			pivInB[i] = (float)m_pivInB[i];
 		}
         m_constraint = solver_t::create_nail_constraint(rigid_bodyA, rigid_bodyB, pivInA, pivInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
@@ -387,10 +398,10 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+		
 		for(int i = 0; i < 3; i++)
 		{
-			pivInA[i] = (float)mPivInA[i];
+			pivInA[i] = (float)m_pivInA[i];
 		}
         m_constraint = solver_t::create_nail_constraint(rigid_bodyA, pivInA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
@@ -472,20 +483,22 @@ void nailConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 			if(doUpdatePivot)
 			{
 				m_constraint->set_world(vec3f((float) mtranslation[0], (float) mtranslation[1], (float) mtranslation[2]));
-				vec3f pivInA, pivInB;
-				m_constraint->get_pivotA(pivInA);
-				m_constraint->get_pivotB(pivInB);
+
+				m_constraint->get_pivotA(m_pivInA);
+				m_constraint->get_pivotB(m_pivInB);
 				MDataHandle hPivInA = data.outputValue(ia_pivotInA);
 				float3 &ihPivInA = hPivInA.asFloat3();
 				MDataHandle hPivInB = data.outputValue(ia_pivotInB);
 				float3 &ihPivInB = hPivInB.asFloat3();
 				for(int i = 0; i < 3; i++) 
 				{ 
-					ihPivInA[i] = pivInA[i]; 
-					ihPivInB[i] = pivInB[i]; 
+					ihPivInA[i] = m_pivInA[i]; 
+					ihPivInB[i] = m_pivInB[i]; 
 				}
 				m_constraint->setPivotChanged(false);
 			}
+
+
 		}
 	}
 	else

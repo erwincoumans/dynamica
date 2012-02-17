@@ -365,6 +365,15 @@ MBoundingBox rigidBodyNode::boundingBox() const
     return MBoundingBox(corner1, corner2);
 }
 
+void rigidBodyNode::destroyRigidBody()
+{
+	if (m_rigid_body)
+	{
+		solver_t::remove_rigid_body(m_rigid_body);
+		m_rigid_body = 0;
+	}
+}
+
 //standard attributes
 /*
 Rigid bodies are added to the solver here
@@ -431,6 +440,9 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
 
 void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 {
+	if (!m_rigid_body)
+		return;
+
   //  std::cout << "rigidBodyNode::computeWorldMatrix" << std::endl;
     MObject thisObject(thisMObject());
     MFnDagNode fnDagNode(thisObject);
@@ -495,6 +507,24 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 			fnParentTransform.setRotation(MQuaternion(rot[1], rot[2], rot[3], rot[0])); 
 		}
 	}
+
+	float mass = 0.f;
+	MPlug(thisObject, rigidBodyNode::ia_mass).getValue(mass);
+	m_rigid_body->set_mass(mass);
+	 m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
+	 float restitution = 0.f;
+	 MPlug(thisObject, rigidBodyNode::ia_restitution).getValue(restitution);
+	 m_rigid_body->set_restitution(restitution);
+	 float friction = 0.5f;
+	  MPlug(thisObject, rigidBodyNode::ia_friction).getValue(friction);
+    m_rigid_body->set_friction(friction);
+    float linDamp = 0.f;
+	  MPlug(thisObject, rigidBodyNode::ia_linearDamping).getValue(linDamp);
+	m_rigid_body->set_linear_damping(linDamp);
+    float angDamp = 0.f;
+	  MPlug(thisObject, rigidBodyNode::ia_angularDamping).getValue(angDamp);
+	m_rigid_body->set_angular_damping(angDamp);
+
     data.setClean(plug);
     //set the scale to the collision shape
     m_rigid_body->collision_shape()->set_scale(vec3f((float)mscale[0], (float)mscale[1], (float)mscale[2]));
@@ -504,6 +534,8 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 void rigidBodyNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& data)
 {
 	// std::cout << "(rigidBodyNode::computeRigidBodyParam) | " << std::endl;
+	if (!m_rigid_body)
+		return;
 
     MObject thisObject(thisMObject());
     MObject update;

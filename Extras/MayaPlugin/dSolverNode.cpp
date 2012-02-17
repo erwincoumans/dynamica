@@ -564,6 +564,12 @@ MStatus dSolverNode::compute(const MPlug& plug, MDataBlock& data)
 
     return MStatus::kSuccess;
 }
+void destroyRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
+{
+	MFnDagNode fnDagNode(node);
+	rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+  	rbNode->destroyRigidBody();
+}
 
 void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
 {
@@ -572,7 +578,14 @@ void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
 	MFnDagNode fnDagNode(node);
 
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
-    rigid_body_t::pointer rb = rbNode->rigid_body();
+    
+	
+
+	rbNode->computeRigidBody(plug,data);
+	
+	
+	rigid_body_t::pointer rb = rbNode->rigid_body();
+
 
     if(fnDagNode.parentCount() == 0) {
         std::cout << "No transform found!" << std::endl;
@@ -715,7 +728,46 @@ void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& dat
 
 }
 
-void initConstraint(MObject& bodyNode) 
+void destroyConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data) 
+{
+	MFnDagNode fnDagNode(bodyNode);
+    rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+	MPlug plgMessages(bodyNode, rbNode->message);
+	MPlugArray rbMsgConnections;
+	plgMessages.connectedTo(rbMsgConnections, false, true);
+	for(size_t j = 0; j < rbMsgConnections.length(); j++) 
+	{
+		MObject msgNode = rbMsgConnections[j].node();
+		MFnDagNode msgDagNode(msgNode);
+		if(msgDagNode.typeId() == nailConstraintNode::typeId) 
+		{
+			nailConstraintNode* nailNode = static_cast<nailConstraintNode*>(msgDagNode.userNode());
+			nailNode->destroyConstraint();
+		}
+		
+		if(msgDagNode.typeId() == hingeConstraintNode::typeId) 
+		{
+			hingeConstraintNode* hingeNode = static_cast<hingeConstraintNode*>(msgDagNode.userNode());
+			hingeNode->destroyConstraint();
+		}
+
+		if(msgDagNode.typeId() == sliderConstraintNode::typeId) 
+		{
+			sliderConstraintNode* sliderNode = static_cast<sliderConstraintNode*>(msgDagNode.userNode());
+			sliderNode->destroyConstraint();
+		}
+
+		if(msgDagNode.typeId() == sixdofConstraintNode::typeId) 
+		{
+			sixdofConstraintNode* sixdofNode = static_cast<sixdofConstraintNode*>(msgDagNode.userNode());
+			sixdofNode->destroyConstraint();
+		}
+		
+
+	}
+}
+
+void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data) 
 {
     MFnDagNode fnDagNode(bodyNode);
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
@@ -729,6 +781,10 @@ void initConstraint(MObject& bodyNode)
 		if(msgDagNode.typeId() == nailConstraintNode::typeId) 
 		{
 			nailConstraintNode* nailNode = static_cast<nailConstraintNode*>(msgDagNode.userNode());
+
+			nailNode->computeConstraint(plug,data);
+			
+
 			if(msgDagNode.parentCount() == 0) 
 			{
 				std::cout << "No transform for nail constraint found!" << std::endl;
@@ -745,6 +801,9 @@ void initConstraint(MObject& bodyNode)
 		if(msgDagNode.typeId() == hingeConstraintNode::typeId) 
 		{
 			hingeConstraintNode* hingeNode = static_cast<hingeConstraintNode*>(msgDagNode.userNode());
+
+			hingeNode->computeConstraint(plug,data);
+
 			if(msgDagNode.parentCount() == 0) 
 			{
 				std::cout << "No transform for hinge constraint found!" << std::endl;
@@ -762,6 +821,9 @@ void initConstraint(MObject& bodyNode)
 		if(msgDagNode.typeId() == sliderConstraintNode::typeId) 
 		{
 			sliderConstraintNode* sliderNode = static_cast<sliderConstraintNode*>(msgDagNode.userNode());
+
+			sliderNode->computeConstraint(plug,data);
+
 			if(msgDagNode.parentCount() == 0) 
 			{
 				std::cout << "No transform for slider constraint found!" << std::endl;
@@ -779,6 +841,9 @@ void initConstraint(MObject& bodyNode)
 		if(msgDagNode.typeId() == sixdofConstraintNode::typeId) 
 		{
 			sixdofConstraintNode* sixdofNode = static_cast<sixdofConstraintNode*>(msgDagNode.userNode());
+
+			sixdofNode->computeConstraint(plug,data);
+
 			if(msgDagNode.parentCount() == 0) 
 			{
 				std::cout << "No transform for sixdof constraint found!" << std::endl;
@@ -796,12 +861,25 @@ void initConstraint(MObject& bodyNode)
 	}
 }
 
-void initRigidBodyArray(MObject &node)
+void destroyRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
+{
+	 MFnDagNode fnDagNode(node);
+
+    rigidBodyArrayNode *rbNode = static_cast<rigidBodyArrayNode*>(fnDagNode.userNode()); 
+    std::vector<rigid_body_t::pointer>& rbs = rbNode->rigid_bodies();
+	rbNode->destroyRigidBodies();
+}
+
+void initRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
 {
     MFnDagNode fnDagNode(node);
 
     rigidBodyArrayNode *rbNode = static_cast<rigidBodyArrayNode*>(fnDagNode.userNode()); 
     std::vector<rigid_body_t::pointer>& rbs = rbNode->rigid_bodies();
+	 
+	rbNode->reComputeRigidBodies(plug,data);
+	
+
 
     if(fnDagNode.parentCount() == 0) {
         std::cout << "No transform found!" << std::endl;
@@ -899,6 +977,29 @@ void initRigidBodyArray(MObject &node)
     }
 }
 
+void dSolverNode::deleteRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data)
+{
+	std::cout << "Deleting rigid bodies" << std::endl;
+	
+
+    for(size_t i = 0; i < rbConnections.length(); ++i) {
+        MObject node = rbConnections[i].node();
+        MFnDependencyNode fnNode(node);
+
+        if(fnNode.typeId() == rigidBodyNode::typeId) {
+            destroyRigidBody(plug, node, data);
+			destroyConstraint(plug,node,data);
+        } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
+            destroyRigidBodyArray(plug,node,data);
+        }
+		else if(fnNode.typeId() == SoftBodyNode::typeId)
+		{
+			//destroySoftBody(plug, node, data);
+		}
+    }
+}
+
+
 //init the rigid bodies to it's first frame configuration
 void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data)
 {
@@ -911,9 +1012,9 @@ void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, 
 
         if(fnNode.typeId() == rigidBodyNode::typeId) {
             initRigidBody(plug, node, data);
-			initConstraint(node);
+			initConstraint(plug,node,data);
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
-            initRigidBodyArray(node);
+            initRigidBodyArray(plug,node,data);
         }
 		else if(fnNode.typeId() == SoftBodyNode::typeId)
 		{
@@ -1206,25 +1307,27 @@ void dSolverNode::updateActiveRigidBodies(MPlugArray &rbConnections)
 		if(fnDagNode.typeId() == rigidBodyNode::typeId) {
             rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
             rigid_body_t::pointer rb = rbNode->rigid_body();
+			if (rb)
+			{
+				if(fnDagNode.parentCount() == 0) {
+					std::cout << "No transform found!" << std::endl;
+					continue;
+				}
 
-            if(fnDagNode.parentCount() == 0) {
-                std::cout << "No transform found!" << std::endl;
-                continue;
-            }
+				MFnTransform fnTransform(fnDagNode.parent(0));
 
-            MFnTransform fnTransform(fnDagNode.parent(0));
-
-            MPlug plgMass(node, rigidBodyNode::ia_mass);
-            float mass = 0.f;
-            plgMass.getValue(mass);
-			bool active = (mass>0.f);
-            if(active) {
-                quatf rot;
-                vec3f pos; 
-                rb->get_transform(pos, rot);
-                fnTransform.setRotation(MQuaternion(rot[1], rot[2], rot[3], rot[0]));
-                fnTransform.setTranslation(MVector(pos[0], pos[1], pos[2]), MSpace::kTransform);
-            }
+				MPlug plgMass(node, rigidBodyNode::ia_mass);
+				float mass = 0.f;
+				plgMass.getValue(mass);
+				bool active = (mass>0.f);
+				if(active) {
+					quatf rot;
+					vec3f pos; 
+					rb->get_transform(pos, rot);
+					fnTransform.setRotation(MQuaternion(rot[1], rot[2], rot[3], rot[0]));
+					fnTransform.setTranslation(MVector(pos[0], pos[1], pos[2]), MSpace::kTransform);
+				}
+			}
 			updateConstraint(node);
         } else if(fnDagNode.typeId() == rigidBodyArrayNode::typeId) {
             rigidBodyArrayNode *rbNode = static_cast<rigidBodyArrayNode*>(fnDagNode.userNode()); 
@@ -1317,15 +1420,18 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 
     //clear forces and get the properties needed for field computation    
     for(size_t i = 0; i < rigid_bodies.size(); ++i) {
-        rigid_bodies[i]->clear_forces();
-        vec3f pos, vel;
-        quatf rot;
-        rigid_bodies[i]->get_transform(pos, rot); 
-        rigid_bodies[i]->get_linear_velocity(vel);
-        position.append(MVector(pos[0], pos[1], pos[2]));
-        velocity.append(MVector(vel[0], vel[1], vel[2]));
-        //TODO
-        mass.append(1.0);
+        if (rigid_bodies[i])
+		{	
+			rigid_bodies[i]->clear_forces();
+			vec3f pos, vel;
+			quatf rot;
+			rigid_bodies[i]->get_transform(pos, rot); 
+			rigid_bodies[i]->get_linear_velocity(vel);
+			position.append(MVector(pos[0], pos[1], pos[2]));
+			velocity.append(MVector(vel[0], vel[1], vel[2]));
+			//TODO
+			mass.append(1.0);
+		}
         //
     }		   
 	
@@ -1341,14 +1447,15 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 		// at the moment, forces are applied uniformly to all nodes
 		// based on the value of the force at the centre, rather than
 		// node by node
+		if (soft_bodies[i])
+		{
+			vec3f pos = soft_bodies[i]->get_center();
+			softPosition.append(MVector(pos[0], pos[1], pos[2]));		
 
-		vec3f pos = soft_bodies[i]->get_center();
-		softPosition.append(MVector(pos[0], pos[1], pos[2]));		
-
-		vec3f vel = soft_bodies[i]->get_average_velocity();
-		softVelocity.append(MVector(vel[0], vel[1], vel[2]));
-		softMass.append(soft_bodies[i]->get_total_mass());
-
+			vec3f vel = soft_bodies[i]->get_average_velocity();
+			softVelocity.append(MVector(vel[0], vel[1], vel[2]));
+			softMass.append(soft_bodies[i]->get_total_mass());
+		}
 	}
 	
 	//apply the fields to the rigid and soft bodies
@@ -1359,11 +1466,17 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
         MFnField fnField(it.item());
         fnField.getForceAtPoint(position, velocity, mass, force, dt);
         for(size_t i = 0; i < rigid_bodies.size(); ++i) {
-            rigid_bodies[i]->apply_central_force(vec3f((float)force[i].x, (float)force[i].y, (float)force[i].z));
+			if ( rigid_bodies[i])
+			{
+				rigid_bodies[i]->apply_central_force(vec3f((float)force[i].x, (float)force[i].y, (float)force[i].z));
+			}
         }
 		fnField.getForceAtPoint(softPosition, softVelocity, softMass, softForce, dt);
 		for(size_t i = 0; i < soft_bodies.size(); ++i) {
-            soft_bodies[i]->apply_central_force(vec3f((float)softForce[i].x, (float)softForce[i].y, (float)softForce[i].z));
+			if (soft_bodies[i])
+			{
+				soft_bodies[i]->apply_central_force(vec3f((float)softForce[i].x, (float)softForce[i].y, (float)softForce[i].z));
+			}
         }
     }
 }
@@ -1396,8 +1509,13 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
     plgSplitImpulse.getValue(splitImpulseEnabled);
 
     if(time == startTime) {
-        //first frame, init the simulation		
+        //first frame, init the simulation	
+
+		//need to re-construct the world and re-insert all objects...
 		isStartTime = true;
+
+		deleteRigidBodies(plug, rbConnections, data);
+		solver_t::createWorld();
         initRigidBodies(plug, rbConnections, data);
 	
         solver_t::set_split_impulse(splitImpulseEnabled);

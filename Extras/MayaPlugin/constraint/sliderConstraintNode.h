@@ -95,7 +95,8 @@ public:
     static  MTypeId     typeId;
     static  MString     typeName;
 
-private:
+
+	void destroyConstraint();
     void computeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraintParam(const MPlug& plug, MDataBlock& data);
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
@@ -105,6 +106,10 @@ public:
 
 private:
     slider_constraint_t::pointer       m_constraint;
+	float3  mPivInA;
+	float3  mPivInB;
+	float3 mRotInA;
+	float3 mRotInB;
 };
 
 

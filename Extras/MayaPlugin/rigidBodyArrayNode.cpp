@@ -236,6 +236,7 @@ MStatus rigidBodyArrayNode::initialize()
 
 rigidBodyArrayNode::rigidBodyArrayNode()
 {
+	m_numRigidBodies = 0;
     // std::cout << "rigidBodyArrayNode::rigidBodyArrayNode" << std::endl;
 }
 
@@ -376,7 +377,60 @@ MBoundingBox rigidBodyArrayNode::boundingBox() const
 }
 
 //standard attributes
+void rigidBodyArrayNode::destroyRigidBodies()
+{
+	 for(size_t i = 0; i < m_rigid_bodies.size(); ++i) 
+	 {
+        solver_t::remove_rigid_body(m_rigid_bodies[i]);
+    }
+}
 
+void rigidBodyArrayNode::reComputeRigidBodies(const MPlug& plug, MDataBlock& )
+{
+	  MObject thisObject(thisMObject());
+    MPlug plgCollisionShape(thisObject, ia_collisionShape);
+    MObject update;
+    //force evaluation of the shape
+    plgCollisionShape.getValue(update);
+    
+   // MDataHandle coll = data.inputValue(ia_collisionShape);
+
+   // collisionShapeNode * pCollisionShapeNode = NULL;
+    collision_shape_t::pointer  collision_shape;
+    if(plgCollisionShape.isConnected()) {
+        MPlugArray connections;
+        plgCollisionShape.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNode(connections[0].node());
+            if(fnNode.typeId() == collisionShapeNode::typeId) {
+                collisionShapeNode *pCollisionShapeNode = static_cast<collisionShapeNode*>(fnNode.userNode());
+                collision_shape = pCollisionShapeNode->collisionShape();    
+            } else {
+                std::cout << "rigidBodyArrayNode connected to a non-collision shape node!" << std::endl;
+            }
+        }
+    }
+
+    if(!collision_shape) {
+        //not connected to a collision shape, put a default one
+        collision_shape = solver_t::create_sphere_shape();
+    }
+
+    
+    m_rigid_bodies.resize(m_numRigidBodies);
+    for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
+        m_rigid_bodies[i] = solver_t::create_rigid_body(collision_shape);
+	if (i < m_positions.size()) {
+            m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
+	} else {
+            m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
+	}
+	
+	solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
+    }
+
+    
+}
 void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 {
   //  std::cout << "rigidBodyArrayNode::computeRigidBodies" << std::endl;
@@ -386,7 +440,8 @@ void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
     MObject update;
     //force evaluation of the shape
     plgCollisionShape.getValue(update);
-    size_t numBodies = data.inputValue(ia_numBodies).asInt();
+    m_numRigidBodies = data.inputValue(ia_numBodies).asInt();
+	
    // MDataHandle coll = data.inputValue(ia_collisionShape);
 
    // collisionShapeNode * pCollisionShapeNode = NULL;
@@ -411,18 +466,18 @@ void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
     }
 
     //save the positions and orientations to restore them
-    std::vector<vec3f> positions(m_rigid_bodies.size());
-    std::vector<quatf> rotations(m_rigid_bodies.size());
+    m_positions.resize(m_rigid_bodies.size());
+    m_rotations.resize(m_rigid_bodies.size());
     for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
-        m_rigid_bodies[i]->get_transform(positions[i], rotations[i]);
+        m_rigid_bodies[i]->get_transform(m_positions[i], m_rotations[i]);
         solver_t::remove_rigid_body(m_rigid_bodies[i]);
     }
 
-    m_rigid_bodies.resize(numBodies);
+    m_rigid_bodies.resize(m_numRigidBodies);
     for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
         m_rigid_bodies[i] = solver_t::create_rigid_body(collision_shape);
-	if (i < positions.size()) {
-            m_rigid_bodies[i]->set_transform(positions[i], rotations[i]);
+	if (i < m_positions.size()) {
+            m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
 	} else {
             m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
 	}

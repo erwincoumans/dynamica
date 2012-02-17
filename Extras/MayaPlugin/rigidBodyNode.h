@@ -91,7 +91,8 @@ public:
     static  MTypeId     typeId;
     static  MString     typeName;
 
-private:
+//private:
+	void destroyRigidBody();
     void computeRigidBody(const MPlug& plug, MDataBlock& data);
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
     void computeRigidBodyParam(const MPlug& plug, MDataBlock& data);

@@ -259,6 +259,11 @@ void solver_t::set_split_impulse(bool enabled)
     m_impl->set_split_impulse(enabled);
 }
 
+void solver_t::createWorld()
+{
+	m_impl->createWorld();
+}
+
 void solver_t::step_simulation(float dt,float fixedPhysicsFrameRate)
 {
     m_impl->step_simulation(dt,fixedPhysicsFrameRate);
