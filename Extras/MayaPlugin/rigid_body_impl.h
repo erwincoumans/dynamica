@@ -51,7 +51,9 @@ public:
     virtual void get_transform(mat4x4f& xform) const = 0;
     virtual void set_interpolation_transform(vec3f const& position, quatf const& rotation) = 0;
 
-    virtual void set_linear_velocity(vec3f const& v) = 0;                       
+	virtual float get_mass() const = 0;
+
+	virtual void set_linear_velocity(vec3f const& v) = 0;                       
     virtual void get_linear_velocity(vec3f& v) const = 0;                           
 
     virtual void set_angular_velocity(vec3f const& v) = 0;                          
@@ -66,6 +68,8 @@ public:
 	virtual void update_constraint() = 0;
 	virtual void add_constraint(bt_constraint_t* constraint, bool disableCollide = false) = 0;
 	virtual void remove_constraint(bt_constraint_t* constraint) = 0;
+	virtual void remove_all_constraints() = 0;
+	
 
 public:
     virtual ~rigid_body_impl_t() {};

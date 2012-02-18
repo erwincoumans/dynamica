@@ -76,6 +76,11 @@ virtual MBoundingBox boundingBox() const
 
     virtual bool setInternalValueInContext ( const  MPlug & plug, const  MDataHandle & dataHandle,  MDGContext & ctx );
 
+	void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data); 
+	void initRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data);
+	void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data);
+
+
     virtual MStatus     compute( const MPlug& plug, MDataBlock& data );
 
     static  MObject     ia_time;
@@ -116,6 +121,7 @@ public:
     static  MTypeId	typeId;
     static  MString     typeName;
 	static	bool	isStartTime;
+	bool	m_reInitialize;
 	
 
 	static void updateAllRigidBodies();

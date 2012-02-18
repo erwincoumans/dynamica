@@ -116,6 +116,8 @@ public:
 
 	static void createWorld();
 
+	static void destroyWorld();
+
 	static void debug_draw(int dbgMode);
 
     static shared_ptr<solver_impl_t> get_solver();

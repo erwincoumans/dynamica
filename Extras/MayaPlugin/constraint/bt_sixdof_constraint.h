@@ -72,6 +72,34 @@ public:
 		sixdof->setAngularUpperLimit(btupp);
     }
 
+	virtual void get_local_frameA(vec3f& p, quatf& r)const
+	{
+		const btGeneric6DofConstraint* sc = static_cast<const btGeneric6DofConstraint*>(m_constraint.get());
+		p[0] = sc->getFrameOffsetA().getOrigin().x();
+		p[1] = sc->getFrameOffsetA().getOrigin().y();
+		p[2] = sc->getFrameOffsetA().getOrigin().z();
+
+		btQuaternion orn = sc->getFrameOffsetA().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+
+	virtual void get_local_frameB(vec3f& p, quatf& r) const
+	{
+		const btGeneric6DofConstraint* sc = static_cast<const btGeneric6DofConstraint*>(m_constraint.get());
+		p[0] = sc->getFrameOffsetB().getOrigin().x();
+		p[1] = sc->getFrameOffsetB().getOrigin().y();
+		p[2] = sc->getFrameOffsetB().getOrigin().z();
+
+		btQuaternion orn = sc->getFrameOffsetB().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+	
 	virtual void get_frameA(vec3f& p, quatf& r) const
 	{
 		btGeneric6DofConstraint const* sc = static_cast<btGeneric6DofConstraint const*>(m_constraint.get());

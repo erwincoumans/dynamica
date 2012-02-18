@@ -114,6 +114,7 @@ private:
 	quatf m_RotInA;
 	quatf m_RotInB;
 	bool m_disableCollision;
+	bool m_initialized;
 };
 
 

@@ -36,6 +36,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include <maya/MQuaternion.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MVector.h>
+#include <maya/MGlobal.h>
 
 #include "rigidBodyNode.h"
 #include "nailConstraintNode.h"
@@ -162,6 +163,7 @@ MStatus nailConstraintNode::initialize()
 
 nailConstraintNode::nailConstraintNode()
 {
+	m_initialized = false;
 	m_pivInA = vec3f(0.f,0.f,0.f);
 	m_pivInB = vec3f(0.f,0.f,0.f);
     // std::cout << "nailConstraintNode::nailConstraintNode" << std::endl;
@@ -333,9 +335,11 @@ void nailConstraintNode::destroyConstraint()
 }
 
 //standard attributes
-void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
+void nailConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& data)
 {
    // std::cout << "nailConstraintNode::computeConstraint" << std::endl;
+	if (!m_initialized)
+		return;
 
     MObject thisObject(thisMObject());
     MPlug plgRigidBodyA(thisObject, ia_rigidBodyA);
@@ -381,6 +385,9 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 	if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
 	{
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+		bt_nail_constraint_t* nail_impl = dynamic_cast<bt_nail_constraint_t*>(constraint->pubImpl());
+		rigid_bodyA->remove_constraint(nail_impl);
+		rigid_bodyB->remove_constraint(nail_impl);
         solver_t::remove_constraint(constraint);
 
 		
@@ -397,7 +404,9 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 	{
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::remove_constraint(constraint);
+		bt_nail_constraint_t* nail_impl = dynamic_cast<bt_nail_constraint_t*>(constraint->pubImpl());
+		rigid_bodyA->remove_constraint(nail_impl);
+		solver_t::remove_constraint(constraint);
 		
 		for(int i = 0; i < 3; i++)
 		{
@@ -406,13 +415,113 @@ void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
         m_constraint = solver_t::create_nail_constraint(rigid_bodyA, pivInA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
-    }
+    } else if (rigid_bodyB)
+	{
+		//not connected to a rigid body, put a default one
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+		bt_nail_constraint_t* nail_impl = dynamic_cast<bt_nail_constraint_t*>(constraint->pubImpl());
+		rigid_bodyB->remove_constraint(nail_impl);
+		solver_t::remove_constraint(constraint);
+		
+		for(int i = 0; i < 3; i++)
+		{
+			pivInB[i] = (float)m_pivInB[i];
+		}
+        m_constraint = solver_t::create_nail_constraint(rigid_bodyB, pivInB);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
+
+	}
 	data.outputValue(ca_constraint).set(true);
+    data.setClean(plug);
+}
+
+
+//standard attributes
+void nailConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
+{
+   // std::cout << "nailConstraintNode::computeConstraint" << std::endl;
+	MGlobal::displayInfo("nailConstraintNode::computeConstraint");
+    
+	MObject thisObject(thisMObject());
+    MPlug plgRigidBodyA(thisObject, ia_rigidBodyA);
+    MPlug plgRigidBodyB(thisObject, ia_rigidBodyB);
+    MObject update;
+        
+    //force evaluation of the rigidBody
+    plgRigidBodyA.getValue(update);
+    plgRigidBodyB.getValue(update);
+
+    rigid_body_t::pointer  rigid_bodyA;
+    if(plgRigidBodyA.isConnected()) {
+        MPlugArray connections;
+        plgRigidBodyA.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNode(connections[0].node());
+            if(fnNode.typeId() == rigidBodyNode::typeId) {
+                rigidBodyNode *pRigidBodyNodeA = static_cast<rigidBodyNode*>(fnNode.userNode());
+                rigid_bodyA = pRigidBodyNodeA->rigid_body();
+                        } else {
+                std::cout << "nailConstraintNode connected to a non-rigidbody node A!" << std::endl;
+            }
+        }
+    }
+
+    rigid_body_t::pointer  rigid_bodyB;
+    if(plgRigidBodyB.isConnected()) {
+        MPlugArray connections;
+        plgRigidBodyB.connectedTo(connections, true, true);
+        if(connections.length() != 0) {
+            MFnDependencyNode fnNode(connections[0].node());
+            if(fnNode.typeId() == rigidBodyNode::typeId) {
+                rigidBodyNode *pRigidBodyNodeB = static_cast<rigidBodyNode*>(fnNode.userNode());
+                rigid_bodyB = pRigidBodyNodeB->rigid_body();    
+            } else {
+                std::cout << "nailConstraintNode connected to a non-rigidbody node B!" << std::endl;
+            }
+        }
+    }
+
+        vec3f pivInA, pivInB;
+
+        if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
+        {
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::remove_constraint(constraint);
+                float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+                float3& mPivInB = data.inputValue(ia_pivotInB).asFloat3();
+                for(int i = 0; i < 3; i++)
+                {
+					pivInA[i] = m_pivInA[i] =  (float)mPivInA[i];
+                        pivInB[i] = m_pivInB[i] = (float)mPivInB[i];
+                }
+        m_constraint = solver_t::create_nail_constraint(rigid_bodyA, rigid_bodyB, pivInA, pivInB);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
+        }
+    else if(rigid_bodyA) 
+        {
+        //not connected to a rigid body, put a default one
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::remove_constraint(constraint);
+                float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+                for(int i = 0; i < 3; i++)
+                {
+                        pivInA[i] = (float)mPivInA[i];
+                }
+        m_constraint = solver_t::create_nail_constraint(rigid_bodyA, pivInA);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
+    }
+        data.outputValue(ca_constraint).set(true);
     data.setClean(plug);
 }
 
 void nailConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 {
+	
+		MGlobal::displayInfo("nailConstraintNode::computeWorldMatrix");
+
   //  std::cout << "nailConstraintNode::computeWorldMatrix" << std::endl;
 
     MObject thisObject(thisMObject());
@@ -510,6 +619,8 @@ void nailConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
             fnParentTransform.setTranslation(MVector(world[0], world[1], world[2]), MSpace::kTransform);
 		}
 	}
+
+	m_initialized = true;
     data.setClean(plug);
 }
 

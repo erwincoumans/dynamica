@@ -528,6 +528,8 @@ MStatus dSolverNode::initialize()
 
 dSolverNode::dSolverNode()
 {
+		m_reInitialize = false;
+
 }
 
 dSolverNode::~dSolverNode()
@@ -564,6 +566,14 @@ MStatus dSolverNode::compute(const MPlug& plug, MDataBlock& data)
 
     return MStatus::kSuccess;
 }
+
+void destroySoftBody(const MPlug& plug, MObject& node, MDataBlock& data)
+{
+	MFnDagNode fnDagNode(node);
+	SoftBodyNode *sbNode = static_cast<SoftBodyNode *>(fnDagNode.userNode()); 
+  	sbNode->destroySoftBody();
+}
+
 void destroyRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
 {
 	MFnDagNode fnDagNode(node);
@@ -571,7 +581,7 @@ void destroyRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
   	rbNode->destroyRigidBody();
 }
 
-void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
+void dSolverNode::initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
 {
     //dSolverNode::collisionMarginOffset = data.inputValue(dSolverNode::ia_collisionMargin).asFloat();
 	
@@ -580,8 +590,8 @@ void initRigidBody(const MPlug& plug, MObject& node, MDataBlock& data)
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
     
 	
-
-	rbNode->computeRigidBody(plug,data);
+	if (m_reInitialize)
+		rbNode->computeRigidBody(plug,data);
 	
 	
 	rigid_body_t::pointer rb = rbNode->rigid_body();
@@ -657,6 +667,10 @@ void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& dat
 
     SoftBodyNode *sbNode = static_cast<SoftBodyNode*>(fnDagNode.userNode());
 	MObject thisObject(thisMObject());
+
+	if (m_reInitialize)
+		sbNode->computeSoftBody(plug,data);
+
 	/*
 	MObject temp;
 	
@@ -767,7 +781,7 @@ void destroyConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 	}
 }
 
-void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data) 
+void dSolverNode::initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data) 
 {
     MFnDagNode fnDagNode(bodyNode);
     rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
@@ -781,8 +795,9 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 		if(msgDagNode.typeId() == nailConstraintNode::typeId) 
 		{
 			nailConstraintNode* nailNode = static_cast<nailConstraintNode*>(msgDagNode.userNode());
-
-			nailNode->computeConstraint(plug,data);
+	
+			if (m_reInitialize)
+				nailNode->reComputeConstraint(plug,data);
 			
 
 			if(msgDagNode.parentCount() == 0) 
@@ -792,17 +807,20 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 			}
 			MFnTransform msgTransform(msgDagNode.parent(0));
 			nail_constraint_t::pointer nail = nailNode->constraint();
-			vec3f constrPos;
-			nail->get_world(constrPos);
-			nail->set_enabled(true); //re-enables constraint if broken dynamically
-			msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
-			msgTransform.setRotation(MEulerRotation(0., 0., 0.));
+			if (nail)
+			{
+				vec3f constrPos;
+				nail->get_world(constrPos);
+				nail->set_enabled(true); //re-enables constraint if broken dynamically
+				msgTransform.setTranslation(MVector(constrPos[0], constrPos[1], constrPos[2]), MSpace::kTransform);
+				msgTransform.setRotation(MEulerRotation(0., 0., 0.));
+			}
 		}
 		if(msgDagNode.typeId() == hingeConstraintNode::typeId) 
 		{
 			hingeConstraintNode* hingeNode = static_cast<hingeConstraintNode*>(msgDagNode.userNode());
-
-			hingeNode->computeConstraint(plug,data);
+			if (m_reInitialize)
+				hingeNode->reComputeConstraint(plug,data);
 
 			if(msgDagNode.parentCount() == 0) 
 			{
@@ -821,8 +839,9 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 		if(msgDagNode.typeId() == sliderConstraintNode::typeId) 
 		{
 			sliderConstraintNode* sliderNode = static_cast<sliderConstraintNode*>(msgDagNode.userNode());
-
-			sliderNode->reComputeConstraint();
+					
+			if (m_reInitialize)
+				sliderNode->reComputeConstraint();
 
 			if(msgDagNode.parentCount() == 0) 
 			{
@@ -842,8 +861,9 @@ void initConstraint(const MPlug& plug, MObject& bodyNode, MDataBlock& data)
 		if(msgDagNode.typeId() == sixdofConstraintNode::typeId) 
 		{
 			sixdofConstraintNode* sixdofNode = static_cast<sixdofConstraintNode*>(msgDagNode.userNode());
-
-			sixdofNode->computeConstraint(plug,data);
+					
+			if (m_reInitialize)
+				sixdofNode->reComputeConstraint(plug,data);
 
 			if(msgDagNode.parentCount() == 0) 
 			{
@@ -871,14 +891,15 @@ void destroyRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
 	rbNode->destroyRigidBodies();
 }
 
-void initRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
+void dSolverNode::initRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
 {
     MFnDagNode fnDagNode(node);
 
     rigidBodyArrayNode *rbNode = static_cast<rigidBodyArrayNode*>(fnDagNode.userNode()); 
     std::vector<rigid_body_t::pointer>& rbs = rbNode->rigid_bodies();
 	 
-	rbNode->reComputeRigidBodies(plug,data);
+	if (m_reInitialize)
+		rbNode->reComputeRigidBodies(plug,data);
 	
 
 
@@ -981,23 +1002,24 @@ void initRigidBodyArray(const MPlug& plug, MObject &node, MDataBlock& data)
 void dSolverNode::deleteRigidBodies(const MPlug& plug, MPlugArray &rbConnections, MDataBlock& data)
 {
 	std::cout << "Deleting rigid bodies" << std::endl;
-	
 
     for(size_t i = 0; i < rbConnections.length(); ++i) {
         MObject node = rbConnections[i].node();
         MFnDependencyNode fnNode(node);
 
         if(fnNode.typeId() == rigidBodyNode::typeId) {
-            destroyRigidBody(plug, node, data);
 			destroyConstraint(plug,node,data);
+			destroyRigidBody(plug, node, data);
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
             destroyRigidBodyArray(plug,node,data);
         }
 		else if(fnNode.typeId() == SoftBodyNode::typeId)
 		{
-			//destroySoftBody(plug, node, data);
+			destroySoftBody(plug, node, data);
 		}
     }
+
+
 }
 
 
@@ -1007,13 +1029,12 @@ void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, 
 	std::cout << "Initializing rigid bodies" << std::endl;
 	dSolverNode::collisionMarginOffset = data.inputValue(dSolverNode::ia_collisionMargin).asFloat(); //mb
 
-    for(size_t i = 0; i < rbConnections.length(); ++i) {
+    for(size_t i = 0; i < rbConnections.length(); ++i) 
+	{
         MObject node = rbConnections[i].node();
         MFnDependencyNode fnNode(node);
-
         if(fnNode.typeId() == rigidBodyNode::typeId) {
             initRigidBody(plug, node, data);
-			initConstraint(plug,node,data);
         } else if(fnNode.typeId() == rigidBodyArrayNode::typeId) {
             initRigidBodyArray(plug,node,data);
         }
@@ -1021,6 +1042,16 @@ void dSolverNode::initRigidBodies(const MPlug& plug, MPlugArray &rbConnections, 
 		{
 			initSoftBody(plug, node, data);
 		}
+    }
+
+	 for(size_t i = 0; i < rbConnections.length(); ++i) 
+	 {
+        MObject node = rbConnections[i].node();
+        MFnDependencyNode fnNode(node);
+		if(fnNode.typeId() == rigidBodyNode::typeId) 
+		 {
+		 	initConstraint(plug,node,data);
+		 }
     }
 }
 
@@ -1515,10 +1546,17 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 		//need to re-construct the world and re-insert all objects...
 		isStartTime = true;
 
-		deleteRigidBodies(plug, rbConnections, data);
-		solver_t::createWorld();
-        initRigidBodies(plug, rbConnections, data);
-	
+		if (m_reInitialize)
+		{
+			deleteRigidBodies(plug, rbConnections, data);
+			solver_t::destroyWorld();
+			solver_t::createWorld();
+		}
+		
+		initRigidBodies(plug, rbConnections, data);
+
+
+		m_reInitialize = true;
         solver_t::set_split_impulse(splitImpulseEnabled);
         m_prevTime = time;
     } else {

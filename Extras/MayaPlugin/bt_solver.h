@@ -265,8 +265,7 @@ public:
 
     virtual void import_collada_file(const char* filename);
 
-
-	void deleteWorld();
+	virtual void destroyWorld();
 
 	virtual void createWorld();
 

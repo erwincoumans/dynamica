@@ -100,6 +100,7 @@ public:
     static  MString     typeName;
 
 	void	destroyConstraint();
+	void reComputeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraintParam(const MPlug& plug, MDataBlock& data);
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
@@ -110,10 +111,11 @@ public:
 private:
     hinge_constraint_t::pointer       m_constraint;
 
-	float3 mPivInA;
-	float3 mPivInB;
-	float3 mRotInA;
-	float3 mRotInB;
+	vec3f m_PivInA;
+	vec3f m_PivInB;
+	quatf m_RotInA;
+	quatf m_RotInB;
+	bool m_initialized;
 
 };
 

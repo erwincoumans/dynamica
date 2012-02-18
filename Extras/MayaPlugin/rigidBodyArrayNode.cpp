@@ -416,21 +416,45 @@ void rigidBodyArrayNode::reComputeRigidBodies(const MPlug& plug, MDataBlock& )
         collision_shape = solver_t::create_sphere_shape();
     }
 
+
+	float mass = 0.f;
+	MPlug(thisObject, rigidBodyArrayNode::ia_mass).getValue(mass);
+    vec3f inertia = mass * collision_shape->local_inertia();
+
+	float restitution = 0.f;
+	MPlug(thisObject, rigidBodyArrayNode::ia_restitution).getValue(restitution);
+	float friction = 0.5f;
+	MPlug(thisObject, rigidBodyArrayNode::ia_friction).getValue(friction);
+
+	float linearDamping = 0.f;
+	MPlug(thisObject, rigidBodyArrayNode::ia_linearDamping).getValue(linearDamping);
+	
+	float angularDamping = 0.f;
+	MPlug(thisObject, rigidBodyArrayNode::ia_angularDamping).getValue(angularDamping);
     
     m_rigid_bodies.resize(m_numRigidBodies);
-    for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
-        m_rigid_bodies[i] = solver_t::create_rigid_body(collision_shape);
-	if (i < m_positions.size()) {
-            m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
-	} else {
-            m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
+	for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
+		m_rigid_bodies[i] = solver_t::create_rigid_body(collision_shape);
+		if (i < m_positions.size()) 
+		{
+			m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
+		} else 
+		{
+			m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
+		}
+        m_rigid_bodies[i]->set_mass(mass);
+        m_rigid_bodies[i]->set_inertia(inertia);
+        m_rigid_bodies[i]->set_restitution(restitution);
+        m_rigid_bodies[i]->set_friction(friction);
+        m_rigid_bodies[i]->set_linear_damping(linearDamping);
+        m_rigid_bodies[i]->set_angular_damping(angularDamping);    
+		solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
 	}
-	
-	solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
-    }
 
     
 }
+//standard attributes
+
 void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 {
   //  std::cout << "rigidBodyArrayNode::computeRigidBodies" << std::endl;
@@ -500,7 +524,7 @@ void rigidBodyArrayNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& da
     MPlug(thisObject, ca_rigidBodies).getValue(update);
 
     double mass = data.inputValue(ia_mass).asDouble();
-    vec3f inertia;
+    vec3f inertia(0.f,0.f,0.f);
     if(!m_rigid_bodies.empty())  {
         inertia = mass * m_rigid_bodies[0]->collision_shape()->local_inertia();
     }

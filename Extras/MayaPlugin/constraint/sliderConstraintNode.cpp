@@ -217,15 +217,24 @@ MStatus sliderConstraintNode::initialize()
 
 sliderConstraintNode::sliderConstraintNode()
 {
+	m_initialized = false;
 	m_disableCollision=true;
 
 	for (int i=0;i<3;i++)
 	{
 		m_PivInA[i] = 0.f;
-		m_RotInA[i] = 0.f;
 		m_PivInB[i] = 0.f;
-		m_RotInB[i] = 0.f;
 	}
+
+	m_RotInA[0] = 1.f;
+	m_RotInA[1] = 0.f;
+	m_RotInA[2] = 0.f;
+	m_RotInA[3] = 0.f;
+
+	m_RotInB[0] = 1.f;
+	m_RotInB[1] = 0.f;
+	m_RotInB[2] = 0.f;
+	m_RotInB[3] = 0.f;
     // std::cout << "sliderConstraintNode::sliderConstraintNode" << std::endl;
 }
 
@@ -363,25 +372,27 @@ void sliderConstraintNode::draw( M3dView & view, const MDagPath &path,
 
 	vec3f posT, posP, posM;
 
-	m_constraint->worldFromB(minusXVec, posT);
-	m_constraint->worldToA(posT, posM);
-	m_constraint->worldFromB(posXVec, posT);
-	m_constraint->worldToA(posT, posP);
-    glVertex3f(posM[0], posM[1], posM[2]);
-    glVertex3f(posP[0], posP[1], posP[2]);
-	m_constraint->worldFromB(minusYVec, posT);
-	m_constraint->worldToA(posT, posM);
-	m_constraint->worldFromB(posYVec, posT);
-	m_constraint->worldToA(posT, posP);
-    glVertex3f(posM[0], posM[1], posM[2]);
-    glVertex3f(posP[0], posP[1], posP[2]);
-	m_constraint->worldFromB(minusZVec, posT);
-	m_constraint->worldToA(posT, posM);
-	m_constraint->worldFromB(posZVec, posT);
-	m_constraint->worldToA(posT, posP);
-    glVertex3f(posM[0], posM[1], posM[2]);
-    glVertex3f(posP[0], posP[1], posP[2]);
-	
+	if (m_constraint)
+	{
+		m_constraint->worldFromB(minusXVec, posT);
+		m_constraint->worldToA(posT, posM);
+		m_constraint->worldFromB(posXVec, posT);
+		m_constraint->worldToA(posT, posP);
+		glVertex3f(posM[0], posM[1], posM[2]);
+		glVertex3f(posP[0], posP[1], posP[2]);
+		m_constraint->worldFromB(minusYVec, posT);
+		m_constraint->worldToA(posT, posM);
+		m_constraint->worldFromB(posYVec, posT);
+		m_constraint->worldToA(posT, posP);
+		glVertex3f(posM[0], posM[1], posM[2]);
+		glVertex3f(posP[0], posP[1], posP[2]);
+		m_constraint->worldFromB(minusZVec, posT);
+		m_constraint->worldToA(posT, posM);
+		m_constraint->worldFromB(posZVec, posT);
+		m_constraint->worldToA(posT, posP);
+		glVertex3f(posM[0], posM[1], posM[2]);
+		glVertex3f(posP[0], posP[1], posP[2]);
+	}
 
     glEnd();
 
@@ -416,6 +427,8 @@ void sliderConstraintNode::destroyConstraint()
 //standard attributes
 void sliderConstraintNode::reComputeConstraint()
 {
+	if (!m_initialized)
+		return;
    // std::cout << "sliderConstraintNode::computeConstraint" << std::endl;
 
     MObject thisObject(thisMObject());
@@ -460,7 +473,13 @@ void sliderConstraintNode::reComputeConstraint()
 	if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
 	{
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::remove_constraint(constraint);
+		if (constraint)
+		{
+			bt_slider_constraint_t* hinge_impl = dynamic_cast<bt_slider_constraint_t*>(constraint->pubImpl());
+			rigid_bodyA->remove_constraint(hinge_impl);
+			rigid_bodyB->remove_constraint(hinge_impl);
+			solver_t::remove_constraint(constraint);
+		}
 		
         m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInA, m_RotInA, rigid_bodyB, m_PivInB, m_RotInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
@@ -470,25 +489,58 @@ void sliderConstraintNode::reComputeConstraint()
 	{
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::remove_constraint(constraint);
-
+        if (constraint)
+		{
+			bt_slider_constraint_t* hinge_impl = dynamic_cast<bt_slider_constraint_t*>(constraint->pubImpl());
+			rigid_bodyA->remove_constraint(hinge_impl);
+			solver_t::remove_constraint(constraint);
+		}
         m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInB, m_RotInB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::add_constraint(constraint, m_disableCollision);
-    }
+    } else if (rigid_bodyB != NULL)
+	{
+        //not connected to a rigid body, put a default one
+        constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
+		if (constraint)
+		{
+			bt_slider_constraint_t* hinge_impl = dynamic_cast<bt_slider_constraint_t*>(constraint->pubImpl());
+			rigid_bodyB->remove_constraint(hinge_impl);
+			solver_t::remove_constraint(constraint);
+		}
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyB, m_PivInA, m_RotInA);
+        constraint = static_cast<constraint_t::pointer>(m_constraint);
+        solver_t::add_constraint(constraint, m_disableCollision);
+		
+	}
 
-	m_constraint->setPivotChanged(false);
+	if (m_constraint)
+	{
+		float val = 0.f;
+		MPlug(thisObject, sliderConstraintNode::ia_damping).getValue(val);
+		m_constraint->set_damping(val);
+		MPlug(thisObject, sliderConstraintNode::ia_breakThreshold).getValue(val);
+		m_constraint->set_breakThreshold(val);
+		float lin_lower=0.f;
+		float lin_upper=0.f;
+		MPlug(thisObject, sliderConstraintNode::ia_lowerLinLimit).getValue(lin_lower);
+		MPlug(thisObject, sliderConstraintNode::ia_upperLinLimit).getValue(lin_upper);
+		m_constraint->set_LinLimit(lin_lower, lin_upper);
+		float ang_lower=0.f;
+		float ang_upper=0.f;
+		MPlug(thisObject, sliderConstraintNode::ia_lowerAngLimit).getValue(ang_lower);
+		MPlug(thisObject, sliderConstraintNode::ia_upperAngLimit).getValue(ang_upper);
+		m_constraint->set_AngLimit(deg2rad(ang_lower), deg2rad(ang_upper));
 
+		m_constraint->setPivotChanged(true);
+	}
 }
 
-
 //standard attributes
-void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data1)
+void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data)
 {
    // std::cout << "sliderConstraintNode::computeConstraint" << std::endl;
 
-	m_disableCollision = data1.inputValue(ia_disableCollide).asBool();
-
     MObject thisObject(thisMObject());
     MPlug plgRigidBodyA(thisObject, ia_rigidBodyA);
     MPlug plgRigidBodyB(thisObject, ia_rigidBodyB);
@@ -513,7 +565,7 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
     }
 
     rigid_body_t::pointer  rigid_bodyB;
-	if(plgRigidBodyB.isConnected()) {
+        if(plgRigidBodyB.isConnected()) {
         MPlugArray connections;
         plgRigidBodyB.connectedTo(connections, true, true);
         if(connections.length() != 0) {
@@ -527,31 +579,60 @@ void sliderConstraintNode::computeConstraint(const MPlug& plug, MDataBlock& data
         }
     }
 
+        vec3f pivInA, pivInB;
 
-	if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
-	{
+        if((rigid_bodyA != NULL) && (rigid_bodyB != NULL))
+        {
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-		
-        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInA, m_RotInA, rigid_bodyB, m_PivInB, m_RotInB);
+                float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+                float3& mPivInB = data.inputValue(ia_pivotInB).asFloat3();
+                for(int i = 0; i < 3; i++)
+                {
+                        pivInA[i] = (float)mPivInA[i];
+                        pivInB[i] = (float)mPivInB[i];
+                }
+                float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
+        MEulerRotation meulerA(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
+        MQuaternion mquatA = meulerA.asQuaternion();
+                quatf rotA((float)mquatA.w, (float)mquatA.x, (float)mquatA.y, (float)mquatA.z);
+                float3& mRotInB = data.inputValue(ia_rotationInB).asFloat3();
+        MEulerRotation meulerB(deg2rad(mRotInB[0]), deg2rad(mRotInB[1]), deg2rad(mRotInB[2]));
+        MQuaternion mquatB = meulerB.asQuaternion();
+                quatf rotB((float)mquatB.w, (float)mquatB.x, (float)mquatB.y, (float)mquatB.z);
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA, rigid_bodyB, pivInB, rotB);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint, data1.inputValue(ia_disableCollide).asBool());
-	}
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
+        }
     else if(rigid_bodyA != NULL) 
-	{
+        {
         //not connected to a rigid body, put a default one
         constraint_t::pointer constraint = static_cast<constraint_t::pointer>(m_constraint);
         solver_t::remove_constraint(constraint);
-        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, m_PivInB, m_RotInB);
+                float3& mPivInA = data.inputValue(ia_pivotInA).asFloat3();
+                for(int i = 0; i < 3; i++)
+                {
+                        pivInA[i] = (float)mPivInA[i];
+                }
+                float3& mRotInA = data.inputValue(ia_rotationInA).asFloat3();
+        MEulerRotation meuler(deg2rad(mRotInA[0]), deg2rad(mRotInA[1]), deg2rad(mRotInA[2]));
+        MQuaternion mquat = meuler.asQuaternion();
+                quatf rotA((float)mquat.w, (float)mquat.x, (float)mquat.y, (float)mquat.z);
+        m_constraint = solver_t::create_slider_constraint(rigid_bodyA, pivInA, rotA);
         constraint = static_cast<constraint_t::pointer>(m_constraint);
-        solver_t::add_constraint(constraint, m_disableCollision);
+        solver_t::add_constraint(constraint, data.inputValue(ia_disableCollide).asBool());
+		
     }
 
-	//m_constraint->setPivotChanged(true);
-	data1.outputValue(ca_constraint).set(true);
-    data1.setClean(plug);
-
+	if (m_constraint)
+	{
+		m_constraint->get_local_frameA(m_PivInA, m_RotInA);
+		m_constraint->get_local_frameB(m_PivInB, m_RotInB);
+	}
+    data.outputValue(ca_constraint).set(true);
+    data.setClean(plug);
 }
+
 
 
 void sliderConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
@@ -682,6 +763,7 @@ void sliderConstraintNode::computeWorldMatrix(const MPlug& plug, MDataBlock& dat
 			fnParentTransform.setRotation(MQuaternion(worldR[1], worldR[2], worldR[3], worldR[0])); 
 		}
 	}
+	m_initialized = true;
     data.setClean(plug);
 }
 

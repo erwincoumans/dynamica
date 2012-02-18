@@ -160,6 +160,9 @@ MStatus rigidBodyNode::initialize()
     status = addAttribute(ca_solver);
     MCHECKSTATUS(status, "adding ca_solver attribute")
 
+	status = attributeAffects(ia_mass, ca_rigidBody);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_mass, ca_rigidBodyParam)")
+
     status = attributeAffects(ia_collisionShape, ca_rigidBody);
     MCHECKSTATUS(status, "adding attributeAffects(ia_collisionShape, ca_rigidBody)")
 
@@ -370,6 +373,8 @@ void rigidBodyNode::destroyRigidBody()
 	if (m_rigid_body)
 	{
 		solver_t::remove_rigid_body(m_rigid_body);
+//		where to remove constraints?
+		m_rigid_body->remove_all_constraints();
 		m_rigid_body = 0;
 	}
 }
@@ -432,6 +437,49 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
 	m_rigid_body->set_transform(vec3f((float)mtranslation.x, (float)mtranslation.y, (float)mtranslation.z),
 								quatf((float)mrotation.w, (float)mrotation.x, (float)mrotation.y, (float)mrotation.z));
     m_rigid_body->collision_shape()->set_scale(vec3f((float)mscale[0], (float)mscale[1], (float)mscale[2]));
+
+
+	float mass = 0.f;
+	MPlug(thisObject, rigidBodyNode::ia_mass).getValue(mass);
+
+	float curMass = m_rigid_body->get_mass();
+	bool changedMassStatus= false;
+	if ((curMass > 0.f) != (mass > 0.f))
+	{
+		changedMassStatus = true;
+	}
+	if (changedMassStatus)
+		solver_t::remove_rigid_body(m_rigid_body);
+	
+	m_rigid_body->set_mass(mass);
+	m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
+
+
+	if (changedMassStatus)
+		solver_t::add_rigid_body(m_rigid_body, name().asChar());
+
+	//initialize those default values too
+	float restitution = 0.f;
+	MPlug(thisObject, rigidBodyNode::ia_restitution).getValue(restitution);
+	m_rigid_body->set_restitution(restitution);
+	float friction = 0.5f;
+	MPlug(thisObject, rigidBodyNode::ia_friction).getValue(friction);
+    m_rigid_body->set_friction(friction);
+    float linDamp = 0.f;
+	MPlug(thisObject, rigidBodyNode::ia_linearDamping).getValue(linDamp);
+	m_rigid_body->set_linear_damping(linDamp);
+    float angDamp = 0.f;
+	MPlug(thisObject, rigidBodyNode::ia_angularDamping).getValue(angDamp);
+	m_rigid_body->set_angular_damping(angDamp);
+
+	/*
+	//this is not necessary, initialize linear/angular velocity (spin) is already set at initRigidBodyArray in dSolverNode.cpp
+	MPlug ilv(thisObject, rigidBodyNode::ia_initialVelocity);
+	MDataHandle hInitLinVel= ilv.asMDataHandle();
+	float3 &initLinVel= hInitLinVel.asFloat3();
+	vec3f lv(initLinVel[0],initLinVel[1],initLinVel[2]);
+	m_rigid_body->set_linear_velocity(lv);
+	*/
 
 	data.outputValue(ca_rigidBody).set(true);
     data.setClean(plug);
@@ -510,9 +558,23 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 
 	float mass = 0.f;
 	MPlug(thisObject, rigidBodyNode::ia_mass).getValue(mass);
+
+	float curMass = m_rigid_body->get_mass();
+	bool changedMassStatus= false;
+	if ((curMass > 0.f) != (mass > 0.f))
+	{
+		changedMassStatus = true;
+	}
+	if (changedMassStatus)
+		solver_t::remove_rigid_body(m_rigid_body);
+	
 	m_rigid_body->set_mass(mass);
-	 m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
-	 float restitution = 0.f;
+	m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
+
+	if (changedMassStatus)
+		solver_t::remove_rigid_body(m_rigid_body);
+
+	float restitution = 0.f;
 	 MPlug(thisObject, rigidBodyNode::ia_restitution).getValue(restitution);
 	 m_rigid_body->set_restitution(restitution);
 	 float friction = 0.5f;
@@ -542,9 +604,23 @@ void rigidBodyNode::computeRigidBodyParam(const MPlug& plug, MDataBlock& data)
     
     MPlug(thisObject, ca_rigidBody).getValue(update);
     double mass = data.inputValue(ia_mass).asDouble();
-    m_rigid_body->set_mass((float)mass);
-    m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
-    m_rigid_body->set_restitution((float)data.inputValue(ia_restitution).asDouble());
+
+	bool changedMassStatus= false;
+	float curMass = m_rigid_body->get_mass();
+	if ((curMass > 0.f) != (mass > 0.f))
+	{
+		changedMassStatus = true;
+	}
+	if (changedMassStatus)
+		solver_t::remove_rigid_body(m_rigid_body);
+
+	m_rigid_body->set_mass((float)mass);
+	m_rigid_body->set_inertia((float)mass * m_rigid_body->collision_shape()->local_inertia());
+
+	if (changedMassStatus)
+		solver_t::add_rigid_body(m_rigid_body,name().asChar());
+
+	m_rigid_body->set_restitution((float)data.inputValue(ia_restitution).asDouble());
     m_rigid_body->set_friction((float)data.inputValue(ia_friction).asDouble());
     m_rigid_body->set_linear_damping((float)data.inputValue(ia_linearDamping).asDouble());
     m_rigid_body->set_angular_damping((float)data.inputValue(ia_angularDamping).asDouble());

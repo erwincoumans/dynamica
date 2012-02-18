@@ -259,6 +259,11 @@ void solver_t::set_split_impulse(bool enabled)
     m_impl->set_split_impulse(enabled);
 }
 
+void solver_t::destroyWorld()
+{
+	m_impl->destroyWorld();
+}
+
 void solver_t::createWorld()
 {
 	m_impl->createWorld();

@@ -7,3 +7,8 @@ void bt_rigid_body_t::register_name(solver_impl_t* solver, const char* objectNam
 	solver->register_name(body(),objectName);
 	solver->register_name(body()->getCollisionShape(),objectName);
 }
+
+void bt_rigid_body_t::remove_all_constraints()
+{
+	m_constraintRef.clear();
+}

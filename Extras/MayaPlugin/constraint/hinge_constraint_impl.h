@@ -43,6 +43,9 @@ public:
 	virtual void get_invFrameB(vec3f& p, quatf& r) const = 0; 
 	virtual void worldToA(vec3f& w, vec3f& p) const = 0; 
 	virtual void worldFromB(vec3f& p, vec3f& w) const = 0; 
+	
+	virtual void get_local_frameA(vec3f& p, quatf& r) const =0;
+	virtual void get_local_frameB(vec3f& p, quatf& r) const =0;
 
     //
     virtual void set_damping(float d) = 0;

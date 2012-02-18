@@ -161,48 +161,21 @@ bt_solver_t::bt_solver_t():
 	
 }
 
-void bt_solver_t::deleteWorld()
+void bt_solver_t::destroyWorld()
 {
-	/*
 	if (!m_dynamicsWorld)
 		return;
 
-	bt_debug_draw* dbgDraw = (bt_debug_draw* ) m_dynamicsWorld->getDebugDrawer();
-	delete dbgDraw;
-
-		// use soft-body and rigid body collisions
-	m_collisionConfiguration.reset(new btSoftBodyRigidBodyCollisionConfiguration());
-	m_dispatcher.reset(new btCollisionDispatcher(m_collisionConfiguration.get()));
-	
-	
-	m_broadphase.reset(new btDbvtBroadphase());
-	m_solver.reset(new btSequentialImpulseConstraintSolver());
-
-	m_dynamicsWorld.reset( new btSoftRigidDynamicsWorld(m_dispatcher.get(),
-                                                        m_broadphase.get(),
-                                                        m_solver.get(),
-                                                        m_collisionConfiguration.get())
-														
-														);
-	//register algorithm for concave meshes
-    btGImpactCollisionAlgorithm::registerAlgorithm(m_dispatcher.get());
-
-	// set default gravity
-    m_dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-	
-	m_dynamicsWorld->getDispatchInfo().m_enableSPU = true;
-	
-	m_worldInfo.reset(new btSoftBodyWorldInfo);
-	m_worldInfo->m_broadphase = m_broadphase.get();
-	m_worldInfo->m_dispatcher = m_dispatcher.get();
-	m_worldInfo->m_gravity = m_dynamicsWorld->getGravity();
-	m_worldInfo->m_sparsesdf.Initialize();
-
+	while (m_dynamicsWorld->getNumConstraints())
+	{
+		m_dynamicsWorld->removeConstraint(m_dynamicsWorld->getConstraint(0));
+	}
+//fixme: check memory deallocation
 	m_dispatcher = 0;
-
+	m_broadphase = 0;
+	m_solver = 0;
 	m_collisionConfiguration = 0;
-	*/
-
+	m_dynamicsWorld=0;
 
 }
 

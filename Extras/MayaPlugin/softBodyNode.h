@@ -129,6 +129,9 @@ private:
 		\param data MDataBlock reference
 	
 	*/
+public:
+	void destroySoftBody();
+
 	void computeSoftBody(const MPlug& plug, MDataBlock &data);
 	/** \brief This function will update the soft body when one of its attributes (such as mass or friction coefficient) is modified.
 

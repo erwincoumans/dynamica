@@ -67,6 +67,34 @@ public:
 		hinge->setAxis(axis);
     }
 
+virtual void get_local_frameA(vec3f& p, quatf& r)const
+	{
+		const btHingeConstraint* sc = static_cast<const btHingeConstraint*>(m_constraint.get());
+		p[0] = sc->getAFrame().getOrigin().x();
+		p[1] = sc->getAFrame().getOrigin().y();
+		p[2] = sc->getAFrame().getOrigin().z();
+
+		btQuaternion orn = sc->getAFrame().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+
+	virtual void get_local_frameB(vec3f& p, quatf& r) const
+	{
+		const btHingeConstraint* sc = static_cast<const btHingeConstraint*>(m_constraint.get());
+		p[0] = sc->getBFrame().getOrigin().x();
+		p[1] = sc->getBFrame().getOrigin().y();
+		p[2] = sc->getBFrame().getOrigin().z();
+
+		btQuaternion orn = sc->getBFrame().getRotation();
+		r[0] = orn.getW();
+		r[1] = orn.getX();
+		r[2] = orn.getY();
+		r[3] = orn.getZ();
+	}
+	
     //
 	virtual void get_frameA(vec3f& p, quatf& r) const
 	{

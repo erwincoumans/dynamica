@@ -45,6 +45,18 @@ public:
     rigid_body_t::pointer rigid_bodyA()  {   return m_rigid_bodyA;   }
     rigid_body_t::pointer rigid_bodyB()  {   return m_rigid_bodyB;   }
 
+	void get_local_frameA(vec3f& p, quatf& r) const
+		{
+			hinge_constraint_impl_t const* hinge_impl = dynamic_cast<hinge_constraint_impl_t const*>(impl());
+			hinge_impl ->get_local_frameA(p,r);
+		}
+	
+		void get_local_frameB(vec3f& p, quatf& r) const
+		{
+			hinge_constraint_impl_t const* hinge_impl = dynamic_cast<hinge_constraint_impl_t const*>(impl());
+			hinge_impl ->get_local_frameB(p,r);
+		}
+		
     //
     void get_frameA(vec3f& p, quatf& r) const {    
         hinge_constraint_impl_t const* hinge_impl = dynamic_cast<hinge_constraint_impl_t const*>(impl());

@@ -52,6 +52,12 @@ public:
         rotation = quatf(q.w(), q.x(), q.y(), q.z());
     }
 
+	virtual float get_mass() const
+	{
+		float invMass = m_body->getInvMass();
+		return invMass? 1.f/invMass : 0.f;
+	}
+
     virtual void set_transform(vec3f const &position, quatf const &rotation)
     {
         vec3f tp = position;
@@ -190,6 +196,8 @@ public:
 	{
 		m_constraintRef.remove(constraint);
 	}
+	virtual void remove_all_constraints();
+
 protected:
     friend class bt_solver_t;
 	btAlignedObjectArray<bt_constraint_t*> m_constraintRef;

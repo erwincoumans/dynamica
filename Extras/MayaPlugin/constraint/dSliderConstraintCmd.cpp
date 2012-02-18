@@ -21,7 +21,7 @@ Written by: Herbert Law <Herbert.Law@gmail.com>
 */
 
 //dSliderConstraintCmd.cpp
-#include "BulletSoftBody/btSoftBody.h"^M
+#include "BulletSoftBody/btSoftBody.h"
 #include <maya/MGlobal.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MSyntax.h>

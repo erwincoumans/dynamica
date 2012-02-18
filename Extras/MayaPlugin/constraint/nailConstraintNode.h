@@ -90,11 +90,13 @@ public:
 
 //private:
 	void destroyConstraint();
+	void reComputeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraint(const MPlug& plug, MDataBlock& data);
     void computeConstraintParam(const MPlug& plug, MDataBlock& data);
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
 
 	vec3f m_pivInA, m_pivInB;
+	bool m_initialized;
 
 public:
     static void nodeRemoved(MObject& node, void *clientData);

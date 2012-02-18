@@ -107,6 +107,8 @@ public:
 
     virtual void step_simulation(float dt, float fixedPhysicsFrameRate) = 0;
 
+	virtual void destroyWorld()=0;
+
 	virtual void createWorld() = 0;
 
 	virtual void debug_draw(int dbgMode) {}

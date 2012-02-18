@@ -33,6 +33,7 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MDGMessage.h>
+#include <maya/MSceneMessage.h>
 
 #include "mayaUtils.h"
 #include "rigidBodyNode.h"
@@ -61,6 +62,15 @@ const char *const bulletDefaultOptions =    "groups=1;"    "ptgroups=1;"    "mat
 
 const char *const colladaOptionScript = "bulletExportOptions";
 const char *const colladaDefaultOptions =    "groups=1;"    "ptgroups=1;"    "materials=1;"    "smoothing=1;"    "normals=1;"    ;
+
+///we need to register a scene exit callback, otherwise the btRigidBody destructor might assert in debug mode
+///if some constraints are still attached to it
+MCallbackId fMayaExitingCB=0;
+void releaseCallback(void* clientData)
+{
+	solver_t::destroyWorld();
+    solver_t::cleanup();
+}
 
 
 
@@ -211,8 +221,13 @@ MStatus initializePlugin( MObject obj )
 	MGlobal::executeCommand( "source dynamicaUI.mel" );
     MGlobal::executeCommand( "dynamicaUI_initialize" );
     
+
+	fMayaExitingCB				= MSceneMessage::addCallback( MSceneMessage::kMayaExiting,				releaseCallback, 0);
+
     return status;
 }
+
+
 
 MStatus uninitializePlugin( MObject obj )
 {
@@ -280,6 +295,8 @@ MStatus uninitializePlugin( MObject obj )
 	status =  plugin.deregisterFileTranslator( "COLLADA Physics export" );
     MCHECKSTATUS(status,"deregistering COLLADA Physics export" )
 #endif //BT_USE_COLLADA
+
+	solver_t::destroyWorld();
 
     solver_t::cleanup();
 

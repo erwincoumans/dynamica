@@ -76,6 +76,18 @@ public:
         sixdof_impl->set_AngLimit(lower, upper);
     }
 
+	void get_local_frameA(vec3f& p, quatf& r) const
+		{
+			sixdof_constraint_impl_t const* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t const*>(impl());
+			sixdof_impl ->get_local_frameA(p,r);
+		}
+	
+		void get_local_frameB(vec3f& p, quatf& r) const
+		{
+			sixdof_constraint_impl_t const* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t const*>(impl());
+			sixdof_impl ->get_local_frameB(p,r);
+		}
+		
     void get_frameA(vec3f& p, quatf& r) const {    
         sixdof_constraint_impl_t const* sixdof_impl = dynamic_cast<sixdof_constraint_impl_t const*>(impl());
 		sixdof_impl->get_frameA(p, r);
