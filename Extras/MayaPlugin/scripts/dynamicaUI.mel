@@ -334,7 +334,7 @@ global proc string dynamicaUI_createMainTab()
 			setParent ..;
 		setParent ..;
 	
-		dynamicaUI_createFrame("Soft Bodies", "Soft bodies include cloth and ropes .", 0, 0);
+		dynamicaUI_createFrame("Soft Bodies (experimental)", "Soft bodies include cloth and ropes .", 0, 0);
 			rowLayout -nc 1;
 				iconTextButton -st "iconAndTextVertical" -l "Soft Mesh" -w 75 -i "dynamicaSoftMesh.xpm"
 					-c "dynamicaUI_createSoftBody()" -ann "Convert mesh to soft body";
@@ -587,28 +587,6 @@ global proc string dynamicaUI_createHelpTab()
 			setParent ..;
 		setParent ..;
 		
-		// dynamicaUI_createFrame("Example Scenes", "See Dynamica in action with these demonstration scenes", 0, 0);
-			// rowLayout -nc 5;
-				// iconTextButton -st "iconAndTextVertical" -l "Demo 1" -w 75 -i "" 
-					// -c "" -ann "";
-				// iconTextButton -st "iconAndTextVertical" -l "Demo 2" -w 75 -i "" 
-					// -c "" -ann "";
-				// iconTextButton -st "iconAndTextVertical" -l "Demo 3" -w 75 -i "" 
-					// -c "" -ann "";
-				// iconTextButton -st "iconAndTextVertical" -l "Demo 4" -w 75 -i "" 
-					// -c "" -ann "";
-				// iconTextButton -st "iconAndTextVertical" -l "Demo 5" -w 75 -i "" 
-					// -c "" -ann "";
-			// setParent ..;
-		// setParent ..;
-		
-		// dynamicaUI_createFrame("Feature Overview", "", 0, 0);
-			// scrollLayout -h 235;
-				// string $helpText = dynamicaUI_loadHelp();
-				// string $text = `text -al "left" -ww 1 -l $helpText`;
-			// setParent ..;
-		// setParent ..;
-			
 		dynamicaUI_createFrame("Credits", "", 0, 0);
 			columnLayout;
 				text -al "left" -l "Original Plugin: Walt Disney Studios";
@@ -616,6 +594,7 @@ global proc string dynamicaUI_createHelpTab()
 				text -al "left" -l "Modified By: Roman Ponomarev, Erwin Coumans";
 				text -al "left" -l "Tools, Features, UI & Maintenance: Michael Baker";
 				text -al "left" -l "Original Baking Scripts: RBD";
+				setParent ..; //This is the additional setParent needed for MAYA 2009/2010.
 			setParent ..;
 		setParent ..;
 		

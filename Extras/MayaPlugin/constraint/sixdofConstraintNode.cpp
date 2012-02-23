@@ -525,27 +525,59 @@ void sixdofConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& da
 	MPlug(thisObject, sixdofConstraintNode::ia_breakThreshold).getValue(val);
 	m_constraint->set_breakThreshold(val);
 
-	MPlug ll(thisObject, sixdofConstraintNode::ia_lowerLinLimit);
-	const float3& mLowLin = ll.asMDataHandle().asFloat3();
-	MPlug ul(thisObject, sixdofConstraintNode::ia_upperLinLimit);
-	const float3& mUppLin = ul.asMDataHandle().asFloat3();
-	MPlug all(thisObject, sixdofConstraintNode::ia_lowerAngLimit);
-	const float3& mLowAng = all.asMDataHandle().asFloat3();
-	MPlug aul(thisObject, sixdofConstraintNode::ia_upperAngLimit);
-	const float3& mUppAng= aul.asMDataHandle().asFloat3();
-	
 	vec3f lowLin, uppLin, lowAng, uppAng;
 
-	for(int j = 0; j < 3; j++) 
+	for (int i=0;i<3;i++)
 	{
-		lowLin[j] = mLowLin[j];
-		uppLin[j] = mUppLin[j];
-		lowAng[j] = deg2rad(mLowAng[j]);
-		uppAng[j] = deg2rad(mUppAng[j]);
+		lowLin[i] = 0.f;
+		uppLin[i] = 0.f;
+		lowAng[i] = 0.f;
+		uppAng[i] = 0.f;
+	}
+
+	{
+		MPlug ll(thisObject, sixdofConstraintNode::ia_lowerLinLimit);
+		if (ll.isCompound())
+		{
+			for (int i=0;i<3;i++)
+			{
+				lowLin[i] = ll.child(i).asFloat();
+			}
+		}
+	}
+	{
+		MPlug ul(thisObject, sixdofConstraintNode::ia_upperLinLimit);
+		if (ul.isCompound())
+		{
+			for (int i=0;i<3;i++)
+			{
+				uppLin[i] = ul.child(i).asFloat();
+			}
+		}
+	}
+	{
+		MPlug all(thisObject, sixdofConstraintNode::ia_lowerAngLimit);
+		if (all.isCompound())
+		{
+			for (int i=0;i<3;i++)
+			{
+				lowAng[i] = deg2rad(all.child(i).asFloat());
+			}
+		}
+	}
+	{
+		MPlug aul(thisObject, sixdofConstraintNode::ia_upperAngLimit);
+		if (aul.isCompound())
+		{
+			for (int i=0;i<3;i++)
+			{
+				uppAng[i] = deg2rad(aul.child(i).asFloat());
+			}
+		}
+
 	}
 	m_constraint->set_LinLimit(lowLin, uppLin);
 	m_constraint->set_AngLimit(lowAng, uppAng);
-
 
     data1.outputValue(ca_constraint).set(true);
     data1.setClean(plug);

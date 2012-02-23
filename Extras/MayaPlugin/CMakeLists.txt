@@ -78,22 +78,22 @@ IF (MAYA_BASE_DIR)
 	ENDIF()
 
 	IF (BUILD_COLLADA)
-		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} colladaExport.h ${TARGET_SRC} colladaExport.cpp )
-		TARGET_LINK_LIBRARIES( BulletMayaPlugin BulletColladaConverter BulletDynamics BulletCollision LinearMath ColladaDom BulletSoftBody XML HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+		ADD_LIBRARY(DynamicaPlugin SHARED ${TARGET_H} colladaExport.h ${TARGET_SRC} colladaExport.cpp )
+		TARGET_LINK_LIBRARIES( DynamicaPlugin BulletColladaConverter BulletDynamics BulletCollision LinearMath ColladaDom BulletSoftBody XML HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 	ELSE()
-		ADD_LIBRARY(BulletMayaPlugin SHARED ${TARGET_H} ${TARGET_SRC})
-		TARGET_LINK_LIBRARIES(BulletMayaPlugin BulletDynamics BulletCollision BulletSoftBody LinearMath HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}) 
+		ADD_LIBRARY(DynamicaPlugin SHARED ${TARGET_H} ${TARGET_SRC})
+		TARGET_LINK_LIBRARIES(DynamicaPlugin BulletDynamics BulletCollision BulletSoftBody LinearMath HACD ${MAYA_LIBS} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY}) 
 	ENDIF()
 
 	IF (WIN32)
 		IF (CMAKE_CL_64)
-		SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X64")
+		SET_TARGET_PROPERTIES(DynamicaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X64")
 		SET(PLUG_NSI_FILE bullet_64bit.nsi)
 	   ELSE (CMAKE_CL_64)
-		SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X86")
+		SET_TARGET_PROPERTIES(DynamicaPlugin PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /MACHINE:X86")
 		SET(PLUG_NSI_FILE bullet_32bit.nsi)
 	   ENDIF (CMAKE_CL_64)
-	   SET_TARGET_PROPERTIES(BulletMayaPlugin PROPERTIES SUFFIX ".mll")
+	   SET_TARGET_PROPERTIES(DynamicaPlugin PROPERTIES SUFFIX ".mll")
 	   LINK_DIRECTORIES(${MAYA_LIB_DIR})
 	   SET(CMAKE_SHARED_LINKER_FLAGS "/export:initializePlugin /export:uninitializePlugin")  
 	ELSE (WIN32)
@@ -118,7 +118,7 @@ IF (MAYA_BASE_DIR)
 
 IF (WIN32 AND NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 	ADD_CUSTOM_COMMAND(
-		TARGET BulletMayaPlugin 
+		TARGET DynamicaPlugin 
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/${PLUG_NSI_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${PLUG_NSI_FILE}
 		COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Extras/MayaPlugin/BulletDynamica.6_module ${CMAKE_CURRENT_BINARY_DIR}

@@ -430,7 +430,7 @@ MStatus dSolverNode::initialize()
     MCHECKSTATUS(status, "creating physicsrate attribute")
     fnNumericAttr.setKeyable(true);
 	fnNumericAttr.setMin(60);
-	fnNumericAttr.setMax(999999);
+	fnNumericAttr.setMax(600);
     status = addAttribute(ia_fixedPhysicsRate);
     MCHECKSTATUS(status, "adding physicsrate attribute")
 
