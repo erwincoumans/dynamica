@@ -73,6 +73,7 @@ global proc dynamicaUI_createShelf()
 	}
 	
 	shelfButton -i "dynamicaWindow.xpm" -c "dynamicaUI_createWindow" -ann "Open Main Dynamica Window" -p $dynamicaShelf;
+	shelfButton -i "dynamicaRelink.xpm" -c "dynamicaUI_relinkRigidBodies" -ann "Relink bodies to solver after copy and paste" -p $dynamicaShelf;
 	
 	shelfButton -i "dynamicaCreateActiveSphere.xpm" 
 		-c "dynamicaUI_createActiveSphere" -ann "Create an active sphere rigid body" -p $dynamicaShelf;
@@ -648,6 +649,33 @@ global proc dynamicaUI_print(string $out, int $mode)
 		error("Dynamica Error: " + $out + "\n");
 	}
 	refresh;
+}
+
+global proc dynamicaUI_relinkRigidBodies()
+{
+	$sel = `ls -tr`;
+	for ($s in $sel) if (mbIsType($s, "dSolver") && ($s != "dDebugDraw"))
+	{
+		delete $s;
+	}
+	$sel = `ls -tr`;
+	for ($s in $sel) if (mbIsType($s, "dRigidBody"))
+	{
+		if (`isConnected |dDebugDraw|dSolver1.rigidBodies ($s+".solver")`)
+		{
+			disconnectAttr |dDebugDraw|dSolver1.rigidBodies ($s+".solver") ;
+		}
+	}
+	$sel = `ls -tr`;
+	for ($s in $sel) if (mbIsType($s, "dRigidBody"))
+	{
+		// $ll = longNameOf($s);
+		//print $s;	print " ----";
+		if (!`isConnected |dDebugDraw|dSolver1.rigidBodies ($s+".solver")`)
+		{
+			connectAttr -f |dDebugDraw|dSolver1.rigidBodies ($s+".solver") ;
+		}
+	}
 }
 
 //repeatable argless commands

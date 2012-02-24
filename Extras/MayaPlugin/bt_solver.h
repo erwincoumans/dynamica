@@ -213,7 +213,10 @@ public:
     virtual void remove_rigid_body(rigid_body_impl_t* rb)
     {
         bt_rigid_body_t* bt_body = static_cast<bt_rigid_body_t*>(rb);
-        m_dynamicsWorld->removeRigidBody(bt_body->body());
+		if (m_dynamicsWorld->getCollisionObjectArray().findLinearSearch(bt_body->body())!=m_dynamicsWorld->getCollisionObjectArray().size())
+		{
+	        m_dynamicsWorld->removeRigidBody(bt_body->body());
+		}
     }
 
     virtual void add_constraint(constraint_impl_t* c, bool disableCollide)

@@ -526,14 +526,19 @@ MStatus dSolverNode::initialize()
     return MS::kSuccess;
 }
 
+//only ever create a single dSolverNode at one time
+static dSolverNode* sSolver = 0;
+
 dSolverNode::dSolverNode()
 {
 		m_reInitialize = false;
-
 }
+
+
 
 dSolverNode::~dSolverNode()
 {
+	sSolver = 0;
 }
 
 void dSolverNode::postConstructor()
@@ -542,9 +547,16 @@ void dSolverNode::postConstructor()
     setExistWithoutOutConnections(true);
 }
 
+
 void* dSolverNode::creator()
 {
-    return new dSolverNode();
+	if (sSolver)
+		return 0;
+
+	sSolver = new dSolverNode();
+	return sSolver;
+
+//	return new dSolverNode();
 }
 
 bool dSolverNode::setInternalValueInContext( const  MPlug & plug, const  MDataHandle & dataHandle,  MDGContext & ctx )
