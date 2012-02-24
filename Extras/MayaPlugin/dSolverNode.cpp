@@ -466,10 +466,10 @@ MStatus dSolverNode::initialize()
 	MCHECKSTATUS(status, "creating ia_DBG_DrawAabb attribute")
 	status = addAttribute(ia_DBG_DrawAabb);
     MCHECKSTATUS(status, "adding ia_DBG_DrawAabb attribute")
-	ia_DBG_DrawFeaturesText = fnNumericAttr.create("drawFeaturesText", "dft", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_DrawFeaturesText attribute")
-	status = addAttribute(ia_DBG_DrawFeaturesText);
-    MCHECKSTATUS(status, "adding ia_DBG_DrawFeaturesText attribute")
+//	ia_DBG_DrawFeaturesText = fnNumericAttr.create("drawFeaturesText", "dft", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_DrawFeaturesText attribute")
+//	status = addAttribute(ia_DBG_DrawFeaturesText);
+//    MCHECKSTATUS(status, "adding ia_DBG_DrawFeaturesText attribute")
 	ia_DBG_DrawContactPoints = fnNumericAttr.create("drawContactPoints", "dcp", MFnNumericData::kBoolean, false, &status);
 	MCHECKSTATUS(status, "creating ia_DBG_DrawContactPoints attribute")
 	status = addAttribute(ia_DBG_DrawContactPoints);
@@ -478,30 +478,30 @@ MStatus dSolverNode::initialize()
 	MCHECKSTATUS(status, "creating ia_DBG_NoDeactivation attribute")
 	status = addAttribute(ia_DBG_NoDeactivation);
     MCHECKSTATUS(status, "adding ia_DBG_NoDeactivation attribute")
-	ia_DBG_NoHelpText = fnNumericAttr.create("noHelpText", "dnht", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_NoHelpText attribute")
-	status = addAttribute(ia_DBG_NoHelpText);
-    MCHECKSTATUS(status, "adding ia_DBG_NoHelpText attribute")
-	ia_DBG_DrawText = fnNumericAttr.create("drawText", "dtxt", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_DrawText attribute")
-	status = addAttribute(ia_DBG_DrawText);
-    MCHECKSTATUS(status, "adding ia_DBG_DrawText attribute")
+//	ia_DBG_NoHelpText = fnNumericAttr.create("noHelpText", "dnht", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_NoHelpText attribute")
+//	status = addAttribute(ia_DBG_NoHelpText);
+ //   MCHECKSTATUS(status, "adding ia_DBG_NoHelpText attribute")
+//	ia_DBG_DrawText = fnNumericAttr.create("drawText", "dtxt", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_DrawText attribute")
+//	status = addAttribute(ia_DBG_DrawText);
+ //   MCHECKSTATUS(status, "adding ia_DBG_DrawText attribute")
 	ia_DBG_ProfileTimings = fnNumericAttr.create("pProfileTimings", "dptm", MFnNumericData::kBoolean, false, &status);
 	MCHECKSTATUS(status, "creating ia_DBG_ProfileTimings attribute")
 	status = addAttribute(ia_DBG_ProfileTimings);
     MCHECKSTATUS(status, "adding ia_DBG_ProfileTimings attribute")
-	ia_DBG_EnableSatComparison = fnNumericAttr.create("enableSatComparison", "desc", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_EnableSatComparison attribute")
-	status = addAttribute(ia_DBG_EnableSatComparison);
-    MCHECKSTATUS(status, "adding ia_DBG_EnableSatComparison attribute")
-	ia_DBG_DisableBulletLCP = fnNumericAttr.create("disableBulletLCP", "dblcp", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_DisableBulletLCP attribute")
-	status = addAttribute(ia_DBG_DisableBulletLCP);
-    MCHECKSTATUS(status, "adding ia_DBG_DisableBulletLCP attribute")
-	ia_DBG_EnableCCD = fnNumericAttr.create("enableCCD", "deccd", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_EnableCCD attribute")
-	status = addAttribute(ia_DBG_EnableCCD);
-    MCHECKSTATUS(status, "adding ia_DBG_EnableCCD attribute")
+//	ia_DBG_EnableSatComparison = fnNumericAttr.create("enableSatComparison", "desc", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_EnableSatComparison attribute")
+//	status = addAttribute(ia_DBG_EnableSatComparison);
+//    MCHECKSTATUS(status, "adding ia_DBG_EnableSatComparison attribute")
+//	ia_DBG_DisableBulletLCP = fnNumericAttr.create("disableBulletLCP", "dblcp", MFnNumericData::kBoolean, false, &status);
+	//MCHECKSTATUS(status, "creating ia_DBG_DisableBulletLCP attribute")
+//	status = addAttribute(ia_DBG_DisableBulletLCP);
+ //   MCHECKSTATUS(status, "adding ia_DBG_DisableBulletLCP attribute")
+//	ia_DBG_EnableCCD = fnNumericAttr.create("enableCCD", "deccd", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_EnableCCD attribute")
+//	status = addAttribute(ia_DBG_EnableCCD);
+ //   MCHECKSTATUS(status, "adding ia_DBG_EnableCCD attribute")
 	ia_DBG_DrawConstraints = fnNumericAttr.create("drawConstraints", "dcnst", MFnNumericData::kBoolean, false, &status);
 	MCHECKSTATUS(status, "creating ia_DBG_DrawConstraints attribute")
 	status = addAttribute(ia_DBG_DrawConstraints);
@@ -510,18 +510,18 @@ MStatus dSolverNode::initialize()
 	MCHECKSTATUS(status, "creating ia_DBG_DrawConstraintLimits attribute")
 	status = addAttribute(ia_DBG_DrawConstraintLimits);
     MCHECKSTATUS(status, "adding ia_DBG_DrawConstraintLimits attribute")
-	ia_DBG_FastWireframe = fnNumericAttr.create("fastWireframe", "dfwf", MFnNumericData::kBoolean, false, &status);
-	MCHECKSTATUS(status, "creating ia_DBG_FastWireframe attribute")
-	status = addAttribute(ia_DBG_FastWireframe);
-    MCHECKSTATUS(status, "adding ia_DBG_FastWireframe attribute")
+//	ia_DBG_FastWireframe = fnNumericAttr.create("fastWireframe", "dfwf", MFnNumericData::kBoolean, false, &status);
+//	MCHECKSTATUS(status, "creating ia_DBG_FastWireframe attribute")
+//	status = addAttribute(ia_DBG_FastWireframe);
+ //   MCHECKSTATUS(status, "adding ia_DBG_FastWireframe attribute")
 
     status = attributeAffects(ia_time, oa_rigidBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_rigidBodies)")
 	
 	status = attributeAffects(ia_time, oa_softBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_softBodies)")
-    //status = attributeAffects(ia_enabled, oa_rigidBodies);
-    //MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
+    status = attributeAffects(ia_enabled, oa_rigidBodies);
+    MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
 
     return MS::kSuccess;
 }
