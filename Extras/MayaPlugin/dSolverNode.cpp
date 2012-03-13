@@ -1503,7 +1503,6 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 	}
 	
 	//apply the fields to the rigid and soft bodies
-
 	MVectorArray force;
 	MVectorArray softForce;
     for(MItDag it(MItDag::kDepthFirst, MFn::kField); !it.isDone(); it.next()) {
@@ -1523,7 +1522,47 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 			}
         }
     }
+
+	//apply external forces and external torques
+    for(size_t i = 0; i < rbConnections.length(); ++i) 
+	{
+	
+        MObject node = rbConnections[i].node();
+        MFnDagNode fnDagNode(node);
+        if(fnDagNode.typeId() == rigidBodyNode::typeId) 
+		{
+            rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+            rigid_body_t::pointer rb = rbNode->rigid_body();
+
+            MPlug plgMass(node, rigidBodyNode::ia_mass);
+            float mass = 0.f;
+            plgMass.getValue(mass);
+			bool active = (mass>0.f);
+            if(active) 
+			{
+				{
+					MPlug plgExternalForce(node, rigidBodyNode::ia_externalForce);
+					float externalForce[3];
+					plgExternalForce.child(0).getValue(externalForce[0]);
+					plgExternalForce.child(1).getValue(externalForce[1]);
+					plgExternalForce.child(2).getValue(externalForce[2]);
+					rb->apply_central_force(vec3f(externalForce[0], externalForce[1], externalForce[2]));
+				}
+				{
+					MPlug plgExternalTorque(node, rigidBodyNode::ia_externalTorque);
+					float externalTorque[3];
+					plgExternalTorque.child(0).getValue(externalTorque[0]);
+					plgExternalTorque.child(1).getValue(externalTorque[1]);
+					plgExternalTorque.child(2).getValue(externalTorque[2]);
+					rb->apply_torque(vec3f(externalTorque[0], externalTorque[1], externalTorque[2]));
+				}
+				
+            }
+        }
+	} 
 }
+
+
 
 /*
 	Note : This is the big update function which steps the solver

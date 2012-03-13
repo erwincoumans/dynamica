@@ -83,6 +83,10 @@ public:
     static  MObject     ia_initialVelocity;
     static  MObject     ia_initialSpin;
 
+	static  MObject     ia_externalForce;
+	static  MObject     ia_externalTorque;
+
+
     static  MObject     ca_rigidBody;
     static  MObject     ca_rigidBodyParam;
     static  MObject     ca_solver;

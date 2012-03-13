@@ -62,6 +62,9 @@ MObject     rigidBodyNode::ia_initialPosition;
 MObject     rigidBodyNode::ia_initialRotation;
 MObject     rigidBodyNode::ia_initialVelocity;
 MObject     rigidBodyNode::ia_initialSpin;
+MObject     rigidBodyNode::ia_externalForce;
+MObject     rigidBodyNode::ia_externalTorque;
+
 MObject     rigidBodyNode::ca_rigidBody;
 MObject     rigidBodyNode::ca_rigidBodyParam;
 MObject     rigidBodyNode::ca_solver;
@@ -132,6 +135,16 @@ MStatus rigidBodyNode::initialize()
     MCHECKSTATUS(status, "creating initialSpin attribute")
     status = addAttribute(ia_initialSpin);
     MCHECKSTATUS(status, "adding initialSpin attribute")
+
+	ia_externalForce = fnNumericAttr.createPoint("externalForce", "exfo", &status);
+    MCHECKSTATUS(status, "creating externalForce attribute")
+    status = addAttribute(ia_externalForce);
+    MCHECKSTATUS(status, "adding externalForce attribute")
+
+	ia_externalTorque = fnNumericAttr.createPoint("externalTorque", "exto", &status);
+    MCHECKSTATUS(status, "creating externalTorque attribute")
+    status = addAttribute(ia_externalTorque);
+    MCHECKSTATUS(status, "adding externalTorque attribute")
 
     ca_rigidBody = fnNumericAttr.create("ca_rigidBody", "carb", MFnNumericData::kBoolean, 0, &status);
     MCHECKSTATUS(status, "creating ca_rigidBody attribute")

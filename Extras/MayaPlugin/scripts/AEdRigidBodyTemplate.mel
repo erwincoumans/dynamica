@@ -41,6 +41,11 @@ global proc AEdRigidBodyTemplate( string $nodeName )
     editorTemplate -addControl linearDamping;
     editorTemplate -addControl angularDamping;
 
+ 		editorTemplate -beginLayout "External Forces" -collapse 0;
+		editorTemplate -addControl externalForce;
+    editorTemplate -addControl externalTorque;
+		editorTemplate -endLayout;
+
     editorTemplate -beginLayout "Initial configuration" -collapse 0;
     editorTemplate -addControl initialPosition;
     editorTemplate -addControl initialRotation;
