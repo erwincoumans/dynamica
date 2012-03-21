@@ -39,6 +39,12 @@ protected:
     bt_collision_shape_t() { }
 
     btCollisionShape* shape()               { return m_shape.get(); }
+	virtual btCollisionShape* getBulletCollisionShape()               { return m_shape.get(); }
+	virtual void getCenterOfMassTransformShift(class btTransform& shiftTransform)
+	{
+		shiftTransform.setIdentity();
+	}
+
     void set_shape(btCollisionShape *shape) { return m_shape.reset(shape); }
 
 public:

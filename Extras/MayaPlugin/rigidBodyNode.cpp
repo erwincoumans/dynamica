@@ -25,7 +25,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 //rigidBodyNode.cpp
 
-#include "BulletSoftBody/btSoftBody.h"^M
+#include "BulletSoftBody/btSoftBody.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
@@ -522,7 +522,8 @@ void rigidBodyNode::computeWorldMatrix(const MPlug& plug, MDataBlock& data)
 	double mscale[3];
     fnParentTransform.getScale(mscale);
 	m_rigid_body->get_transform(pos, rot);
-
+	
+	
 	if(dSolverNode::isStartTime)
 	{ // allow to edit ptranslation and rotation
 		MVector mtranslation = fnParentTransform.getTranslation(MSpace::kTransform, &status);
@@ -697,7 +698,8 @@ void rigidBodyNode::update()
     MObject thisObject(thisMObject());
 
     MObject update;
-    MPlug(thisObject, ca_rigidBody).getValue(update);
+
+	MPlug(thisObject, ca_rigidBody).getValue(update);
     MPlug(thisObject, ca_rigidBodyParam).getValue(update);
     MPlug(thisObject, ca_solver).getValue(update);
     MPlug(thisObject, worldMatrix).elementByLogicalIndex(0).getValue(update);

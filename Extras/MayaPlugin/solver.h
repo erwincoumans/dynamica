@@ -47,6 +47,7 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include "mesh_shape.h"
 #include "solver_impl.h"
 #include "soft_body_t.h"
+#include "composite_shape_t.h"
 
 #include "constraint/nail_constraint.h"
 #include "constraint/hinge_constraint.h"
@@ -76,6 +77,11 @@ public:
 	static hacd_shape_t::pointer create_hacd_shape(vec3f const* vertices, size_t num_vertices,
                                                    vec3f const* normals,
                                                    unsigned int const *indices, size_t num_indices, bool dynamicMesh); 
+	static composite_shape_t::pointer create_composite_shape(
+				collision_shape_t::pointer* childShapes, 
+				vec3f* childPositions,
+				quatf* childOrientations,
+				int numChildren);
 
     static rigid_body_t::pointer create_rigid_body(collision_shape_t::pointer& cs);
 	

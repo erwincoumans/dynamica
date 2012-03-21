@@ -780,3 +780,66 @@ global proc float[] mbRandomizeFloatArray(float $array[])
 
 	return $randArray;
 }
+
+
+
+global proc int mbSelectionIsGroup(string $selection)
+{
+	
+	
+	if ( `nodeType $selection` != "transform" )
+	{
+	//	print ("selection is not a transform\n");
+		return 0;
+	} else
+	{
+		$s = size( `listRelatives -shapes $selection` );
+		//print("Selection has " + $s + " shape relatives\n");
+		
+		if ($s == 0)
+		{
+			//print("selection could be a group\n");
+			
+			int $onlyTransforms = true;
+
+			string $groupChildren[] = `listRelatives -children $selection`;
+			
+			if ( size( $groupChildren ) == 0 )
+			{
+			  //print ( "Empty transform.\n" );
+			  return 0;
+			}
+			else
+			{
+			  // iterate children and see if they're all transforms themselves...
+			  for ( $child in $groupChildren )
+			  {
+			    if ( `nodeType $child` != "transform" )
+			    {
+			      $onlyTransforms = false;
+			      break;
+			    }
+			  }
+			}
+			
+			if ( $onlyTransforms )
+			{
+			  //print ( "Transform has only other transforms as children.\n" );
+			  //print ( $selection + " may be considered a Group node.\n" );
+			  return 1;
+			}
+			else
+			{
+			  //print ( $selection + " is not a simple Group node.\n" );
+			}
+			
+		}
+		 else
+		 {
+		 //print("selection is not a group\n");
+		 }
+		
+	}
+//	print("end.\n");
+	return 0;
+}

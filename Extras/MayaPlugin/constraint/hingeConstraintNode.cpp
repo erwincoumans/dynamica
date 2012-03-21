@@ -24,7 +24,7 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 */
 
 //hingeConstraintNode.cpp
-#include "BulletSoftBody/btSoftBody.h"^M
+#include "BulletSoftBody/btSoftBody.h"
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnMessageAttribute.h>

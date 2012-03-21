@@ -453,7 +453,7 @@ MStatus dSolverNode::initialize()
     MCHECKSTATUS(status, "adding ia_collisionMargin attribute")
 
 
-    ia_splitImpulse = fnNumericAttr.create("splitImpulse", "spli", MFnNumericData::kBoolean, false, &status);
+    ia_splitImpulse = fnNumericAttr.create("splitImpulse", "spli", MFnNumericData::kBoolean,true, &status);
     MCHECKSTATUS(status, "creating splitImpulse attribute")
     status = addAttribute(ia_splitImpulse);
     MCHECKSTATUS(status, "adding ia_splitImpulse attribute")

@@ -38,7 +38,12 @@ protected:
     friend class solver_t;
 
     convex_hull_shape_t(collision_shape_impl_t* impl): collision_shape_t(impl) { }
-
+public:
+	virtual ~convex_hull_shape_t()
+	{
+		int i;
+		i=0;
+	}
 };
 
 #endif

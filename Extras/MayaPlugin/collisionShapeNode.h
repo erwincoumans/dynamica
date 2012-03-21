@@ -73,6 +73,9 @@ protected:
     void computeCollisionShapeParam(const MPlug& plug, MDataBlock& data);
     void computeOutputShape(const MPlug& plug, MDataBlock& data);
 
+	collision_shape_t::pointer createCollisionShape(const MObject& node);
+	collision_shape_t::pointer createCompositeShape(const MPlug& plgInShape);
+
 protected:
 	float collisionMarginOffset;
 

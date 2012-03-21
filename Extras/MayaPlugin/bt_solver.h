@@ -49,6 +49,7 @@ btSoftRigidBodyWorld.
 #include "bt_convex_hull_shape.h"
 #include "bt_mesh_shape.h"
 #include "bt_hacd_shape.h"
+#include "bt_composite_shape.h"
 #include <vector>
 
 #include "constraint/bt_nail_constraint.h"
@@ -128,6 +129,15 @@ public:
 		return 0;
     }
 
+	virtual collision_shape_impl_t* create_composite_shape(
+				collision_shape_t::pointer* childShapes, 
+				vec3f* childPositions,
+				quatf* childOrientations,
+				int numChildren) 
+	{
+		bt_composite_shape_t* tmp = new bt_composite_shape_t(childShapes, childPositions, childOrientations, numChildren);
+		return tmp;
+	}
 
 	virtual collision_shape_impl_t* create_static_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                       vec3f const* normals,

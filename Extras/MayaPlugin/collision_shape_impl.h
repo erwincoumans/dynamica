@@ -44,6 +44,9 @@ public:
 
 public:
     virtual ~collision_shape_impl_t() {};
+	virtual class btCollisionShape* getBulletCollisionShape() = 0;
+	virtual void getCenterOfMassTransformShift(class btTransform& shiftTransform) = 0;
+
 };
 
 #endif

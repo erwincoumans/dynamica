@@ -852,10 +852,17 @@ global proc dynamicaUI_createSoftBody()
 	select -r $newBodies;
 }
 
+
+
+
+
+
+
 global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 {	//collision shape types: 0 = Hull, 1 = Mesh, 2 = Cylinder, 3 = Capsule, 4 = Box, 5 = Sphere, 6 = Plane
 	
 	dSolver; //create dSolver node if necessary
+
 	
 	global float $dynamicaUI_startFrame;
 	global float $dynamicaUI_collisionMargin;
@@ -873,6 +880,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	int $makeCollisionShape = 1;
 	float $collisionMargin = $dynamicaUI_collisionMargin * 1.75; //compensate for descrepancy between Maya vertex shift and Bullet planar shift
 	
+
 	for ($o in $obSelection) mbDeleteShapeHistory($o); //clean shape history
 	$selection = `ls -selection -dag -leaf -showType -type "geometry"`;
 	
@@ -882,6 +890,8 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	//pick the selected object's transform only if we are creating a hull or a mesh
 	if ($collisionShapeType == 0 || $collisionShapeType == 1 || $collisionShapeType == 8) 
 	{
+		string $isGroup = mbSelectionIsGroup($obSelection[0]);
+
 		string $rigidBodyNode;
 		
 		if (size($selection))
@@ -897,106 +907,202 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 			mbCreateLayer($rbLayer, 0);
 			//setAttr ($rbLayer + ".shading") 0; //disable shading
 		
-			for ($i = 0; $i < size($selection) / 2; $i++)
+			if ($isGroup)
 			{
-				string $marginShape = mbGetShape($obSelection[$i]);
-				string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
-				if(size($connectedCollisionShapes) > 0) $makeCollisionShape = 0;
+				print("it is a group\n");
 				
-				string $shapeTransforms[] = `listRelatives -p -f -pa $selection[$i * 2]`;
-
+				$marginShape = $obSelection[0];
+				print("it is a group!\n");
+				
+				///is the selection already turned into a rigid body?
+				for ($i = 0; $i < size($selection) / 2; $i++)
+				{
+					string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
+					if(size($connectedCollisionShapes) > 0) 
+						$makeCollisionShape = 0;
+				}
+				
 				if ($makeCollisionShape)
 				{
-					if (mbIsMesh($obSelection[$i]))
-					{
-						if (!mbIsKeyed($obSelection[$i])) //process transform if not keyed
-						{
-							mbFreezeScale($obSelection[$i]);
-							mbUnFreezeTranslation($obSelection[$i]);
+					$rigidBodyNode = `dRigidBody`;
 							
-							//process collision margin if active
-							if ($activebody) 
-							{
-								$dup = `duplicate $obSelection[$i]`;
-								$marginShape = mbGetShape($dup[0]);
-								setAttr ($marginShape + ".visibility") 0;
-								$margin = mbDeflate($marginShape, $collisionMargin);
-								parent -s -add $marginShape $obSelection[$i];
-								delete $dup;
-								delete -ch $obSelection[$i];
-								string $shapes[] = mbGetShapes($obSelection[$i]);
-								$marginShape = $shapes[1]; //update marginShape
-							}
-						}
+					string $collisionShapeNode = `createNode dCollisionShape`;
+					//print("$collisionShapeNode = "+$collisionShapeNode+ "\n");
+					connectAttr ($collisionShapeNode + ".outCollisionShape") ($rigidBodyNode + ".inCollisionShape");
+					
+					string $rigidBodyTransforms[] = `listRelatives -p $rigidBodyNode`;
+					$sz = size($rigidBodyTransforms);
+					//print("size($rigidBodyTransforms) = "+$sz + "\n");
 
-						$rigidBodyNode = `dRigidBody`;
-						string $collisionShapeNode = `createNode dCollisionShape`;
-						connectAttr ($collisionShapeNode + ".outCollisionShape") ($rigidBodyNode + ".inCollisionShape");
-						string $rigidBodyTransforms[] = `listRelatives -p $rigidBodyNode`;
-						
-						if ($selection[$i * 2 + 1] == "mesh") {
-							connectAttr ($marginShape + ".message") ($collisionShapeNode + ".inShape");
-							setAttr ($rigidBodyTransforms[0] + ".overrideEnabled") 1;
-							setAttr ($rigidBodyTransforms[0] + ".overrideShading") 0;		
-						}
-						
-						if (mbIsKeyed($obSelection[$i]))
+					///assume at least one mesh in the group
+					if ($selection[1] == "mesh") 
+					{
+						connectAttr ($marginShape + ".message") ($collisionShapeNode + ".inShape");
+						setAttr ($rigidBodyTransforms[0] + ".overrideEnabled") 1;
+						setAttr ($rigidBodyTransforms[0] + ".overrideShading") 0;		
+					}
+					if (mbIsKeyed($obSelection[0]))
+					{
+						warning($obSelection[0] + "'s transform is keyed, creating kinematic collider...");
+						$mass = 0;
+						mbTransferKeys($obSelection[0], $rigidBodyTransforms[0], 1);
+					}
+
+					//make each child shape a parent of the rigid body
+				
+				
+					for ($i = 0; $i < size($selection) / 2; $i++)
+					{
+						string $shapeTransforms[] = `listRelatives -p -f -pa $selection[$i * 2]`;
+						//print("size($shapeTransforms) = "+size($shapeTransforms) + "\n");
+						//print("$shapeTransforms[0] = "+$shapeTransforms[0]+"\n");
+						//parent $shapeTransforms[0] $rigidBodyNode;
+					}
+
+					setAttr ($rigidBodyNode + ".mass" ) $mass;
+					setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
+					
+					float $pos[]= `getAttr ($obSelection[0] + ".translate")`;
+					float $rot[]= `getAttr ($obSelection[0] + ".rotate")`;
+
+					setAttr ($rigidBodyTransforms[0] + ".translate") -typ double3 $pos[0] $pos[1] $pos[2];
+					setAttr ($rigidBodyNode + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
+					setAttr ($rigidBodyTransforms[0] + ".rotate") -typ double3 $rot[0] $rot[1] $rot[2];
+					setAttr ($rigidBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
+					
+					//store original position and rotation
+					addAttr -ln "originalPosition" -at double3 -k 0 $rigidBodyTransforms[0];
+					addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $rigidBodyTransforms[0];
+					addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $rigidBodyTransforms[0];
+					addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $rigidBodyTransforms[0];
+					addAttr -ln "originalRotation" -at double3 -k 0 $rigidBodyTransforms[0];
+					addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $rigidBodyTransforms[0];
+					addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $rigidBodyTransforms[0];
+					addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
+					
+					//connect original mesh transform to rigid body transform
+					connectAttr ($rigidBodyTransforms[0] + ".translate") ($obSelection[0] + ".translate");
+					connectAttr ($rigidBodyTransforms[0] + ".rotate") ($obSelection[0] + ".rotate");
+					connectAttr ($rigidBodyTransforms[0] + ".scale") ($obSelection[0] + ".scale");
+			
+								
+					$newBodies[0] = $rigidBodyTransforms[0];
+					//print("f ==================================================\n");
+					//add to groups and layers
+					mbAddToLayer($obSelection[0], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
+					mbAddToLayer($rigidBodyTransforms[0], $rbLayer);
+					parent $obSelection[0] $meshGroup;
+					parent $rigidBodyTransforms[0] $rbGroup;
+					$bodyCount++;
+					//print("g ==================================================\n");
+					refresh;
+				}
+				
+			} else
+			{
+				print("it is not a group\n");
+
+				for ($i = 0; $i < size($selection) / 2; $i++)
+				{
+					string $marginShape = mbGetShape($obSelection[$i]);
+					string $connectedCollisionShapes[] = `listConnections -s 1 -t dCollisionShape $selection[$i * 2]`;
+					if(size($connectedCollisionShapes) > 0) $makeCollisionShape = 0;
+					
+					string $shapeTransforms[] = `listRelatives -p -f -pa $selection[$i * 2]`;
+	
+					if ($makeCollisionShape)
+					{
+						if (mbIsMesh($obSelection[$i]))
 						{
-							warning($obSelection[$i] + "'s transform is keyed, creating kinematic collider...");
-							$mass = 0;
-							mbTransferKeys($obSelection[$i], $rigidBodyTransforms[0], 1);
+							if (!mbIsKeyed($obSelection[$i])) //process transform if not keyed
+							{
+								mbFreezeScale($obSelection[$i]);
+								mbUnFreezeTranslation($obSelection[$i]);
+								
+								//process collision margin if active
+								if ($activebody) 
+								{
+									$dup = `duplicate $obSelection[$i]`;
+									$marginShape = mbGetShape($dup[0]);
+									setAttr ($marginShape + ".visibility") 0;
+									$margin = mbDeflate($marginShape, $collisionMargin);
+									parent -s -add $marginShape $obSelection[$i];
+									delete $dup;
+									delete -ch $obSelection[$i];
+									string $shapes[] = mbGetShapes($obSelection[$i]);
+									$marginShape = $shapes[1]; //update marginShape
+								}
+							}
+	
+							$rigidBodyNode = `dRigidBody`;
+							string $collisionShapeNode = `createNode dCollisionShape`;
+							connectAttr ($collisionShapeNode + ".outCollisionShape") ($rigidBodyNode + ".inCollisionShape");
+							string $rigidBodyTransforms[] = `listRelatives -p $rigidBodyNode`;
+							
+							if ($selection[$i * 2 + 1] == "mesh") {
+								connectAttr ($marginShape + ".message") ($collisionShapeNode + ".inShape");
+								setAttr ($rigidBodyTransforms[0] + ".overrideEnabled") 1;
+								setAttr ($rigidBodyTransforms[0] + ".overrideShading") 0;		
+							}
+							
+							if (mbIsKeyed($obSelection[$i]))
+							{
+								warning($obSelection[$i] + "'s transform is keyed, creating kinematic collider...");
+								$mass = 0;
+								mbTransferKeys($obSelection[$i], $rigidBodyTransforms[0], 1);
+							}
+							
+							setAttr ($rigidBodyNode + ".mass" ) $mass;
+							setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
+	
+							float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
+							float $rot[]= `getAttr ($shapeTransforms[0] + ".rotate")`;
+	
+							setAttr ($rigidBodyTransforms[0] + ".translate") -typ double3 $pos[0] $pos[1] $pos[2];
+							setAttr ($rigidBodyNode + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
+							setAttr ($rigidBodyTransforms[0] + ".rotate") -typ double3 $rot[0] $rot[1] $rot[2];
+							setAttr ($rigidBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
+							
+							//store original position and rotation
+							addAttr -ln "originalPosition" -at double3 -k 0 $rigidBodyTransforms[0];
+							addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $rigidBodyTransforms[0];
+							addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $rigidBodyTransforms[0];
+							addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $rigidBodyTransforms[0];
+							addAttr -ln "originalRotation" -at double3 -k 0 $rigidBodyTransforms[0];
+							addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $rigidBodyTransforms[0];
+							addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $rigidBodyTransforms[0];
+							addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
+							
+							//connect original mesh transform to rigid body transform
+							connectAttr ($rigidBodyTransforms[0] + ".translate") ($shapeTransforms[0] + ".translate");
+							connectAttr ($rigidBodyTransforms[0] + ".rotate") ($shapeTransforms[0] + ".rotate");
+							connectAttr ($rigidBodyTransforms[0] + ".scale") ($shapeTransforms[0] + ".scale");
+							
+							$newBodies[$i] = $rigidBodyTransforms[0];
+							
+							//add to groups and layers
+							mbAddToLayer($obSelection[$i], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
+							mbAddToLayer($rigidBodyTransforms[0], $rbLayer);
+							parent $obSelection[$i] $meshGroup;
+							parent $rigidBodyTransforms[0] $rbGroup;
+							$bodyCount++;
+							
+							refresh;
+							//if ($activebody) mbUnflate($margin); //if active, restore shape
 						}
-						
-						setAttr ($rigidBodyNode + ".mass" ) $mass;
-						setAttr ($collisionShapeNode + ".type" ) $collisionShapeType;
-
-						float $pos[]= `getAttr ($shapeTransforms[0] + ".translate")`;
-						float $rot[]= `getAttr ($shapeTransforms[0] + ".rotate")`;
-
-						setAttr ($rigidBodyTransforms[0] + ".translate") -typ double3 $pos[0] $pos[1] $pos[2];
-						setAttr ($rigidBodyNode + ".initialPosition") -typ double3 $pos[0] $pos[1] $pos[2];
-						setAttr ($rigidBodyTransforms[0] + ".rotate") -typ double3 $rot[0] $rot[1] $rot[2];
-						setAttr ($rigidBodyNode + ".initialRotation") -typ double3 $rot[0] $rot[1] $rot[2];
-						
-						//store original position and rotation
-						addAttr -ln "originalPosition" -at double3 -k 0 $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionX" -at double -k 0 -dv $pos[0] $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionY" -at double -k 0 -dv $pos[1] $rigidBodyTransforms[0];
-						addAttr -ln "originalPositionZ" -at double -k 0 -dv $pos[2] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotation" -at double3 -k 0 $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationX" -at double -k 0 -dv $rot[0] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationY" -at double -k 0 -dv $rot[1] $rigidBodyTransforms[0];
-						addAttr -ln "originalRotationZ" -at double -k 0 -dv $rot[2] $rigidBodyTransforms[0];
-						
-						//connect original mesh transform to rigid body transform
-						connectAttr ($rigidBodyTransforms[0] + ".translate") ($shapeTransforms[0] + ".translate");
-						connectAttr ($rigidBodyTransforms[0] + ".rotate") ($shapeTransforms[0] + ".rotate");
-						connectAttr ($rigidBodyTransforms[0] + ".scale") ($shapeTransforms[0] + ".scale");
-						
-						$newBodies[$i] = $rigidBodyTransforms[0];
-						
-						//add to groups and layers
-						mbAddToLayer($obSelection[$i], $meshLayer); //editDisplayLayerMembers -nr $meshLayer $shapeTransforms[0];
-						mbAddToLayer($rigidBodyTransforms[0], $rbLayer);
-						parent $obSelection[$i] $meshGroup;
-						parent $rigidBodyTransforms[0] $rbGroup;
-						$bodyCount++;
-						
-						refresh;
-						//if ($activebody) mbUnflate($margin); //if active, restore shape
+						else
+						{
+							dynamicaUI_print($obSelection[$i] + " is not a Polymesh, rigid body not created!", 1);
+						}
 					}
 					else
 					{
-						dynamicaUI_print($obSelection[$i] + " is not a Polymesh, rigid body not created!", 1);
+						dynamicaUI_print($shapeTransforms[0] + " is already a rigid body", 1);
+						//$newBodies[$i] = $shapeTransforms[0];
 					}
+					
+					$makeCollisionShape = 1;
 				}
-				else
-				{
-					dynamicaUI_print($shapeTransforms[0] + " is already a rigid body", 1);
-					//$newBodies[$i] = $shapeTransforms[0];
-				}
-				
-				$makeCollisionShape = 1;
 			}
 			if ($bodyCount) dynamicaUI_print("Created " + $bodyCount + " rigid bodies. Find rigid bodies and source meshes in Outliner and Display Layers.", 0);
 		}

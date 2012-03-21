@@ -39,15 +39,28 @@ public:
     virtual void get_transform(mat4x4f &xform) const
     {
         float m[16];
-        m_body->getWorldTransform().getOpenGLMatrix(m);
+        
+		btTransform btxformLocal = m_body->getWorldTransform();
+		btTransform shiftTransform;
+		m_collision_shape->getCenterOfMassTransformShift(shiftTransform);
+		btTransform btxform = btxformLocal * shiftTransform.inverse();
+
+		btxform .getOpenGLMatrix(m);
         xform = trans(cmat<float, 4, 4>(m));
+
+
     }
 
     virtual void get_transform(vec3f &position, quatf &rotation) const
     {
-        const btTransform& btxform = m_body->getWorldTransform();
-        btQuaternion q = btxform.getRotation();
+        btTransform btxformLocal = m_body->getWorldTransform();
+		btTransform shiftTransform;
+		m_collision_shape->getCenterOfMassTransformShift(shiftTransform);
+		btTransform btxform = btxformLocal * shiftTransform.inverse();
+
+		btQuaternion q = btxform.getRotation();
         btVector3 p = btxform.getOrigin();
+		
         position = vec3f(p.x(), p.y(), p.z());
         rotation = quatf(q.w(), q.x(), q.y(), q.z());
     }
@@ -62,9 +75,15 @@ public:
     {
         vec3f tp = position;
         quatf tr = rotation;
-        btTransform xform(btQuaternion(tr[1], tr[2], tr[3], tr[0]),
-                          btVector3(tp[0], tp[1], tp[2])); 
-        m_body->setWorldTransform(xform);
+        btTransform xformLocal(btQuaternion(tr[1], tr[2], tr[3], tr[0]),
+                          btVector3(tp[0], tp[1], tp[2]));
+
+		btTransform shiftTransform;
+		shiftTransform.setIdentity();
+		m_collision_shape->getCenterOfMassTransformShift(shiftTransform);
+		
+		btTransform xform = xformLocal * shiftTransform;
+		m_body->setWorldTransform(xform);
 		// static bodies may got false "impulse" when editing in Maya, so...
 		m_body->setInterpolationWorldTransform(xform); 
     }
@@ -73,8 +92,16 @@ public:
     {
         vec3f tp = position;
         quatf tr = rotation;
-        btTransform xform(btQuaternion(tr[1], tr[2], tr[3], tr[0]),
+        btTransform xformLocal(btQuaternion(tr[1], tr[2], tr[3], tr[0]),
                           btVector3(tp[0], tp[1], tp[2])); 
+		
+		
+			btTransform shiftTransform;
+		shiftTransform.setIdentity();
+		m_collision_shape->getCenterOfMassTransformShift(shiftTransform);
+		
+		btTransform xform = xformLocal * shiftTransform ;
+
 		m_body->setInterpolationWorldTransform(xform); 
     }
 

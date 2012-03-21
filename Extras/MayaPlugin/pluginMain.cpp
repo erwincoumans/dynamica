@@ -27,7 +27,7 @@ Modified by Francisco Gochez <fjgochez@gmail.com>
 Nov 2011 - Dec 2011 : Added logic for soft bodies
 */
 
-#include "BulletSoftBody/btSoftBody.h"^M
+#include "BulletSoftBody/btSoftBody.h"
 
 //pluginMain.cpp
 #include <maya/MFnPlugin.h>

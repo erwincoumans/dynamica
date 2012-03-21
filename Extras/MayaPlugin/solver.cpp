@@ -94,6 +94,22 @@ hacd_shape_t::pointer solver_t::create_hacd_shape(vec3f const* vertices, size_t 
 	
 }
 
+composite_shape_t::pointer solver_t::create_composite_shape(
+				collision_shape_t::pointer* childShapes, 
+				vec3f* childPositions,
+				quatf* childOrientations,
+				int numChildren)
+{
+	collision_shape_impl_t* sh = m_impl->create_composite_shape(childShapes, childPositions, childOrientations, numChildren);
+	if (sh)
+	{
+		return composite_shape_t::pointer(new composite_shape_t(sh));
+	}
+		
+	return 0;
+}
+
+
 
 mesh_shape_t::pointer solver_t::create_mesh_shape(vec3f const* vertices, size_t num_vertices,
                                                   vec3f const* normals,

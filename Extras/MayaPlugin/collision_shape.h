@@ -54,6 +54,10 @@ public:
 public:
     virtual ~collision_shape_t() {}
 
+	class btCollisionShape* getBulletCollisionShape()
+	{
+		return m_impl->getBulletCollisionShape();
+	}
 protected:
     friend class solver_t;
 

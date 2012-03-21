@@ -39,6 +39,7 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include <vector>
 #include "constraint/nail_constraint_impl.h"
 #include "collision_shape_impl.h"
+#include "collision_shape.h"
 
 #include "constraint/hinge_constraint_impl.h"
 #include "constraint/slider_constraint_impl.h"
@@ -68,6 +69,12 @@ public:
 	virtual collision_shape_impl_t* create_hacd_shape(vec3f const* vertices, size_t num_vertices,
                                                              vec3f const* normals,
                                                              unsigned int const *indices, size_t num_indices) = 0; 
+
+	virtual collision_shape_impl_t* create_composite_shape(
+				collision_shape_t::pointer* childShapes, 
+				vec3f* childPositions,
+				quatf* childOrientations,
+				int numChildren) = 0;
 
     virtual rigid_body_impl_t* create_rigid_body(collision_shape_impl_t* cs) = 0;
 	virtual soft_body_t::pointer create_soft_body(const std::vector<float> &triVertexCoords, const std::vector<int> &triVertexIndices  ) = 0;
