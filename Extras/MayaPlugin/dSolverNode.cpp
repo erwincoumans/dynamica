@@ -527,7 +527,6 @@ MStatus dSolverNode::initialize()
 }
 
 //only ever create a single dSolverNode at one time
-static dSolverNode* sSolver = 0;
 
 dSolverNode::dSolverNode()
 {
@@ -538,7 +537,6 @@ dSolverNode::dSolverNode()
 
 dSolverNode::~dSolverNode()
 {
-	sSolver = 0;
 }
 
 void dSolverNode::postConstructor()
@@ -550,13 +548,8 @@ void dSolverNode::postConstructor()
 
 void* dSolverNode::creator()
 {
-	if (sSolver)
-		return 0;
 
-	sSolver = new dSolverNode();
-	return sSolver;
-
-//	return new dSolverNode();
+	return new dSolverNode();
 }
 
 bool dSolverNode::setInternalValueInContext( const  MPlug & plug, const  MDataHandle & dataHandle,  MDGContext & ctx )
