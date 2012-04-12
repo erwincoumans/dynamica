@@ -57,6 +57,7 @@ global proc AEdSolverTemplate( string $nodeName )
 	editorTemplate -addControl drawConstraints;
 	editorTemplate -addControl drawConstraintLimits;
 	editorTemplate -addControl fastWireframe;
+	editorTemplate -addControl contactData;
 
     AEdependNodeTemplate $nodeName;
 

@@ -24,6 +24,10 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 Modified by Francisco Gochez <fjgochez@gmail.com>
 Nov 2011 - Dec 2011 : Added soft body logic
+
+Modified by Dongsoo Han <dongsoo.han@amd.com>
+04/11/2012 : Added contactData attribute and contact information code to enable/disable updating contactCount, contactName and 
+			 contactPosition attributes in rigidBodyNode.
 */
 
 //dSolverNode.h
@@ -40,8 +44,9 @@ Nov 2011 - Dec 2011 : Added soft body logic
 #include <vector>
 
 #include "mathUtils.h"
+#include "rigidBodyNode.h"
 
-//class dSolverNode : public MPxNode
+
 class dSolverNode : public MPxLocatorNode
 {
 public:
@@ -94,6 +99,7 @@ virtual MBoundingBox boundingBox() const
 	static  MObject		ia_fixedPhysicsRate;
     static  MObject     oa_rigidBodies;
 	static  MObject		oa_softBodies;
+	static  MObject     ia_contactData;
 
     //Solver Settings
     static  MObject     ssSolverType;
@@ -150,8 +156,13 @@ protected:
 	void updateActiveSoftBodies(MPlugArray &sbConnections);
     void applyFields(MPlugArray &rbConnections, float dt);
 	void updateConstraint(MObject& bodyNode);
+	void clearContactRelatedAttributes(MPlugArray &rbConnections);
+
+	rigidBodyNode* getRigidBodyNode(btCollisionObject* btColObj);
+
 protected:
     MTime m_prevTime;
+	btHashMap<btHashPtr, rigidBodyNode*> m_hashColObjectToRBNode;
 };
 
 

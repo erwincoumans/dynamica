@@ -24,6 +24,10 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 
 Modified by Francisco Gochez <fjgochez@gmail.com>
 Nov 2011 - Dec 2011 : Added logic for soft bodies
+
+Modified by Dongsoo Han <dongsoo.han@amd.com>
+04/11/2012 : Added contactData attribute and contact information code to enable/disable updating contactCount, contactName and 
+			 contactPosition attributes in rigidBodyNode.
 */
 
 //dSolverNode.cpp
@@ -55,7 +59,6 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include <maya/MSceneMessage.h>
 #include <maya/MFloatPointArray.h>
 
-
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -75,7 +78,8 @@ Nov 2011 - Dec 2011 : Added logic for soft bodies
 #include "collisionShapeNode.h"
 #include "softBodyNode.h"
 #include "soft_body_t.h"
-
+#include "bt_rigid_body.h"
+#include "bt_solver.h"
 
 MTypeId dSolverNode::typeId(0x100331);
 MString dSolverNode::typeName("dSolver");
@@ -91,6 +95,7 @@ MObject dSolverNode::ia_splitImpulse;
 MObject dSolverNode::ia_substeps;
 MObject dSolverNode::oa_rigidBodies;
 MObject dSolverNode::oa_softBodies;
+MObject dSolverNode::ia_contactData;
 MObject dSolverNode::ssSolverType;
 bool	dSolverNode::isStartTime;
 
@@ -522,6 +527,11 @@ MStatus dSolverNode::initialize()
     MCHECKSTATUS(status, "adding attributeAffects(ia_time, oa_softBodies)")
     status = attributeAffects(ia_enabled, oa_rigidBodies);
     MCHECKSTATUS(status, "adding attributeAffects(ia_enabled, oa_rigidBodies)")
+
+	ia_contactData = fnNumericAttr.create("contactData", "contactData", MFnNumericData::kBoolean, false, &status);
+    MCHECKSTATUS(status, "creating contactData attribute")
+    status = addAttribute(ia_contactData);
+    MCHECKSTATUS(status, "adding ia_contactData attribute")
 
     return MS::kSuccess;
 }
@@ -1555,7 +1565,11 @@ void dSolverNode::applyFields(MPlugArray &rbConnections, float dt)
 	} 
 }
 
-
+rigidBodyNode* dSolverNode::getRigidBodyNode(btCollisionObject* btColObj)
+{
+	rigidBodyNode** nodePtr = m_hashColObjectToRBNode.find((const void*)btColObj);
+	return *nodePtr;
+}
 
 /*
 	Note : This is the big update function which steps the solver
@@ -1599,6 +1613,37 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 		
 		initRigidBodies(plug, rbConnections, data);
 
+		// update m_hashColObjectToRBNode
+		m_hashColObjectToRBNode.clear();
+
+		for(size_t i = 0; i < rbConnections.length(); ++i) 
+		{
+			MObject node = rbConnections[i].node();
+			MFnDagNode fnDagNode(node);
+			
+			if(fnDagNode.typeId() == rigidBodyNode::typeId) 
+			{
+				rigidBodyNode* rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+				rigid_body_t::pointer rb = rbNode->rigid_body();
+
+				if (rb)
+				{
+					if(fnDagNode.parentCount() == 0) {
+						//std::cout << "No transform found!" << std::endl;
+						continue;
+					}
+				
+					const void* rigidBody = ((bt_rigid_body_t*)(rb->impl()))->body();
+
+					if ( !rigidBody )
+						continue;
+
+					m_hashColObjectToRBNode.insert(rigidBody, rbNode);
+				}
+			}
+		}
+
+		clearContactRelatedAttributes(rbConnections);
 
 		m_reInitialize = true;
         solver_t::set_split_impulse(splitImpulseEnabled);
@@ -1639,7 +1684,49 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
                 applyFields(rbConnections, dt / subSteps);
     
                 //step the simulation
+				MPlug plgContactData(thisObject, ia_contactData);
+				bool bContactData;
+				plgContactData.getValue(bContactData);
+
                 solver_t::step_simulation(dt / subSteps, 1.f/(float)fixedPhysicsFrameHertz);
+				
+				// update contactCount, contactName and contactPosition attributes 
+				if ( bContactData )
+				{
+					clearContactRelatedAttributes(rbConnections);
+
+					shared_ptr<solver_impl_t> solv = solver_t::get_solver();
+					btSoftRigidDynamicsWorld* dynamicsWorld = ((bt_solver_t*)solv.get())->dyanmicsWorld();
+
+					btCollisionWorld* pCollisionWorld = dynamicsWorld->getCollisionWorld();
+					int numManifolds = pCollisionWorld->getDispatcher()->getNumManifolds();
+
+					for ( int i=0;i<numManifolds;i++)
+					{
+						btPersistentManifold* contactManifold = pCollisionWorld->getDispatcher()->getManifoldByIndexInternal(i);
+						btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
+						btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+
+						int numContacts = contactManifold->getNumContacts();
+
+						rigidBodyNode* rbNodeA = getRigidBodyNode(obA);
+						rigidBodyNode* rbNodeB = getRigidBodyNode(obB);
+												
+						for (int j=0;j<numContacts;j++)
+						{
+							btManifoldPoint& pt = contactManifold->getContactPoint(j);
+
+							btVector3 ptA = pt.getPositionWorldOnA();
+							btVector3 ptB = pt.getPositionWorldOnB();
+
+							if ( rbNodeA && rbNodeB )
+							{
+								rbNodeA->addContactInfo(rbNodeB->name(), MVector(ptA.getX(), ptA.getY(), ptA.getZ()));
+								rbNodeB->addContactInfo(rbNodeA->name(), MVector(ptB.getX(), ptB.getY(), ptB.getZ()));
+							}
+						}
+					}
+				}
             }
     
             m_prevTime = time;
@@ -1778,4 +1865,21 @@ void dSolverNode::dumpRigidBodyArray(MObject &node)
 
     std::ofstream out(file_name.c_str());
     pdb_io.write(out);
+}
+
+void dSolverNode::clearContactRelatedAttributes(MPlugArray &rbConnections)
+{
+    for(size_t i = 0; i < rbConnections.length(); ++i) {
+        
+		MObject node = rbConnections[i].node();
+        MFnDagNode fnDagNode(node);
+
+		if(fnDagNode.typeId() == rigidBodyNode::typeId) {
+            rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(fnDagNode.userNode()); 
+            rigid_body_t::pointer rb = rbNode->rigid_body();
+
+			if (rbNode)
+				rbNode->clearContactInfo();		
+		}
+	}
 }

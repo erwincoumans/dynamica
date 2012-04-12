@@ -27,6 +27,11 @@ written by Michael Baker <michael@mBakr.com>
 
 global proc string[] mbListNodeTypes()
 {
+	if (1)//getApplicationVersionAsFloat() < 11.0) 
+	{
+		return {"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};	
+	};
+	
 	return `allNodeTypes`;
 }
 
@@ -62,7 +67,7 @@ global proc int mbIsMesh(string $node)
 
 global proc int mbIsType(string $node, string $type)
 {
-	$types = `allNodeTypes`; //{"mesh", "nurbsSurface", "nurbsCurve", "subdiv", "renderBox", "ambientLight", "areaLight", "directionLight", "pointLight", "spotLight", "volumeLight", "camera", "particle", "nParticle", "nCloth", "pointEmitter", "fluidShape", "fluidEmitter"};
+	$types = mbListNodeTypes();
 	$shape = `listRelatives -f -pa $node`;
 	if (size($shape)) 
 	{

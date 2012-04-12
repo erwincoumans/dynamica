@@ -38,6 +38,11 @@ Modified by Roman Ponomarev <rponom@gmail.com>
 #include <maya/MQuaternion.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MVector.h>
+#include <maya/MFnTypedAttribute.h>
+#include <maya/MFnStringArrayData.h>
+#include <maya/MStringArray.h>
+#include <maya/MFnVectorArrayData.h>
+#include <maya/MVectorArray.h>
 
 #include "rigidBodyNode.h"
 #include "collisionShapeNode.h"
@@ -69,12 +74,17 @@ MObject     rigidBodyNode::ca_rigidBody;
 MObject     rigidBodyNode::ca_rigidBodyParam;
 MObject     rigidBodyNode::ca_solver;
 
+MObject     rigidBodyNode::oa_contactCount;
+MObject		rigidBodyNode::oa_contactName;
+MObject		rigidBodyNode::oa_contactPosition;
+
 MStatus rigidBodyNode::initialize()
 {
     MStatus status;
     MFnMessageAttribute fnMsgAttr;
     MFnNumericAttribute fnNumericAttr;
     MFnMatrixAttribute fnMatrixAttr;
+	MFnTypedAttribute typedAttr;
 
     ia_collisionShape = fnMsgAttr.create("inCollisionShape", "incs", &status);
     MCHECKSTATUS(status, "creating inCollisionShape attribute")
@@ -173,6 +183,28 @@ MStatus rigidBodyNode::initialize()
     status = addAttribute(ca_solver);
     MCHECKSTATUS(status, "adding ca_solver attribute")
 
+	oa_contactCount = fnNumericAttr.create("contactCount", "contactCount", MFnNumericData::kInt, 0, &status);
+    MCHECKSTATUS(status, "creating oa_contactCount attribute")
+    fnNumericAttr.setConnectable(true);
+    fnNumericAttr.setHidden(true);
+    fnNumericAttr.setStorable(false);
+    fnNumericAttr.setKeyable(false);
+    status = addAttribute(oa_contactCount);
+    MCHECKSTATUS(status, "adding oa_contactCount attribute");
+
+	MFnStringArrayData stringArrayData;
+	oa_contactName = typedAttr.create("contactName", "contactName", MFnData::kStringArray, stringArrayData.create(), &status);
+	MCHECKSTATUS(status, "creating oa_contactName attribute")
+	typedAttr.setHidden(true);
+	status = addAttribute(oa_contactName);
+	MCHECKSTATUS(status, "adding oa_contactName attribute");
+
+	oa_contactPosition = typedAttr.create("contactPosition", "contactPosition", MFnVectorArrayData::kVectorArray, &status);	 
+	MCHECKSTATUS(status, "creating oa_contactPosition attribute")
+	typedAttr.setHidden(true);
+    status = addAttribute(oa_contactPosition);
+	MCHECKSTATUS(status, "adding oa_contactPosition attribute");
+
 	status = attributeAffects(ia_mass, ca_rigidBody);
     MCHECKSTATUS(status, "adding attributeAffects(ia_mass, ca_rigidBodyParam)")
 
@@ -207,7 +239,7 @@ MStatus rigidBodyNode::initialize()
     return MS::kSuccess;
 }
 
-rigidBodyNode::rigidBodyNode()
+rigidBodyNode::rigidBodyNode() : m_contactCount(0)
 {
     // std::cout << "rigidBodyNode::rigidBodyNode" << std::endl;
 }
@@ -704,3 +736,86 @@ void rigidBodyNode::update()
     MPlug(thisObject, ca_solver).getValue(update);
     MPlug(thisObject, worldMatrix).elementByLogicalIndex(0).getValue(update);
 }
+
+void rigidBodyNode::clearContactInfo()
+{
+	MObject thisObject(thisMObject());
+
+	// contactCount
+	m_contactCount = 0;
+	MPlug plugContactCount(thisObject, rigidBodyNode::oa_contactCount);
+	plugContactCount.setValue(m_contactCount);
+	
+	// contactName
+	MStringArray stringArray;
+	stringArray.clear();
+	MFnStringArrayData stringArrayData;
+	MObject strArrObject = stringArrayData.create(stringArray);
+
+	MPlug plugContactName(thisObject, rigidBodyNode::oa_contactName);
+
+	if ( !plugContactName.isNull() )
+		plugContactName.setValue(strArrObject);
+
+	// contactPosition
+	MPlug plugContactPosition(thisObject, rigidBodyNode::oa_contactPosition);
+	bool isArray = plugContactPosition.isArray();
+				
+	MVectorArray vectorArray;
+	vectorArray.clear();
+
+	MFnVectorArrayData vectorArrayData;
+	MObject arrObject = vectorArrayData.create(vectorArray);		
+
+	if ( !plugContactPosition.isNull() )
+		plugContactPosition.setValue(arrObject);
+}
+
+void rigidBodyNode::addContactInfo(const MString& contactObjectName, const MVector& point)
+{
+	MObject thisObject(thisMObject());
+
+	// contactCount
+	m_contactCount++;
+	MPlug plugContactCount(thisObject, rigidBodyNode::oa_contactCount);
+	plugContactCount.setValue(m_contactCount);
+	
+	// contactName
+	MPlug plugContactName(thisObject, rigidBodyNode::oa_contactName);
+
+	if ( !plugContactName.isNull() )
+	{
+		MObject strArrObject;
+		plugContactName.getValue(strArrObject);
+
+		MFnStringArrayData stringArrayData(strArrObject);
+		MStringArray stringArray = stringArrayData.array();
+
+		stringArray.append(contactObjectName);
+
+		MFnStringArrayData newStringArrayData;
+		MObject newStrArrObject = newStringArrayData.create(stringArray);
+	
+		plugContactName.setValue(newStrArrObject);
+	}
+
+	// contactPosition
+	MPlug plugContactPosition(thisObject, rigidBodyNode::oa_contactPosition);
+
+	if ( !plugContactPosition.isNull() )
+	{
+		MObject arrObject;
+		plugContactPosition.getValue(arrObject);	
+
+		MFnVectorArrayData vectorArrayData(arrObject);
+		MVectorArray vectorArray = vectorArrayData.array();
+
+		vectorArray.append(point);
+	
+		MFnVectorArrayData newVectorArrayData;
+		MObject newArrObject = newVectorArrayData.create(vectorArray);	
+	
+		plugContactPosition.setValue(newArrObject);
+	}
+}
+

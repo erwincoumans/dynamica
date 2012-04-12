@@ -89,6 +89,7 @@ protected:
     {
     }
 
+public:
     rigid_body_impl_t* impl() { return m_impl.get(); }
  //   rigid_body_impl_t const* impl() const { return m_impl.get(); }
 

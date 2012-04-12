@@ -21,6 +21,10 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 
 Modified by Roman Ponomarev <rponom@gmail.com>
 01/22/2010 : Constraints reworked
+
+Modified by Dongsoo Han <dongsoo.han@amd.com>
+04/11/2012 : Added contactCount, contactName and contactPosition attributes and void clearContactInfo(), void addContactInfo(..) 
+			 in order to provide contact information through MEL script.
 */
 
 //rigidBodyNode.h
@@ -91,6 +95,10 @@ public:
     static  MObject     ca_rigidBodyParam;
     static  MObject     ca_solver;
 
+	static  MObject		oa_contactCount;
+	static  MObject		oa_contactName; 
+	static  MObject		oa_contactPosition; 
+
 public:
     static  MTypeId     typeId;
     static  MString     typeName;
@@ -101,13 +109,16 @@ public:
     void computeWorldMatrix(const MPlug& plug, MDataBlock& data);
     void computeRigidBodyParam(const MPlug& plug, MDataBlock& data);
 
+	void clearContactInfo();
+	void addContactInfo(const MString& contactObjectName, const MVector& point);
+
 public:
     static void nodeRemoved(MObject& node, void *clientData);
 	void updateShape(const MPlug& plug, MDataBlock& data, float& collisionMarginOffset); //future collision margin adjust
 
 private:
     rigid_body_t::pointer       m_rigid_body;
-
+	int m_contactCount;
 
 };
 

@@ -57,6 +57,8 @@ btSoftRigidBodyWorld.
 #include "constraint/bt_slider_constraint.h"
 #include "constraint/bt_sixdof_constraint.h"
 
+class rigidBodyNode;
+
 /** \brief	This class is an implementation of the pure virtual class solver_impl_t.
 			It is based on the Bullet library solver for rigid and soft bodies.
 
@@ -263,7 +265,7 @@ public:
 
     virtual void step_simulation(float dt, float fixedPhysicsFrameRate) 
     {
-        m_dynamicsWorld->stepSimulation(dt, 10000, fixedPhysicsFrameRate);
+        m_dynamicsWorld->stepSimulation(dt, 10000, fixedPhysicsFrameRate);		
     }
 
 	virtual void debug_draw(int dbgMode);
@@ -293,9 +295,12 @@ private:
     btConstraintSolver*               m_solver;
     btDefaultCollisionConfiguration*  m_collisionConfiguration;
     btCollisionDispatcher*            m_dispatcher;
-    btSoftRigidDynamicsWorld*          m_dynamicsWorld;
+    btSoftRigidDynamicsWorld*          m_dynamicsWorld;	
+
 public:
 	btHashMap<btHashPtr,const char*>	m_nameMap;
+
+	btSoftRigidDynamicsWorld* dyanmicsWorld() { return m_dynamicsWorld; }
 };
 
 #endif
