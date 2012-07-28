@@ -53,6 +53,7 @@ $(BULLET)/src/LinearMath/btGeometryUtil.cpp \
 	$(BULLET)/src/LinearMath/btSerializer.cpp \
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
 	$(BULLET)/src/LinearMath/btAlignedAllocator.cpp \
+	$(BULLET)/src/LinearMath/btVector3.cpp \
 	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
 ../HACD/hacdGraph.cpp  ../HACD/hacdHACD.cpp  ../HACD/hacdICHull.cpp  ../HACD/hacdManifoldMesh.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \

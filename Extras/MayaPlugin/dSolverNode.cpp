@@ -1704,8 +1704,8 @@ void dSolverNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
 					for ( int i=0;i<numManifolds;i++)
 					{
 						btPersistentManifold* contactManifold = pCollisionWorld->getDispatcher()->getManifoldByIndexInternal(i);
-						btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
-						btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+						btCollisionObject* obA = (btCollisionObject*)(contactManifold->getBody0());
+						btCollisionObject* obB = (btCollisionObject*)(contactManifold->getBody1());
 
 						int numContacts = contactManifold->getNumContacts();
 

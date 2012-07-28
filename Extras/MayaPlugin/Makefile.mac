@@ -4,7 +4,7 @@
 #make -f Makefile.mac
 #make -f Makefile.mac install
 
-MAYA_VERSION=2012
+MAYA_VERSION=2013
 MAYA_LOCATION=/Applications/Autodesk/maya$(MAYA_VERSION)
 
 //FLAGS_32_OR_64BITS=-arch i386
@@ -64,6 +64,7 @@ SOURCES = bt_solver.cpp pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigid
 	$(BULLET)/src/LinearMath/btSerializer.cpp \
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
 	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
+	$(BULLET)/src/LinearMath/btVector3.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
