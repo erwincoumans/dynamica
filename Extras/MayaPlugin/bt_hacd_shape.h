@@ -148,8 +148,8 @@ public:
 			int numHacdIndices = num_indices;
 			float* hacdVertices = new float[numHacdVertices*3];
 			int* hacdIndices = new int[numHacdIndices];
-			assert(hacdVertices != NULL);
-			assert(hacdIndices != NULL);
+			btAssert(hacdVertices != NULL);
+			btAssert(hacdIndices != NULL);
 
 			for(size_t i = 0; i < numHacdVertices; ++i) {
 				int ii = i*3;

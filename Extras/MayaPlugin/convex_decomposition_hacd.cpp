@@ -364,7 +364,7 @@ int convex_decomposition_hacd::GetNumMergedIndices()
 
 void convex_decomposition_hacd::GetMergedVertices( float* vertices)
 {
-   assert(vertices != NULL);
+   btAssert(vertices != NULL);
 
    for(int i=0; i<mMergedVertices.size(); i++)
    {
@@ -374,7 +374,7 @@ void convex_decomposition_hacd::GetMergedVertices( float* vertices)
 
 void convex_decomposition_hacd::GetMergedIndices( int* indices)
 {
-   assert(indices != NULL);
+   btAssert(indices != NULL);
 
    for(int i=0; i<mMergedIndices.size(); i++)
    {

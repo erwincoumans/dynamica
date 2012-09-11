@@ -698,12 +698,12 @@ void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& dat
     //force evaluation of the shape
     plgInputMesh.getValue(upd);
 	
-	assert(plgInputMesh.isConnected());
+	btAssert(plgInputMesh.isConnected());
 	MPlugArray connections;
 	plgInputMesh.connectedTo(connections, true, false);
 	
 	// MFnDependencyNode fnNode(connections[0].node());
-	assert( connections.length() != 0);
+	btAssert( connections.length() != 0);
 
 	// std::cout << "(SoftBodyNode::computeSoftBody) Dependency node fn name: | " << fnNode.name() << std::endl;
 	
@@ -740,7 +740,7 @@ void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& dat
 	//force evaluation of the shape
 	plgOutputMesh.getValue(update);
 	
-	assert(plgOutputMesh.isConnected());
+	btAssert(plgOutputMesh.isConnected());
 	
 	plgOutputMesh.connectedTo(connections, false, true);
 							
@@ -753,7 +753,7 @@ void dSolverNode::initSoftBody(const MPlug& plug, MObject& node, MDataBlock& dat
 	}
 
 	MStatus setPtStat = meshFnOut.setPoints(newPoints, MSpace::kTransform);
-	assert(setPtStat == MStatus::kSuccess);
+	btAssert(setPtStat == MStatus::kSuccess);
 
 }
 

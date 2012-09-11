@@ -289,12 +289,12 @@ void SoftBodyNode::computeSoftBody(const MPlug &plug, MDataBlock &data)
 	//force evaluation of the shape
 	plgInputMesh.getValue(update);
 
-	assert(plgInputMesh.isConnected());
+	btAssert(plgInputMesh.isConnected());
 	MPlugArray connections;
 	plgInputMesh.connectedTo(connections, true, false);
 
 	// MFnDependencyNode fnNode(connections[0].node());
-	assert( connections.length() != 0);
+	btAssert( connections.length() != 0);
 
 	// std::cout << "(SoftBodyNode::computeSoftBody) Dependency node fn name: | " << fnNode.name() << std::endl;
 

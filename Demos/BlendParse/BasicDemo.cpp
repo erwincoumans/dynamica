@@ -152,8 +152,7 @@ void BasicDemo::clientMoveAndDisplay()
 
 }
 
-
-static bool CustomMaterialCombinerCallback(btManifoldPoint& cp,	const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1)
+static bool CustomMaterialCombinerCallback(btManifoldPoint& cp,	const btCollisionObjectWrapper* colObj0Wrap,int partId0,int index0,const btCollisionObjectWrapper* colObj1Wrap,int partId1,int index1)
 {
 	cp.m_lateralFrictionInitialized = true;
 	cp.m_lateralFrictionDir1.setValue(1,0,0);
