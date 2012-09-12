@@ -477,7 +477,6 @@ collision_shape_t::pointer collisionShapeNode::createCollisionShape(const MObjec
 		//btBvhTriangleMeshShape
 		{
 
-			{
 				if(node.hasFn(MFn::kMesh)) {
 					MDagPath dagPath;
 					MDagPath::getAPathTo(node, dagPath);
@@ -504,12 +503,11 @@ collision_shape_t::pointer collisionShapeNode::createCollisionShape(const MObjec
 					bool dynamicMesh = false;
 					collision_shape = solver_t::create_mesh_shape(&(vertices[0]), vertices.size(), &(normals[0]),
 						&(indices[0]), indices.size(),dynamicMesh);
-				}
 			}
 		}
 		break;
 	case 8:
-		//btBvhTriangleMeshShape
+		//hacd convex decomposition
 		{
 
 			{

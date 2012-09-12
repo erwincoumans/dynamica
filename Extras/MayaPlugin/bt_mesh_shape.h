@@ -123,7 +123,7 @@ public:
 	       
 		
 			btGImpactMeshShape* gimpact = new btGImpactMeshShape(m_tiva.get());
-			 m_concave_shape.reset(gimpact);
+			m_concave_shape = gimpact;
 			m_concave_shape->setLocalScaling(btVector3(1.0f,1.0f,1.0f));
 	        gimpact->updateBound();
 			btCompoundShape *compound_shape = new btCompoundShape;
@@ -134,8 +134,8 @@ public:
                                                   btVector3(m_center[0],
                                                             m_center[1],
                                                             m_center[2])),
-															m_concave_shape.get());
-
+															m_concave_shape);
+			m_gimpactShape.reset(gimpact);
 			 set_shape(compound_shape);
 		} else
 		{
@@ -149,10 +149,11 @@ public:
 				m_tiva.reset(new btTriangleIndexVertexArray(num_indices / 3, (int*)&(m_indices[0]), 3 * sizeof(unsigned int),
 										num_vertices, (float*)&(m_vertices[0]), sizeof(vec3f)));
 
-				btBvhTriangleMeshShape* gimpact = new btBvhTriangleMeshShape(m_tiva.get(),true);
-				 m_concave_shape.reset(gimpact);
+				btBvhTriangleMeshShape* bvh = new btBvhTriangleMeshShape(m_tiva.get(),true);
+				 m_concave_shape = bvh;
 				m_concave_shape->setLocalScaling(btVector3(1.0f,1.0f,1.0f));
-				set_shape(gimpact);
+				set_shape(bvh);
+				m_gimpactShape.reset(0);
 		}
 
        
@@ -187,7 +188,8 @@ public:
     }
 
 private:
-    shared_ptr<btConcaveShape>				m_concave_shape;
+	shared_ptr<btConcaveShape>				m_gimpactShape;
+	btConcaveShape*							m_concave_shape;
     std::vector<vec3f>                      m_vertices;
     std::vector<vec3f>                      m_normals;
     std::vector<unsigned int>               m_indices; 

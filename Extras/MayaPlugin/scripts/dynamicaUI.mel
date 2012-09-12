@@ -253,7 +253,7 @@ global proc string dynamicaUI_createMainTab()
 		setParent ..;
 
 		dynamicaUI_createFrame("Passive Rigid Bodies", "Passive rigid bodies do not react to gravity or fields, but are included in collisions.\nIf passive rigid bodies are keyed and moving, they are considered kinematic - active bodies will collide and react accordingly.", 0, 0);
-			rowLayout -nc 6;
+			rowLayout -nc 7;
 				iconTextButton -st "iconAndTextVertical" -l "Sphere" -w 75 -i "dynamicaCreatePassiveSphere.xpm" 
 					-c "dynamicaUI_createPassiveSphere" -ann "Create a passive sphere rigid body";
 
@@ -266,8 +266,8 @@ global proc string dynamicaUI_createMainTab()
 				iconTextButton -st "iconAndTextVertical" -l "Mesh" -w 75 -i "dynamicaCreatePassiveMesh.xpm" 
 					-c "dynamicaUI_createPassiveMesh" -ann "Create passive mesh rigid bodies from selection";
 
-				// iconTextButton -st "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMesh.xpm" 
-					// -c "dynamicaUI_createRigidBody(false, 1)" -ann "Create passive Bvh mesh rigid bodies from selection";
+				 iconTextButton -st "iconAndTextVertical" -l "BvhMesh" -w 75 -i "dynamicaCreatePassiveBvhMesh.xpm" 
+					 -c "dynamicaUI_createRigidBody(false, 7)" -ann "Create passive Bvh mesh rigid bodies from selection";
 
 				iconTextButton -st "iconAndTextVertical" -l "Plane" -w 75 -i "dynamicaCreatePassivePlane.xpm" 
 					-c "dynamicaUI_createPassivePlane" -ann "Create a passive plane rigid body";
@@ -888,7 +888,7 @@ global proc dynamicaUI_createRigidBody(int $activebody, int $collisionShapeType)
 	
 	
 	//pick the selected object's transform only if we are creating a hull or a mesh
-	if ($collisionShapeType == 0 || $collisionShapeType == 1 || $collisionShapeType == 8) 
+	if ($collisionShapeType == 0 || $collisionShapeType == 1 || $collisionShapeType == 7 || $collisionShapeType == 8) 
 	{
 		string $isGroup = mbSelectionIsGroup($obSelection[0]);
 
