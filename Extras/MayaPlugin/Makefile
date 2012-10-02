@@ -7,7 +7,7 @@ MAYA_LOCATION?=/usr/autodesk/maya2012-x64
 MAYA=$(MAYA_LOCATION)
 
 ## Change this if you want to change the installation directory
-MAYA_PLUG_IN_PATH=/usr/autodesk/maya2012-x64
+MAYA_PLUG_IN_PATH=$(MAYA_LOCATION)
 
 ## Change this if you want to change the name of the final plugin 
 LIBRARY=DynamicaMayaPlugin.so
@@ -54,6 +54,7 @@ $(BULLET)/src/LinearMath/btGeometryUtil.cpp \
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
 	$(BULLET)/src/LinearMath/btAlignedAllocator.cpp \
 	$(BULLET)/src/LinearMath/btVector3.cpp \
+	$(BULLET)/src/LinearMath/btPolarDecomposition.cpp \
 	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
 ../HACD/hacdGraph.cpp  ../HACD/hacdHACD.cpp  ../HACD/hacdICHull.cpp  ../HACD/hacdManifoldMesh.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \

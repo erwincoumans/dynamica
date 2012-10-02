@@ -21,6 +21,7 @@ Written by: Nicola Candussi <nicola@fluidinteractive.com>
 */
 
 //dSolverCmd.cpp
+#include "BulletSoftBody/btSoftBody.h"
 
 #include <maya/MItDependencyNodes.h>
 #include <maya/MSyntax.h>
