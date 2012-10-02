@@ -65,6 +65,7 @@ SOURCES = bt_solver.cpp pluginMain.cpp bulletExport.cpp  rigidBodyNode.cpp rigid
 	$(BULLET)/src/LinearMath/btConvexHull.cpp \
 	$(BULLET)/src/LinearMath/btConvexHullComputer.cpp \
 	$(BULLET)/src/LinearMath/btVector3.cpp \
+	$(BULLET)/src/LinearMath/btPolarDecomposition.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp \
 	$(BULLET)/src/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp \
