@@ -40,6 +40,7 @@ subject to the following restrictions:
 #include <GL/gl.h>
 #include <GL/glu.h>
 #else
+#include <GL/gl.h>
 #include <GL/glut.h>
 #endif
 #endif
@@ -74,13 +75,18 @@ void GLDebugResetFont(int screenWidth,int screenHeight)
 		glTexImage2D(GL_TEXTURE_2D, 0, 3, 256 , 256 , 0, GL_RGB, GL_UNSIGNED_BYTE, &sFontData[0]);
 	}
 
-	printf("generating font at resolution %d,%d\n",screenWidth,screenHeight);
+//	printf("generating font at resolution %d,%d\n",screenWidth,screenHeight);
 
 }
 
 #define USE_ARRAYS 1
 
 void	GLDebugDrawStringInternal(int x,int y,const char* string, const btVector3& rgb)
+{
+	GLDebugDrawStringInternal(x,y,string,rgb,true,10);
+}
+
+void	GLDebugDrawStringInternal(int x,int y,const char* string, const btVector3& rgb, bool enableBlend, int spacing)
 {
 
 	if (!sTexturesInitialized)
@@ -104,7 +110,14 @@ void	GLDebugDrawStringInternal(int x,int y,const char* string, const btVector3& 
 		glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE);
 		glDepthFunc (GL_LEQUAL);
-		glEnable(GL_BLEND);
+		
+		if (enableBlend)
+		{
+			glEnable(GL_BLEND);
+		} else
+		{
+			glDisable(GL_BLEND);
+		}
 		glEnable (GL_DEPTH_TEST);
 		glBindTexture(GL_TEXTURE_2D, sTexture);
 		glDisable(GL_DEPTH_TEST);
@@ -178,7 +191,7 @@ void	GLDebugDrawStringInternal(int x,int y,const char* string, const btVector3& 
 				glEnd();
 #endif			
 
-				glTranslatef(10,0,0);
+				glTranslatef(spacing,0,0);
 			}
 		}
 

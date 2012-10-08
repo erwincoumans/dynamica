@@ -33,11 +33,12 @@ class btCollisionObject;
 #else
 
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #else
+#include <GL/gl.h>
 #include <GL/glut.h>
 #endif
 #endif
@@ -123,6 +124,7 @@ struct GL_SliderControl : public GL_DialogControl
 	btScalar m_lowerLimit;
 	btScalar m_upperLimit;
 	btTypedConstraint* m_constraint;
+	btScalar m_fraction;
 
 	const char* m_sliderText;
 public:
@@ -140,7 +142,7 @@ public:
 
 	virtual void draw(int& parentHorPos,int& parentVertPos,btScalar deltaTime);
 
-	btScalar	btGetFraction();
+	btScalar	btGetFraction() { return m_fraction; }
 
 	btScalar getLowerLimit()
 	{

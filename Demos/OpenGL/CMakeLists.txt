@@ -12,6 +12,7 @@
 
 
 
+
 INCLUDE_DIRECTORIES(
 ${BULLET_PHYSICS_SOURCE_DIR}/src ${BULLET_PHYSICS_SOURCE_DIR}/Extras/ConvexHull  
 )
@@ -41,6 +42,8 @@ ADD_LIBRARY(OpenGLSupport
 		GlutStuff.cpp
 		GlutStuff.h
 
+		stb_image.cpp
+		stb_image.h
 
 		Win32DemoApplication.cpp
 		Win32DemoApplication.h
