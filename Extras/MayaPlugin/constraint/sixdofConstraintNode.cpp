@@ -541,7 +541,7 @@ void sixdofConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& da
 		{
 			for (int i=0;i<3;i++)
 			{
-				lowLin[i] = ll.child(i).asFloat();
+				ll.child(i).getValue(lowLin[i]);
 			}
 		}
 	}
@@ -551,7 +551,7 @@ void sixdofConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& da
 		{
 			for (int i=0;i<3;i++)
 			{
-				uppLin[i] = ul.child(i).asFloat();
+				ul.child(i).getValue(uppLin[i]);
 			}
 		}
 	}
@@ -561,7 +561,9 @@ void sixdofConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& da
 		{
 			for (int i=0;i<3;i++)
 			{
-				lowAng[i] = deg2rad(all.child(i).asFloat());
+				float f;
+				all.child(i).getValue(f);
+				lowAng[i] = deg2rad(f);
 			}
 		}
 	}
@@ -571,7 +573,9 @@ void sixdofConstraintNode::reComputeConstraint(const MPlug& plug, MDataBlock& da
 		{
 			for (int i=0;i<3;i++)
 			{
-				uppAng[i] = deg2rad(aul.child(i).asFloat());
+				float f;
+				aul.child(i).getValue(f);
+				uppAng[i] = deg2rad(f);
 			}
 		}
 
