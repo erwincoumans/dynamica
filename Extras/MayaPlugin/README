@@ -1,23 +1,59 @@
-Bullet Maya Plugin
-
+Dynamica Bullet Maya Plugin
 
 How to build in linux:
 
 Please check the beginning of the Makefile to make sure that the variables are correct.
 Then do:
 
-make install
+make
+sudo make install
 
+Instead of sudo make install you can also try running from the current directory, for example:
+
+csh
+setenv MAYA_PLUG_IN_PATH $cwd
+setenv XBMLANGPATH $cwd/icons/%B
+setenv MAYA_SCRIPT_PATH $cwd/scripts
+/usr/autodesk/maya2012-x64/bin/maya
+
+-------------------------
+Under Mac you can compile and install, after editing the Makefile.mac if necessary (Maya version)
+
+cd Extras/MayaPlugin
+make -f Makefile.mac
+sudo make -f Makefile.mac install
 
 -------------------------
 
-How to build under Windows, using Microsoft Visual Studio 2005 or later:
+How to build under Windows, using Microsoft Visual Studio and CMake
 
-Open BulletMayaPlugin.sln and select Debug or Release configuration and compile.
+The source zipfile is for Windows, use the .tgz file for Linux and Mac OSX.
+How to compile the Dynamica plugin using Microsoft Visual Studio:
 
-Maya 2008 is assumed at the default location C:\Program Files\Autodesk\Maya2008\include
-Otherwise change the include path in the project settings.
+Install cmake from http://cmake.org
 
-Installation:
+Run cmake-gui to generate Visual Studio project files
 
-copy the folder 'icons', 'mvl' and 'scripts' into C:\Program Files\Autodesk\Maya2008
+Set 'Where is the source' to C:/develop/dynamica
+Set 'Where to create the binaries' to C:/develop/dynamica/maya2012
+
+Click Generate button
+
+If MAYA_BASE_DIR is not found in CMake-gui, set it manually, for example
+C:/Program Files/Autodesk/Maya2013
+
+Click Generate button
+
+Open the Visual Studio project under C:/develop/dynamica/maya2013, select the Release build and build all projects
+
+Download and install NSIS from http://nsis.sourceforge.net/Download
+
+Edit the NSIS file
+C:\develop\dynamica\maya2013\Extras\MayaPlugin\bullet_64bit.nsi
+In particular the Maya version and location of Visual Studio and its redist DLL (it defaults to Maya 2013 64bit and Visual Studio 2010)
+
+Right-click on bullet_64bit.nsi and compile NSIS script and your Dynamica installer should be created.
+
+Instead of using the installer, you can point Maya to in the build tree.
+In that case you need to copy Dynamica/Extras/MayaPlugin/scripts and Dynamica/Extras/MayaPlugin/icons
+next to C:/develop/dynamica/maya2012/lib/Debug or C:/develop/dynamica/maya2012/lib/Release
