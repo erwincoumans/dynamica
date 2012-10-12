@@ -494,7 +494,7 @@ global proc string dynamicaUI_createOptionsTab()
 					columnLayout;
 						text -al "left" -fn "boldLabelFont" -l "Physics Framerate (Hertz)";
 						int $physicsrate= `getAttr dSolver1.physicsrate`; 
-						$dynamicaUI_STphysicsrate = `intField -v $physicsrate -w 50 -ann "Default is 60. Higher values \"speed up\" simulation"`;
+						$dynamicaUI_STphysicsrate = `intField -v $physicsrate -w 50 -ann "Default is 240. Higher values \"speed up\" simulation"`;
 						connectControl $dynamicaUI_STphysicsrate dSolver1.physicsrate;
 					setParent ..;
 				setParent ..;

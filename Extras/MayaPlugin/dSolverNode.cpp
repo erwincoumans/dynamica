@@ -431,7 +431,7 @@ MStatus dSolverNode::initialize()
     status = addAttribute(ia_substeps);
     MCHECKSTATUS(status, "adding ia_substeps attribute")
 
-	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 60, &status); //MB
+	ia_fixedPhysicsRate = fnNumericAttr.create("physicsrate", "fps", MFnNumericData::kInt, 240, &status); //MB
     MCHECKSTATUS(status, "creating physicsrate attribute")
     fnNumericAttr.setKeyable(true);
 	fnNumericAttr.setMin(60);
