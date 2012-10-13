@@ -118,24 +118,40 @@ protected:
                             unsigned int const *indices, size_t num_indices): 
                         bt_collision_shape_t(),
                         m_normals(normals, normals + num_vertices),
-                        m_indices(indices, indices + num_indices)
+                        m_indices(indices, indices + num_indices),
+						m_volume(0.f)
     { 
-        m_volume = ::volume(vertices, (int*)indices, num_indices);
-        m_center = center_of_mass(vertices, (int*)indices, num_indices);
-        mat3x3f I = inertia(vertices, (int*)indices, num_indices, m_center);
-        m_rotation = diagonalizer(I);
+		m_volume = ::volume(vertices, (int*)indices, num_indices);
 
-        mat3x3f Q, Qinv; 
-        q_to_mat(m_rotation, Q); 
-        q_to_mat(qconj(m_rotation), Qinv);
+		if (m_volume > SIMD_EPSILON)
+		{
+			m_center = center_of_mass(vertices, (int*)indices, num_indices);
+			mat3x3f I = inertia(vertices, (int*)indices, num_indices, m_center);
+			m_rotation = diagonalizer(I);
+
+			mat3x3f Q, Qinv; 
+			q_to_mat(m_rotation, Q); 
+			q_to_mat(qconj(m_rotation), Qinv);
         
-        //D = trans(Q) * I * Q;
-        m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
+			//D = trans(Q) * I * Q;
+			m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
 
-        m_vertices.resize(num_vertices);
-        for(size_t i = 0; i < m_vertices.size(); ++i) {
-            m_vertices[i] = prod(Qinv, vertices[i] - m_center);
-        }
+			m_vertices.resize(num_vertices);
+			for(size_t i = 0; i < m_vertices.size(); ++i) 
+			{
+				m_vertices[i] = prod(Qinv, vertices[i] - m_center);
+			}
+		} else
+		{
+			m_center = vec3f(0.f,0.f,0.f);
+			m_local_inertia = vec3f(0.f,0.f,0.f);
+			m_rotation = quatf(qidentity<float>());
+			m_vertices.resize(num_vertices);
+			for(size_t i = 0; i < m_vertices.size(); ++i) 
+			{
+				m_vertices[i] = vertices[i];
+			}
+		}
 
         m_ch_shape.reset(new btConvexHullShape((float const*)&(m_vertices[0]), num_vertices, sizeof(vec3f)));
         btCompoundShape *compound_shape = new btCompoundShape;
@@ -160,25 +176,34 @@ protected:
 
     void update()
     {
-        //apply the scaling
-        btVector3 const& scale = m_ch_shape->getLocalScaling();
-        btVector3 const* points = m_ch_shape->getUnscaledPoints();
-        for(int i = 0; i < m_ch_shape->getNumPoints(); ++i) {
-            m_vertices[i] = vec3f(scale.x() * points[i].x(), scale.y() * points[i].y(), scale.z() * points[i].z()); 
-        }
-        m_volume = ::volume(&(m_vertices[0]), (int*)&(m_indices[0]), m_indices.size());
-        mat3x3f I = inertia(&(m_vertices[0]), (int*)&(m_indices[0]), (int)m_indices.size(), vec3f(0, 0, 0));
-        //std::cout << I << std::endl;
-        //m_rotation = diagonalizer(I);
-        //std::cout << rotation << std::endl;
-        //the rotation shouldn't change from scaling
+		//apply the scaling
+		btVector3 const& scale = m_ch_shape->getLocalScaling();
+		btVector3 const* points = m_ch_shape->getUnscaledPoints();
+		for(int i = 0; i < m_ch_shape->getNumPoints(); ++i) {
+			m_vertices[i] = vec3f(scale.x() * points[i].x(), scale.y() * points[i].y(), scale.z() * points[i].z()); 
+		}
+		m_volume = ::volume(&(m_vertices[0]), (int*)&(m_indices[0]), m_indices.size());
+		if (m_volume>SIMD_EPSILON)
+		{
+			mat3x3f I = inertia(&(m_vertices[0]), (int*)&(m_indices[0]), (int)m_indices.size(), vec3f(0, 0, 0));
+			//std::cout << I << std::endl;
+			//m_rotation = diagonalizer(I);
+			//std::cout << rotation << std::endl;
+			//the rotation shouldn't change from scaling
 
-        mat3x3f Q, Qinv; 
-        q_to_mat(m_rotation, Q); 
-        q_to_mat(qconj(m_rotation), Qinv);
+			mat3x3f Q, Qinv; 
+			q_to_mat(m_rotation, Q); 
+			q_to_mat(qconj(m_rotation), Qinv);
 
-        //D = Q * I * trans(Q);
-        m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
+			//D = Q * I * trans(Q);
+			m_local_inertia = diag(prod(trans(Q), mat3x3f(prod(I, Q))));
+		} else
+		{
+			m_local_inertia = vec3f(0,0,0);
+			m_rotation = quatf(qidentity<float>());
+			m_center = vec3f(0,0,0);
+		}
+	
     }
 
 private:
@@ -186,6 +211,7 @@ private:
     std::vector<vec3f>              m_vertices;
     std::vector<vec3f>              m_normals;
     std::vector<unsigned int>       m_indices; 
+
 
     float                           m_volume;
     vec3f                           m_center;
