@@ -1209,9 +1209,10 @@ void	ColladaConverter::PreparePhysicsObject(struct btRigidBodyInput& input, bool
 	btVector3 startScale(1.f,1.f,1.f);
 
 	//The 'target' points to a graphics element/node, which contains the start (world) transform
-	daeElementRef elem = input.m_instanceRigidBodyRef->getTarget().getElement();
+	xsAnyURI & target = input.m_instanceRigidBodyRef->getTarget();
+	daeElementRef elem = target.getElement();
 
-	xsNCName bodyName;
+	xsNCName bodyName="";
 	if (elem)
 	{
 		domNodeRef node = *(domNodeRef*)&elem;
@@ -1244,7 +1245,9 @@ void	ColladaConverter::PreparePhysicsObject(struct btRigidBodyInput& input, bool
 	colShape->setLocalScaling(startScale);
 
 
-	
+	if (!isDynamics)
+		mass = 0.f;
+
 	btRigidBody* body= createNamedRigidBody(isDynamics,mass,startTransform,colShape,bodyName);
 	if (body)
 	{
