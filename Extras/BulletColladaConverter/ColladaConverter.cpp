@@ -2594,6 +2594,7 @@ void ColladaConverter::syncOrAddRigidBody (btRigidBody* body)
 		case BOX_SHAPE_PROXYTYPE:
 		case SPHERE_SHAPE_PROXYTYPE:
 		case CYLINDER_SHAPE_PROXYTYPE:
+		case CAPSULE_SHAPE_PROXYTYPE:
 		case CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
 		case CONVEX_HULL_SHAPE_PROXYTYPE:
 			{
@@ -2926,7 +2927,12 @@ btCompoundShape* ColladaConverter::createCompoundShape()
 }
 
 
-
+btCollisionShape* ColladaConverter::createCapsuleShape(btScalar radius, btScalar height)
+{
+	btCollisionShape* shape = new btCapsuleShape(radius,height);
+	m_allocatedCollisionShapes.push_back(shape);
+	return shape;
+}
 
 btCollisionShape* ColladaConverter::createCylinderShapeY(btScalar radius,btScalar height)
 {
@@ -3130,6 +3136,15 @@ void	ColladaConverter::ConvertRigidBodyRef( btRigidBodyInput& rbInput,btRigidBod
 					domSphere::domRadiusRef radiusRef = sphereRef->getRadius();
 					domFloat radius = radiusRef->getValue()*m_unitMeterScaling;
 					rbOutput.m_colShape = createSphereShape(radius);
+				}
+
+				if (shapeRef->getCapsule())
+				{
+					domCapsuleRef cap = shapeRef->getCapsule();
+					domFloat height = cap->getHeight()->getValue()*this->m_unitMeterScaling;
+					domFloat2 radius2 = cap->getRadius()->getValue();
+					domFloat radius = radius2.get(0)*m_unitMeterScaling;
+					rbOutput.m_colShape = createCapsuleShape(radius,height);
 				}
 
 				if (shapeRef->getCylinder())

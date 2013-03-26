@@ -257,6 +257,7 @@ public:
 	virtual btCollisionShape* createBoxShape(const btVector3& halfExtents);
 	virtual btCollisionShape* createSphereShape(btScalar radius);
 	virtual btCollisionShape* createCylinderShapeY(btScalar radius,btScalar height);
+	virtual btCollisionShape* createCapsuleShape(btScalar radius, btScalar height);
 	virtual class btTriangleMesh*	createTriangleMeshContainer();
 	virtual	btCollisionShape* createBvhTriangleMeshShape(btTriangleMesh* trimesh);
 	virtual btCollisionShape* createConvexTriangleMeshShape(btTriangleMesh* trimesh);
