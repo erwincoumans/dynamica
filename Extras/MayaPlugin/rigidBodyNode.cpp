@@ -526,7 +526,8 @@ void rigidBodyNode::computeRigidBody(const MPlug& plug, MDataBlock& data)
 	m_rigid_body->set_linear_velocity(lv);
 	*/
 
-	data.outputValue(ca_rigidBody).set(true);
+	//?? the next line crashes Maya 2014. Note sure what it is supposed to achieve.
+//	data.outputValue(ca_rigidBody).set(true);
     data.setClean(plug);
 }
 
