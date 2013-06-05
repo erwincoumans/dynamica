@@ -14,6 +14,9 @@ SET(CMAKE_CXX_WARNING_LEVEL 4)
 
 #SET (CMAKE_VERBOSE_MAKEFILE TRUE)
 FIND_PATH(MAYA_BASE_DIR include/maya/MFn.h PATH 
+			"C:/Program Files/Autodesk/Maya2014"
+			"C:/Program Files/Autodesk/Maya2013"
+			"C:/Program Files (x86)/Autodesk/Maya2013"
 			/usr/autodesk/maya2009-x64
 			/usr/autodesk/maya2008-x64 
 			/usr/autodesk/maya 
