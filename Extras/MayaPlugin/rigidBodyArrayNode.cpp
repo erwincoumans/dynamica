@@ -440,7 +440,7 @@ void rigidBodyArrayNode::reComputeRigidBodies(const MPlug& plug, MDataBlock& )
 			m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
 		} else 
 		{
-			m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
+			m_rigid_bodies[i]->set_transform(vec3f(i*100.f,i*100.f,i*100.f),quatf(1.f,0.f,0.f,0.f));
 		}
         m_rigid_bodies[i]->set_mass(mass);
         m_rigid_bodies[i]->set_inertia(inertia);
@@ -498,15 +498,20 @@ void rigidBodyArrayNode::computeRigidBodies(const MPlug& plug, MDataBlock& data)
     }
 
     m_rigid_bodies.resize(m_numRigidBodies);
-    for(size_t i = 0; i < m_rigid_bodies.size(); ++i) {
+    for(size_t i = 0; i < m_rigid_bodies.size(); ++i) 
+	{
         m_rigid_bodies[i] = solver_t::create_rigid_body(collision_shape);
-	if (i < m_positions.size()) {
-            m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
-	} else {
-            m_rigid_bodies[i]->set_transform(vec3f(0.f,0.f,0.f),quatf(1.f,0.f,0.f,0.f));
-	}
+		
+		if (i < m_positions.size()) 
+		{
+			vec3f pos = m_positions[i];
+			m_rigid_bodies[i]->set_transform(m_positions[i], m_rotations[i]);
+		} else 
+		{
+			m_rigid_bodies[i]->set_transform(vec3f(i*100.f,i*100.f,i*100.f),quatf(1.f,0.f,0.f,0.f));
+		}
 	
-	solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
+		solver_t::add_rigid_body(m_rigid_bodies[i], name().asChar());
     }
 
     data.outputValue(ca_rigidBodies).set(true);
