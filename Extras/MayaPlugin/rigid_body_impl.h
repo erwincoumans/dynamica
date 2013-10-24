@@ -73,6 +73,8 @@ public:
 
 public:
     virtual ~rigid_body_impl_t() {};
+
+	virtual const btRigidBody* getBulletRigidBodyPointer()=0;
 };
 
 #endif

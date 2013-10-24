@@ -56,6 +56,8 @@ not be misrepresented as being the original software.
 #include <maya/MIOStream.h>
 
 
+
+
 //////////////////////////////////////////////////////////////
 class ColladaTranslator : public MPxFileTranslator {
 public:

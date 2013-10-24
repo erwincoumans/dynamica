@@ -2566,6 +2566,8 @@ void ColladaConverter::syncOrAddRigidBody (btRigidBody* body)
         if( getVerbosity() > SILENT )
 		    printf("New body\n");
 		btCollisionShape* shape = body->getCollisionShape ();
+		nodeName = findNameForPointer(body);
+		shapeName = findNameForPointer(shape);
 
 		if (!nodeName)
 		{
@@ -2670,6 +2672,8 @@ void ColladaConverter::syncOrAddConstraint (btTypedConstraint* constraint)
 		
 		char namebuf[512];
 		const char* constraintName = NULL;
+		constraintName = findNameForPointer(constraint);
+
 		if (!constraintName)
 		{
 			// generate one, and repeat until we have a unique name
@@ -3072,7 +3076,7 @@ void	ColladaConverter::ConvertRigidBodyRef( btRigidBodyInput& rbInput,btRigidBod
 						{
 							if (!strcmp(myVal,"true"))
 							{
-								printf("revert bug in PhysX .dae export -> <kinematic>true</kinematic> means <dynamic>false</dynamic>\n");
+								printf("revert bug in Bullet .dae export -> <kinematic>true</kinematic> means <dynamic>false</dynamic>\n");
 								rbOutput.m_isDynamics = false;
 							}
 						}

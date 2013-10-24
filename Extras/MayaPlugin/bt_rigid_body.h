@@ -245,6 +245,12 @@ protected:
         m_body.reset(new btRigidBody(rbInfo));
     }
 
+	virtual const btRigidBody* getBulletRigidBodyPointer()
+	{
+		return m_body.get();
+	}
+
+
 private:
     shared_ptr<btRigidBody> m_body; 
     collision_shape_impl_t* m_collision_shape;

@@ -147,16 +147,19 @@ shared_ptr<solver_impl_t> solv = solver_t::get_solver();
         if(fnNode.typeId() == hingeConstraintNode::typeId) 
 		{
 			hingeConstraintNode *hcNode = static_cast<hingeConstraintNode*>(dagNode.userNode()); 
-			std::cout << hcNode->name();
+			//hcNode->register_name(solv.get(),hcNode->name().asChar());
 			
 		}
         if(fnNode.typeId() == sliderConstraintNode::typeId) 
 		{
 			sliderConstraintNode *scNode = static_cast<sliderConstraintNode*>(dagNode.userNode()); 
+			//scNode->register_name(solv.get(),scNode->name().asChar());
+
 		}
         if(fnNode.typeId() == sixdofConstraintNode::typeId) 
 		{
 			sixdofConstraintNode *sdNode = static_cast<sixdofConstraintNode*>(dagNode.userNode()); 
+			//sdNode->register_name(solv.get(),sdNode->name().asChar());
 		}
 	}
 

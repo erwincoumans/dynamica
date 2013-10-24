@@ -29,6 +29,11 @@ Nov 2011 - Dec 2011 : Added soft body logic
 */
 
 //bt_solver.cpp
+#include "rigidBodyNode.h"
+#include "constraint/nailConstraintNode.h"
+#include "constraint/hingeConstraintNode.h"
+#include "constraint/sliderConstraintNode.h"
+#include "constraint/sixdofConstraintNode.h"
 
 #include "LinearMath/btSerializer.h"
 #include "bt_solver.h"
@@ -39,10 +44,117 @@ Nov 2011 - Dec 2011 : Added soft body logic
 #include <stdio.h>
 
 
+
+#include <string.h> 
+#include <sys/types.h>
+#include <maya/MStatus.h>
+#include <maya/MPxCommand.h>
+#include <maya/MString.h>
+#include <maya/MStringArray.h>
+#include <maya/MArgList.h>
+#include <maya/MGlobal.h>
+#include <maya/MSelectionList.h>
+#include <maya/MItSelectionList.h>
+#include <maya/MPoint.h>
+#include <maya/MPointArray.h>
+#include <maya/MDagPath.h>
+#include <maya/MDagPathArray.h>
+//#include <maya/MFnPlugin.h>
+#include <maya/MFnMesh.h>
+#include <maya/MFnSet.h>
+#include <maya/MItMeshPolygon.h>
+#include <maya/MItMeshVertex.h>
+#include <maya/MItMeshEdge.h>
+#include <maya/MFloatVector.h>
+#include <maya/MFloatVectorArray.h>
+#include <maya/MFloatArray.h>
+#include <maya/MObjectArray.h>
+#include <maya/MObject.h>
+//#include <maya/MPlug.h>
+#include <maya/MPxFileTranslator.h>
+#include <maya/MFnDagNode.h>
+#include <maya/MItDag.h>
+#include <maya/MDistance.h>
+#include <maya/MIntArray.h>
+#include <maya/MIOStream.h>
+
+
 void bt_solver_t::export_collada_file(const char* fileName)
 {
 #ifdef BT_USE_COLLADA
 	ColladaConverter tmpConverter(m_dynamicsWorld);
+
+
+	  MStatus status;
+
+	
+
+	MStatus stat;
+//	MItDag dagIterator( MItDag::kBreadthFirst, MFn::kInvalid, &stat);
+	MItDag dagIterator( MItDag::kDepthFirst, MFn::kInvalid, &stat);
+   	if (stat != MS::kSuccess)
+	{
+        std::cout << "Failure in DAG iterator setup" << std::endl;
+   	}
+	for ( ;!dagIterator.isDone(); dagIterator.next()) 
+	{
+   	    MDagPath dagPath;
+   	    stat = dagIterator.getPath( dagPath );
+   		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting DAG path" << std::endl;
+		}
+		// skip over intermediate objects
+		MFnDagNode dagNode( dagPath, &stat );
+		if (dagNode.isIntermediateObject()) 
+		{
+			continue;
+		}
+		if(!dagPath.hasFn(MFn::kDependencyNode))
+		{
+			continue;
+		}
+		MObject mObj = dagNode.object(&stat);
+		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting MObject" << std::endl;
+		}
+        MFnDependencyNode fnNode(mObj, &stat);
+		if(stat != MS::kSuccess)
+		{
+			std::cout << "Failure in getting dependency node" << std::endl;
+		}
+
+        if(fnNode.typeId() == rigidBodyNode::typeId) 
+		{
+			rigidBodyNode *rbNode = static_cast<rigidBodyNode*>(dagNode.userNode()); 
+			tmpConverter.registerNameForPointer(rbNode->rigid_body()->impl()->getBulletRigidBodyPointer(),rbNode->name().asChar());
+
+		}
+        if(fnNode.typeId() == nailConstraintNode::typeId) 
+		{
+			nailConstraintNode *ncNode = static_cast<nailConstraintNode*>(dagNode.userNode()); 
+		//	ncNode->register_name(solv.get(),ncNode->name().asChar());
+		}
+        if(fnNode.typeId() == hingeConstraintNode::typeId) 
+		{
+			hingeConstraintNode *hcNode = static_cast<hingeConstraintNode*>(dagNode.userNode()); 
+			//hcNode->register_name(solv.get(),hcNode->name().asChar());
+			
+		}
+        if(fnNode.typeId() == sliderConstraintNode::typeId) 
+		{
+			sliderConstraintNode *scNode = static_cast<sliderConstraintNode*>(dagNode.userNode()); 
+			//scNode->register_name(solv.get(),scNode->name().asChar());
+
+		}
+        if(fnNode.typeId() == sixdofConstraintNode::typeId) 
+		{
+			sixdofConstraintNode *sdNode = static_cast<sixdofConstraintNode*>(dagNode.userNode()); 
+			//sdNode->register_name(solv.get(),sdNode->name().asChar());
+		}
+	}
+
 	tmpConverter.save(fileName);
 #endif
 }

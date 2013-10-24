@@ -117,6 +117,8 @@ protected:
 	
     VerbosityLevel m_verbosity;
 
+	btHashMap<btHashPtr,const char*>	m_nameMap;
+
     void PreparePhysicsObject(struct btRigidBodyInput& input, bool isDynamics, float mass,btCollisionShape* colShape, const btVector3& linearVelocity, const btVector3& angularVelocity);
 	
 	void prepareConstraints(ConstraintInput& input);
@@ -213,6 +215,19 @@ public:
 	void registerRigidBody(btRigidBody* body, const char* name);
 	void deRegisterRigidBody(btRigidBody* body);
 	const char* getName (btRigidBody* body);
+
+	virtual	const char*	findNameForPointer(const void* ptr) const
+	{
+		const char*const * namePtr = m_nameMap.find(ptr);
+		if (namePtr && *namePtr)
+			return *namePtr;
+		return 0;
+	}
+	virtual	void	registerNameForPointer(const void* ptr, const char* name)
+	{
+		m_nameMap.insert(ptr,name);
+	}
+
 
 	void registerConstraint(btTypedConstraint* constraint, const char* name);
 	void deRegisterConstraint(btTypedConstraint* constraint);
