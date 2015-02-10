@@ -4,7 +4,7 @@
 #make -f Makefile.mac
 #make -f Makefile.mac install
 
-MAYA_VERSION=2013
+MAYA_VERSION=2015
 MAYA_LOCATION=/Applications/Autodesk/maya$(MAYA_VERSION)
 
 //FLAGS_32_OR_64BITS=-arch i386
@@ -101,6 +101,8 @@ $(BULLET)/src/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp \
 	$(BULLET)/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp \
 	$(BULLET)/src/BulletCollision/CollisionDispatch/btUnionFind.cpp \
 	$(BULLET)/src/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp \
+	$(BULLET)/src/BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btTetrahedronShape.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btShapeHull.cpp \
 	$(BULLET)/src/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp \
